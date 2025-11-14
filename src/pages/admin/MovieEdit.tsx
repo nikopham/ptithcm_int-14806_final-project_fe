@@ -650,7 +650,7 @@ const tmdbMock = [
   },
 ];
 
-export default function MovieAdd() {
+export default function MovieEdit() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<typeof tmdbMock>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -733,7 +733,7 @@ export default function MovieAdd() {
   return (
     <section className="mx-auto max-w-4xl space-y-8 pb-20">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Add new movie</h1>
+        <h1 className="text-2xl font-bold text-white">Edit movie</h1>
         <div className="flex gap-2">
           <Input
             className="w-[250px]"

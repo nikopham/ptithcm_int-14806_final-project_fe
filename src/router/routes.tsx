@@ -16,6 +16,15 @@ import AdminLayout from "@/layouts/AdminLayout";
 import Dashboard from "@/pages/admin/Dashboard";
 import MovieList from "@/pages/admin/MovieList";
 import MovieAdd from "@/pages/admin/MovieAdd";
+import MovieEdit from "@/pages/admin/MovieEdit";
+import GenreList from "@/pages/admin/GenreList";
+import MoviePeopleList from "@/pages/admin/MoviePeopleList";
+import RatingList from "@/pages/admin/RatingList";
+import CommentList from "@/pages/admin/CommentList";
+import SubscriptionList from "@/pages/admin/SubscriptionList";
+import ViewerList from "@/pages/admin/ViewerList";
+import AdminList from "@/pages/admin/AdminList";
+import TransactionList from "@/pages/admin/TransactionList";
 
 const Home = lazy(() => import("@/pages/public/Home"));
 const Login = lazy(() => import("@/pages/public/Login"));
@@ -62,8 +71,17 @@ export const router = createBrowserRouter([
           { index: true, element: <Dashboard /> },
           { path: "movies", element: <MovieList /> },
           { path: "movies/new", element: <MovieAdd /> },
-          // // { path: "lists", element: <ListsPage /> },
-          // { path: "continue", element: <ContinueWatchPage /> },
+          { path: "movies/edit/:id", element: <MovieEdit /> },
+          { path: "movies", element: <MovieList /> },
+          { path: "genres", element: <GenreList /> },
+          { path: "movie-people", element: <MoviePeopleList /> },
+          { path: "ratings", element: <RatingList /> },
+          { path: "comments", element: <CommentList /> },
+          { path: "plans", element: <SubscriptionList /> },
+          { path: "users/viewer", element: <ViewerList /> },
+          { path: "users/admin", element: <AdminList /> },
+          { path: "transactions", element: <TransactionList /> },
+          { path: "settings", element: <AccountPage /> },
           // { path: "balance-account", element: <BalancePage /> },
           // { index: true, element: <AccountPage /> },
         ],

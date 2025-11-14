@@ -13,6 +13,7 @@ import {
   X,
   Menu,
   LogOut,
+  Settings,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
@@ -46,26 +47,22 @@ const nav: Item[] = [
     children: [{ label: "Thêm phim", icon: Plus, to: "/admin/movies/new" }],
   },
   { label: "Danh sách Genre", icon: Layers3, to: "/admin/genres" },
-  { label: "Danh sách Actor", icon: Users2, to: "/admin/actors" },
-  { label: "Danh sách Director", icon: Video, to: "/admin/directors" },
+  { label: "Danh sách Movie People", icon: Users2, to: "/admin/movie-people" },
+
   { label: "Danh sách Rating", icon: ShieldCheck, to: "/admin/ratings" },
   { label: "Danh sách Comment", icon: MessageCircle, to: "/admin/comments" },
   { label: "Danh sách các gói subscription", icon: Wallet, to: "/admin/plans" },
   {
     label: "Danh sách User",
-    icon: UserCog,
-    to: "/admin/users",
+    icon: Users2,
+    // to: "/admin/users",
     children: [
       { label: "Danh sách Viewer", icon: Users2, to: "/admin/users/viewer" },
-      { label: "Thêm User", icon: Plus, to: "/admin/users/new" },
-      {
-        label: "Set role user role",
-        icon: ShieldCheck,
-        to: "/admin/users/roles",
-      },
+      { label: "Danh sách Admin", icon: UserCog, to: "/admin/users/admin" },
     ],
   },
-  { label: "Danh sách thanh toán", icon: Wallet, to: "/admin/payments" },
+  { label: "Danh sách thanh toán", icon: Wallet, to: "/admin/transactions" },
+  { label: "Cài đặt tài khoản", icon: Settings, to: "/admin/settings" },
 ];
 
 /* ───────────────────────────── helper components */

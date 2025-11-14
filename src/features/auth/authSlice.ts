@@ -7,7 +7,7 @@ interface AuthState {
   roles: Role[];
 }
 
-const initialState: AuthState = { isAuth: true, roles: ["super_admin"] };
+const initialState: AuthState = { isAuth: false, roles: ["super_admin"] };
 
 const authSlice = createSlice({
   name: "auth",
