@@ -25,74 +25,102 @@ import SubscriptionList from "@/pages/admin/SubscriptionList";
 import ViewerList from "@/pages/admin/ViewerList";
 import AdminList from "@/pages/admin/AdminList";
 import TransactionList from "@/pages/admin/TransactionList";
+import { RootLayout } from "@/layouts/RootLayout";
+import { GlobalConstant } from "@/constants/GlobalConstant";
+import {  VerifySuccessPage } from "@/pages/verify/VerifySuccessPage";
+import { VerifyFailPage } from "@/pages/verify/VerifyFailPage";
+import { ResetPasswordPage } from "@/pages/verify/ResetPasswordPage";
+import { ForbiddenPage } from "@/pages/public/ForbiddenPage";
+import { NotFoundPage } from "@/pages/public/NotFoundPage";
 
 const Home = lazy(() => import("@/pages/public/Home"));
 const Login = lazy(() => import("@/pages/public/Login"));
 
 export const router = createBrowserRouter([
   {
-    element: <PublicLayout />,
-    children: [
-      { index: true, element: <Home /> },
-      { path: "/movies", element: <MoviesPage /> },
-      { path: "/movies/1", element: <MovieDetailPage /> },
-      { path: "/subscriptions", element: <SubscriptionPage /> },
-      { path: "/filter", element: <MovieSearchPage /> },
-      { path: "login", element: <Login /> },
-    ],
-  },
-  {
-    element: <ProtectedRoute allow={[Role.VIEWER]} />, // same guard you have
+    element: <RootLayout />,
     children: [
       {
-        path: "viewer",
-        element: <ViewerLayout />,
+        element: <PublicLayout />,
         children: [
-          { path: "favorites", element: <LikedPage /> },
-          // { path: "lists", element: <ListsPage /> },
-          { path: "continue", element: <ContinueWatchPage /> },
-          { path: "balance-account", element: <BalancePage /> },
-          { index: true, element: <AccountPage /> },
+          { index: true, element: <Home /> },
+          { path: "/movies", element: <MoviesPage /> },
+          { path: "/movies/1", element: <MovieDetailPage /> },
+          { path: "/subscriptions", element: <SubscriptionPage /> },
+          { path: "/filter", element: <MovieSearchPage /> },
+          { path: "login", element: <Login /> },
         ],
       },
-    ],
-  },
-  {
-    element: (
-      <ProtectedRoute
-        allow={[Role.SUPER_ADMIN, Role.COMMENT_ADMIN, Role.COMMENT_ADMIN]}
-      />
-    ), // same guard you have
-    children: [
       {
-        path: "admin",
-        element: <AdminLayout />,
+        element: <ProtectedRoute allow={[GlobalConstant.VIEWER]} />, // same guard you have
         children: [
-          { index: true, element: <Dashboard /> },
-          { path: "movies", element: <MovieList /> },
-          { path: "movies/new", element: <MovieAdd /> },
-          { path: "movies/edit/:id", element: <MovieEdit /> },
-          { path: "movies", element: <MovieList /> },
-          { path: "genres", element: <GenreList /> },
-          { path: "movie-people", element: <MoviePeopleList /> },
-          { path: "ratings", element: <RatingList /> },
-          { path: "comments", element: <CommentList /> },
-          { path: "plans", element: <SubscriptionList /> },
-          { path: "users/viewer", element: <ViewerList /> },
-          { path: "users/admin", element: <AdminList /> },
-          { path: "transactions", element: <TransactionList /> },
-          { path: "settings", element: <AccountPage /> },
-          // { path: "balance-account", element: <BalancePage /> },
-          // { index: true, element: <AccountPage /> },
+          {
+            path: "viewer",
+            element: <ViewerLayout />,
+            children: [
+              { path: "favorites", element: <LikedPage /> },
+              // { path: "lists", element: <ListsPage /> },
+              { path: "continue", element: <ContinueWatchPage /> },
+              { path: "balance-account", element: <BalancePage /> },
+              { index: true, element: <AccountPage /> },
+            ],
+          },
         ],
       },
-    ],
-  },
+      {
+        element: (
+          <ProtectedRoute
+            allow={[
+              GlobalConstant.SUPER_ADMIN,
+              GlobalConstant.COMMENT_ADMIN,
+              GlobalConstant.COMMENT_ADMIN,
+            ]}
+          />
+        ), // same guard you have
+        children: [
+          {
+            path: "admin",
+            element: <AdminLayout />,
+            children: [
+              { index: true, element: <Dashboard /> },
+              { path: "movies", element: <MovieList /> },
+              { path: "movies/new", element: <MovieAdd /> },
+              { path: "movies/edit/:id", element: <MovieEdit /> },
+              { path: "movies", element: <MovieList /> },
+              { path: "genres", element: <GenreList /> },
+              { path: "movie-people", element: <MoviePeopleList /> },
+              { path: "ratings", element: <RatingList /> },
+              { path: "comments", element: <CommentList /> },
+              { path: "plans", element: <SubscriptionList /> },
+              { path: "users/viewer", element: <ViewerList /> },
+              { path: "users/admin", element: <AdminList /> },
+              { path: "transactions", element: <TransactionList /> },
+              { path: "settings", element: <AccountPage /> },
+              // { path: "balance-account", element: <BalancePage /> },
+              // { index: true, element: <AccountPage /> },
+            ],
+          },
+        ],
+      },
 
-  {
-    element: <ProtectedRoute allow={[Role.VIEWER]} />,
-    children: [{ path: "viewer", element: <>Viewer dashboard TODO</> }],
+      {
+        element: <ProtectedRoute allow={[GlobalConstant.VIEWER]} />,
+        children: [{ path: "viewer", element: <>Viewer dashboard TODO</> }],
+      },
+      {
+        path: "/verify-success",
+        element: <VerifySuccessPage />,
+      },
+      {
+        path: "/verify-fail",
+        element: <VerifyFailPage />,
+      },
+      {
+        path: "/reset-password",
+        element: <ResetPasswordPage />,
+      },
+      { path: "403", element: <ForbiddenPage /> },
+      { path: "*", element: <NotFoundPage /> },
+    ],
   },
-  { path: "403", element: <>Bạn không có quyền.</> },
-  { path: "*", element: <>404</> },
 ]);

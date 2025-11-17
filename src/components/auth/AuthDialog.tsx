@@ -1,274 +1,25 @@
-// import { useState } from "react";
-// import { motion, AnimatePresence } from "framer-motion";
-// import { Mail, Lock, User, Loader2 } from "lucide-react";
-// import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
-// import { Label } from "@/components/ui/label";
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogDescription,
-//   DialogHeader,
-//   DialogTitle,
-// } from "@/components/ui/dialog";
-// import {
-//   Tabs,
-//   TabsContent,
-//   TabsList,
-//   TabsTrigger,
-// } from "@/components/ui/tabs";
-
-// /* ─── Props ─── */
-// interface AuthDialogProps {
-//   isOpen: boolean;
-//   onClose: () => void;
-//   defaultTab?: "login" | "register" | "forgot";
-// }
-
-// // 2. Định nghĩa hiệu ứng cho Tab
-// const tabAnimation = {
-//   initial: { opacity: 0, y: 10 },
-//   animate: { opacity: 1, y: 0 },
-//   exit: { opacity: 0, y: -10 },
-//   transition: { duration: 0.2 }
-// };
-
-// export function AuthDialog({
-//   isOpen,
-//   onClose,
-//   defaultTab = "login"
-// }: AuthDialogProps) {
-
-//   // State chung cho các form
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [username, setUsername] = useState("");
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [message, setMessage] = useState({ type: "", text: "" });
-
-//   // State để điều khiển tab, cần cho AnimatePresence
-//   const [activeTab, setActiveTab] = useState(defaultTab);
-
-//   const handleOpenChange = (open: boolean) => {
-//     if (!open) {
-//       onClose();
-//       // Reset state khi đóng
-//       setMessage({ type: "", text: "" });
-//       setIsLoading(false);
-//       setActiveTab(defaultTab); // Reset về tab mặc định
-//     }
-//   };
-
-//   /* ─── Handlers (Giả lập) ─── */
-//   const handleLogin = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setIsLoading(true);
-//     setMessage({ type: "", text: "" }); // Xóa thông báo cũ
-//     console.log("Login:", { email, password });
-//     setTimeout(() => {
-//         setIsLoading(false);
-//         setMessage({ type: "error", text: "Invalid credentials (demo)." });
-//     }, 1500);
-//   };
-
-//   const handleRegister = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setIsLoading(true);
-//     setMessage({ type: "", text: "" });
-//     console.log("Register:", { username, email, password });
-//     setTimeout(() => {
-//         setIsLoading(false);
-//         setMessage({ type: "success", text: "Account created! Please log in." });
-//         setActiveTab("login"); // Tự động chuyển qua tab login
-//     }, 1500);
-//   };
-
-//   const handleForgot = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setIsLoading(true);
-//     setMessage({ type: "", text: "" });
-//     console.log("Forgot:", { email });
-//     setTimeout(() => {
-//         setIsLoading(false);
-//         setMessage({ type: "success", text: "Password reset link sent!" });
-//     }, 1500);
-//   };
-
-//   return (
-//     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-//       {/* Thêm overflow-hidden để hiệu ứng không bị tràn */}
-//       <DialogContent className="sm:max-w-[425px] bg-zinc-900 border-zinc-800 text-white p-0 overflow-hidden">
-
-//         <Tabs
-//             value={activeTab} // Điều khiển Tab bằng state
-//             onValueChange={(value) => {
-//                 setMessage({ type: "", text: "" }); // Xóa message khi chuyển tab
-//                 setActiveTab(value as any);
-//             }}
-//             className="w-full pt-12"
-//         >
-
-//           {/* ─── Tab Triggers (Nav) ─── */}
-//           <TabsList className="grid w-full grid-cols-3 rounded-b-nonx`e h-12 bg-zinc-950/50 px-2 ">
-//             <TabsTrigger value="login" className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white text-zinc-300">Login</TabsTrigger>
-//             <TabsTrigger value="register" className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white text-zinc-300">Register</TabsTrigger>
-//             <TabsTrigger value="forgot" className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white text-zinc-300">Reset</TabsTrigger>
-//           </TabsList>
-
-//           {/* 3. Bọc nội dung bằng AnimatePresence */}
-//           <div className="p-6">
-//             <AnimatePresence mode="wait">
-
-//               {/* ─── 1. Login Tab ─── */}
-//               {activeTab === "login" && (
-//                 <TabsContent value="login" forceMount>
-//                   <motion.div {...tabAnimation}> {/* Apply animation */}
-//                     <DialogHeader className="text-left mb-4">
-//                       <DialogTitle>Welcome Back</DialogTitle>
-//                       <DialogDescription className="text-zinc-400">
-//                         Sign in to access your account.
-//                       </DialogDescription>
-//                     </DialogHeader>
-//                     <form onSubmit={handleLogin} className="space-y-4">
-//                       <div className="space-y-2">
-//                         <Label htmlFor="login-email">Email</Label>
-//                         <div className="relative">
-//                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-//                           <Input id="login-email" type="email" placeholder="you@example.com" className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600" value={email} onChange={e => setEmail(e.target.value)} required />
-//                         </div>
-//                       </div>
-//                       <div className="space-y-2">
-//                         <Label htmlFor="login-password">Password</Label>
-//                         <div className="relative">
-//                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-//                           <Input id="login-password" type="password" placeholder="••••••••" className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600" value={password} onChange={e => setPassword(e.target.value)} required />
-//                         </div>
-//                       </div>
-
-//                       {/* 4. Vị trí Message mới */}
-//                       {message.text && message.type === "error" && (
-//                         <div className="text-center text-sm p-2 rounded-md bg-red-900/30 text-red-400">
-//                           {message.text}
-//                         </div>
-//                       )}
-
-//                       <Button type="submit" className="w-full text-white bg-red-600 hover:bg-red-700" disabled={isLoading}>
-//                         {isLoading ? <Loader2 className="animate-spin" /> : "Login"}
-//                       </Button>
-//                     </form>
-//                   </motion.div>
-//                 </TabsContent>
-//               )}
-
-//               {/* ─── 2. Register Tab ─── */}
-//               {activeTab === "register" && (
-//                 <TabsContent value="register" forceMount>
-//                   <motion.div {...tabAnimation}>
-//                     <DialogHeader className="text-left mb-4">
-//                       <DialogTitle>Create Account</DialogTitle>
-//                       <DialogDescription className="text-zinc-400">
-//                         Get started by creating a new account.
-//                       </DialogDescription>
-//                     </DialogHeader>
-//                     <form onSubmit={handleRegister} className="space-y-4">
-//                       <div className="space-y-2">
-//                         <Label htmlFor="reg-username">Username</Label>
-//                         <div className="relative">
-//                           <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-//                           <Input id="reg-username" placeholder="your_username" className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600" value={username} onChange={e => setUsername(e.target.value)} required />
-//                         </div>
-//                       </div>
-//                       <div className="space-y-2">
-//                         <Label htmlFor="reg-email">Email</Label>
-//                         <div className="relative">
-//                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-//                           <Input id="reg-email" type="email" placeholder="you@example.com" className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600" value={email} onChange={e => setEmail(e.target.value)} required />
-//                         </div>
-//                       </div>
-//                       <div className="space-y-2">
-//                         <Label htmlFor="reg-password">Password</Label>
-//                         <div className="relative">
-//                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-//                           <Input id="reg-password" type="password" placeholder="Min. 8 characters" className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600" value={password} onChange={e => setPassword(e.target.value)} required />
-//                         </div>
-//                       </div>
-
-//                       {/* 4. Vị trí Message mới */}
-//                       {message.text && message.type === "success" && (
-//                         <div className="text-center text-sm p-2 rounded-md bg-emerald-900/30 text-emerald-400">
-//                           {message.text}
-//                         </div>
-//                       )}
-
-//                       {/* Sửa hover color từ teal -> red */}
-//                       <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white" disabled={isLoading}>
-//                         {isLoading ? <Loader2 className="animate-spin" /> : "Create Account"}
-//                       </Button>
-//                     </form>
-//                   </motion.div>
-//                 </TabsContent>
-//               )}
-
-//               {/* ─── 3. Forgot Password Tab ─── */}
-//               {activeTab === "forgot" && (
-//                 <TabsContent value="forgot" forceMount>
-//                   <motion.div {...tabAnimation}>
-//                     <DialogHeader className="text-left mb-4">
-//                       <DialogTitle>Reset Password</DialogTitle>
-//                       <DialogDescription className="text-zinc-400">
-//                         We'll send a password reset link to your email.
-//                       </DialogDescription>
-//                     </DialogHeader>
-//                     <form onSubmit={handleForgot} className="space-y-4">
-//                       <div className="space-y-2">
-//                         <Label htmlFor="forgot-email">Email</Label>
-//                         <div className="relative">
-//                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-//                           <Input id="forgot-email" type="email" placeholder="Enter your registered email" className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600" value={email} onChange={e => setEmail(e.target.value)} required />
-//                         </div>
-//                       </div>
-
-//                       {/* 4. Vị trí Message mới */}
-//                       {message.text && (
-//                         <div className={`text-center text-sm p-2 rounded-md ${
-//                           message.type === 'error'
-//                           ? 'bg-red-900/30 text-red-400' // Sửa lỗi text-white-400
-//                           : 'bg-emerald-900/30 text-emerald-400'
-//                         }`}>
-//                           {message.text}
-//                         </div>
-//                       )}
-
-//                       <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white" disabled={isLoading}>
-//                         {isLoading ? <Loader2 className="animate-spin" /> : "Send Reset Link"}
-//                       </Button>
-//                     </form>
-//                   </motion.div>
-//                 </TabsContent>
-//               )}
-//             </AnimatePresence>
-//           </div>
-
-//         </Tabs>
-//       </DialogContent>
-//     </Dialog>
-//   );
-// }
-
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, Loader2, KeyRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/app/store";
+import { AnimatePresence, motion } from "framer-motion";
+import { Lock, Mail, Eye, EyeOff, Loader2, User } from "lucide-react";
+
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+import { loginAsync } from "@/features/auth/authThunks"; // Giả định
+import { clearAuthError } from "@/features/auth/authSlice"; // Giả định
+import type { ForgotPasswordRequest, LoginRequest, RegisterRequest } from "@/types/auth"; // Giả định
+import { authApi } from "@/features/auth/authApi";
 
 /* ─── Props ─── */
 interface AuthDialogProps {
@@ -284,6 +35,51 @@ const tabAnimation = {
   transition: { duration: 0.2 },
 };
 
+/* ─── Validation Helpers (Theo yêu cầu mới) ─── */
+
+// 4. Validate định dạng email
+const validateEmail = (email: string) => {
+  if (!email) return "Vui lòng nhập email.";
+  // Regex đơn giản kiểm tra @ và .
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return "Định dạng email không hợp lệ.";
+  }
+  return "";
+};
+
+// 2. Validate password
+const validatePassword = (password: string) => {
+  if (!password) return "Vui lòng nhập mật khẩu.";
+  if (password.length < 8) return "Mật khẩu phải có ít nhất 8 ký tự.";
+  if (password.length > 16) return "Mật khẩu không được quá 16 ký tự.";
+  if (!/(?=.*[a-z])/.test(password))
+    return "Mật khẩu phải chứa ít nhất 1 ký tự thường.";
+  if (!/(?=.*[A-Z])/.test(password))
+    return "Mật khẩu phải chứa ít nhất 1 ký tự hoa.";
+  // Ký tự đặc biệt là bất cứ thứ gì KHÔNG phải chữ/số
+  if (!/(?=.*[^a-zA-Z0-9])/.test(password))
+    return "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt.";
+  if (/\s/.test(password)) return "Mật khẩu không được chứa khoảng trắng.";
+  return "";
+};
+
+const validateRepassword = (pass: string, repass: string) => {
+  if (!repass) return "Vui lòng nhập lại mật khẩu.";
+  if (pass !== repass) return "Mật khẩu không khớp.";
+  return "";
+};
+
+// 3 & 5. Validate username
+const validateUsername = (username: string) => {
+  if (!username) return "Vui lòng nhập tên hiển thị.";
+  if (username.length > 128) return "Tên hiển thị không được quá 128 ký tự.";
+  // 5. Chỉ cho phép chữ, số, gạch dưới, gạch ngang và khoảng trắng
+  if (!/^[a-zA-Z0-9_ -]+$/.test(username)) {
+    return "Tên hiển thị chứa ký tự không hợp lệ.";
+  }
+  return "";
+};
+
 export function AuthDialog({
   isOpen,
   onClose,
@@ -292,26 +88,42 @@ export function AuthDialog({
   /* ─── State cho Form ─── */
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [repassword, setRepassword] = useState("");
   const [username, setUsername] = useState("");
-  const [otp, setOtp] = useState(""); 
-  const [isLoading, setIsLoading] = useState(false);
+  // const [otp, setOtp] = useState(""); // <-- 1. Đã XÓA
+  const [localLoading, setLocalLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
+  const [showPassword, setShowPassword] = useState(false);
+
+  // STATE MỚI: Dành cho validation
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+    username: "",
+    repassword: "",
+  });
 
   /* ─── State cho Navigation ─── */
   const [activeTab, setActiveTab] = useState(defaultTab);
-  const [registerStep, setRegisterStep] = useState<"form" | "otp">("form"); 
-  const [forgotStep, setForgotStep] = useState<"form" | "otp">("form"); 
+  // const [registerStep, setRegisterStep] = useState<"form" | "otp">("form"); // <-- 1. Đã XÓA
+  // const [forgotStep, setForgotStep] = useState<"form" | "otp">("form"); // <-- 1. Đã XÓA
+
+  const dispatch = useDispatch<AppDispatch>();
+  const { status } = useSelector((state: RootState) => state.auth);
+  const isLoginLoading = status === "loading";
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       onClose();
-      // Reset toàn bộ state khi đóng
       setMessage({ type: "", text: "" });
-      setIsLoading(false);
+      setLocalLoading(false);
       setActiveTab(defaultTab);
-      setRegisterStep("form"); 
-      setForgotStep("form"); 
-      setOtp("");
+      // setRegisterStep("form"); // <-- 1. Đã XÓA
+      // setForgotStep("form"); // <-- 1. Đã XÓA
+      clearForm();
+      dispatch(clearAuthError());
+      clearForm();
+      setErrors({ email: "", password: "", username: "" }); // Dọn dẹp lỗi
     }
   };
 
@@ -320,91 +132,137 @@ export function AuthDialog({
     setEmail("");
     setPassword("");
     setUsername("");
-    setOtp("");
+    setRepassword("");
   };
 
-  /* ─── Handlers (Giả lập) ─── */
-
-  // 1. LOGIN
-  const handleLogin = (e: React.FormEvent) => {
+  // 1. LOGIN (Cập nhật: Thêm validate)
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setMessage({ type: "", text: "" });
-    setTimeout(() => {
-      setIsLoading(false);
-      setMessage({ type: "error", text: "Invalid credentials (demo)." });
-    }, 1500);
+
+    // 4. Validate email
+    const emailErr = validateEmail(email);
+    if (emailErr) {
+      setErrors((prev) => ({ ...prev, email: emailErr }));
+      return;
+    }
+
+    try {
+      const credentials: LoginRequest = { email, password };
+      await dispatch(loginAsync(credentials)).unwrap();
+      onClose(); // Thành công
+    } catch (err: any) {
+      console.error("Login failed:", err);
+      // Lỗi đã được xử lý bởi interceptor (hiện modal)
+      // hoặc bạn có thể set lỗi local ở đây nếu cần
+    }
   };
 
-  // 2. REGISTER (Step 1: Gửi form)
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
+    // 6.1. đổi thành async
     e.preventDefault();
-    setIsLoading(true);
+
+    // Chạy tất cả validation
+    const userErr = validateUsername(username);
+    const emailErr = validateEmail(email);
+    const passErr = validatePassword(password);
+    // 6.2. Thêm validate repassword
+    const repassErr = validateRepassword(password, repassword);
+
+    if (userErr || emailErr || passErr || repassErr) {
+      setErrors({
+        username: userErr,
+        email: emailErr,
+        password: passErr,
+        repassword: repassErr, // 6.3. Set lỗi
+      });
+      return; // Dừng lại nếu có lỗi
+    }
+
+    setLocalLoading(true);
     setMessage({ type: "", text: "" });
-    console.log("Register:", { username, email, password });
-    setTimeout(() => {
-      setIsLoading(false);
-      // THÀNH CÔNG: Chuyển sang bước 2 (OTP)
-      setRegisterStep("otp");
-      setOtp(""); // Xóa field OTP cũ
-    }, 1500);
+
+    try {
+      const registerData: RegisterRequest = {
+        name: username,
+        email,
+        password,
+        repassword,
+      };
+
+      // 6.4. Gọi API thật
+      await authApi.register(registerData);
+
+      setMessage({
+        type: "success",
+        text: "Registration successful! Please check your email for verification.",
+      });
+      clearForm();
+    } catch (error: any) {
+   
+      const errorMsg =
+        error.response?.data?.message ||
+        error.message ||
+        "An unknown error occurred.";
+
+      setMessage({ type: "error", text: errorMsg });
+    } finally {
+      setLocalLoading(false);
+    }
   };
 
-  // 3. REGISTER (Step 2: Gửi OTP)
-  const handleRegisterOtp = (e: React.FormEvent) => {
+
+  const handleForgot = async (e: React.FormEvent) => {
+    // 3.1 Thêm async
     e.preventDefault();
-    setIsLoading(true);
+
+    const emailErr = validateEmail(email);
+    if (emailErr) {
+      setErrors((prev) => ({ ...prev, email: emailErr }));
+      return;
+    }
+
+    setLocalLoading(true);
     setMessage({ type: "", text: "" });
-    console.log("Register OTP:", { email, otp });
-    setTimeout(() => {
-      setIsLoading(false);
-      if (otp === "123456") {
-        // Giả lập OTP đúng
-        setMessage({
-          type: "success",
-          text: "Account created! Please log in.",
-        });
-        setActiveTab("login"); // Chuyển sang tab Login
-        setRegisterStep("form"); // Reset về step 1
-        clearForm();
-      } else {
-        setMessage({ type: "error", text: "Invalid OTP. Please try again." });
-      }
-    }, 1500);
+
+    try {
+      const req: ForgotPasswordRequest = { email };
+      // 3.2 Gọi API thật
+      const result = await authApi.forgotPassword(req);
+
+      // 3.3 Hiển thị thông báo thành công từ backend
+      // (Backend của bạn luôn trả về success cho API này)
+      setMessage({
+        type: "success",
+        // Dùng tiếng Anh
+        text:
+          result.message ||
+          "If that email is in our system, we've sent instructions.",
+      });
+      clearForm();
+    } catch (error: any) {
+      // 3.4 Hiển thị lỗi (ví dụ: 60s cooldown)
+      const errorMsg =
+        error.response?.data?.message || "An error occurred. Please try again.";
+      setMessage({ type: "error", text: errorMsg });
+    } finally {
+      setLocalLoading(false);
+    }
   };
 
-  // 4. FORGOT (Step 1: Gửi email)
-  const handleForgot = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setMessage({ type: "", text: "" });
-    console.log("Forgot:", { email });
-    setTimeout(() => {
-      setIsLoading(false);
-      // THÀNH CÔNG: Chuyển sang bước 2 (OTP)
-      setForgotStep("otp");
-      setOtp(""); // Xóa field OTP cũ
-    }, 1500);
-  };
-
-  // 5. FORGOT (Step 2: Gửi OTP)
-  const handleForgotOtp = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setMessage({ type: "", text: "" });
-    console.log("Forgot OTP:", { email, otp });
-    setTimeout(() => {
-      setIsLoading(false);
-      if (otp === "123456") {
-        // Giả lập OTP đúng
-        setMessage({ type: "success", text: "Password reset. Please log in." });
-        setActiveTab("login"); // Chuyển sang tab Login
-        setForgotStep("form"); // Reset về step 1
-        clearForm();
-      } else {
-        setMessage({ type: "error", text: "Invalid OTP. Please try again." });
-      }
-    }, 1500);
+  // Helper để hiển thị thông báo lỗi/thành công chung
+  const renderMessage = () => {
+    if (!message.text) return null;
+    return (
+      <div
+        className={`p-2 rounded text-sm mb-4 ${
+          message.type === "error"
+            ? "bg-red-900 text-red-100"
+            : "bg-green-900 text-green-100"
+        }`}
+      >
+        {message.text}
+      </div>
+    );
   };
 
   return (
@@ -413,13 +271,21 @@ export function AuthDialog({
         <Tabs
           value={activeTab}
           onValueChange={(value) => {
-            setMessage({ type: "", text: "" });
+            setMessage({ type: "", text: "" }); // Xóa message khi đổi tab
+            setErrors({
+              email: "",
+              password: "",
+              username: "",
+              repassword: "",
+            }); // Xóa lỗi khi đổi tab
             setActiveTab(value as any);
+            dispatch(clearAuthError());
+            clearForm();
           }}
-          className="w-full pt-12"
+          className="w-full"
         >
-          {/* Sửa lỗi: rounded-b-none và xóa px-2 */}
-          <TabsList className="grid w-full grid-cols-3 rounded-b-none h-12 bg-zinc-950/50 px-2">
+          <TabsList className="grid w-3/4 grid-cols-3 h-10 bg-zinc-950/50">
+            {/* ... TabsTrigger (không đổi) ... */}
             <TabsTrigger
               value="login"
               className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white text-zinc-300"
@@ -436,22 +302,24 @@ export function AuthDialog({
               value="forgot"
               className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white text-zinc-300"
             >
-              Reset Password
+              Reset
             </TabsTrigger>
           </TabsList>
 
           <div className="p-6">
             <AnimatePresence mode="wait">
-              {/* ─── 1. Login Tab ─── */}
+              {/* ─── 1. Login Tab (Cập nhật: Thêm validate error) ─── */}
               {activeTab === "login" && (
                 <TabsContent value="login" forceMount>
                   <motion.div {...tabAnimation}>
                     <DialogHeader className="text-left mb-4">
+                      {/* ... Header (không đổi) ... */}
                       <DialogTitle>Welcome Back</DialogTitle>
                       <DialogDescription className="text-zinc-400">
                         Sign in to access your account.
                       </DialogDescription>
                     </DialogHeader>
+                    {renderMessage()}
                     <form onSubmit={handleLogin} className="space-y-4">
                       {/* ... Input Email ... */}
                       <div className="space-y-2">
@@ -464,40 +332,57 @@ export function AuthDialog({
                             placeholder="you@example.com"
                             className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => {
+                              setEmail(e.target.value);
+                              if (errors.email)
+                                setErrors((p) => ({ ...p, email: "" }));
+                            }}
                             required
                           />
                         </div>
+                        {/* Hiển thị lỗi validation */}
+                        {errors.email && (
+                          <p className="text-xs text-red-500">{errors.email}</p>
+                        )}
                       </div>
-                      {/* ... Input Password ... */}
+                      {/* ... Input Password (Không đổi) ... */}
                       <div className="space-y-2">
                         <Label htmlFor="login-password">Password</Label>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
                           <Input
                             id="login-password"
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             placeholder="••••••••"
-                            className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            className="pl-10 pr-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                           />
+                          {/* ... Nút ẩn/hiện (không đổi) ... */}
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={
+                              showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                            }
+                          >
+                            {showPassword ? (
+                              <EyeOff className="size-4" />
+                            ) : (
+                              <Eye className="size-4" />
+                            )}
+                          </button>
                         </div>
                       </div>
-
-                      {message.text && message.type === "error" && (
-                        <div className="text-center text-sm p-2 rounded-md bg-red-900/30 text-red-400">
-                          {message.text}
-                        </div>
-                      )}
 
                       <Button
                         type="submit"
                         className="w-full text-white bg-red-600 hover:bg-red-700"
-                        disabled={isLoading}
+                        disabled={isLoginLoading}
                       >
-                        {isLoading ? (
+                        {isLoginLoading ? (
                           <Loader2 className="animate-spin" />
                         ) : (
                           "Login"
@@ -508,257 +393,190 @@ export function AuthDialog({
                 </TabsContent>
               )}
 
-              {/* ─── 2. Register Tab (Có 2 bước) ─── */}
+              {/* ─── 2. Register Tab (Cập nhật: Xóa step 2, thêm validate) ─── */}
               {activeTab === "register" && (
                 <TabsContent value="register" forceMount>
-                  {/* AnimatePresence lồng nhau để chuyển step */}
-                  <AnimatePresence mode="wait">
-                    {registerStep === "form" ? (
-                      /* ─── Step 1: Form Register ─── */
-                      <motion.div key="reg-form" {...tabAnimation}>
-                        <DialogHeader className="text-left mb-4">
-                          <DialogTitle>Create Account</DialogTitle>
-                          <DialogDescription className="text-zinc-400">
-                            Get started by creating a new account.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleRegister} className="space-y-4">
-                          {/* ... Input Username, Email, Password ... */}
-                          <div className="space-y-2">
-                            <Label htmlFor="reg-username">Username</Label>
-                            <div className="relative">
-                              <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-                              <Input
-                                id="reg-username"
-                                placeholder="your_username"
-                                className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                required
-                              />
-                            </div>
+                  {/* Bỏ AnimatePresence lồng nhau vì không còn step */}
+                  <motion.div {...tabAnimation}>
+                    <DialogHeader className="text-left mb-4">
+                      {/* ... Header (không đổi) ... */}
+                      <DialogTitle>Create Account</DialogTitle>
+                      <DialogDescription className="text-zinc-400">
+                        Get started by creating a new account.
+                      </DialogDescription>
+                    </DialogHeader>
+                    {renderMessage()}
+                    <form onSubmit={handleRegister} className="space-y-4">
+                      {/* ... Input Username ... */}
+                      <div className="space-y-2">
+                        <Label htmlFor="reg-username">Username</Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                          <Input
+                            id="reg-username"
+                            placeholder="your_username"
+                            className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            value={username}
+                            onChange={(e) => {
+                              setUsername(e.target.value);
+                              if (errors.username)
+                                setErrors((p) => ({ ...p, username: "" }));
+                            }}
+                            required
+                          />
+                        </div>
+                        {/* Hiển thị lỗi validation */}
+                        {errors.username && (
+                          <p className="text-xs text-red-500">
+                            {errors.username}
+                          </p>
+                        )}
+                      </div>
+                      {/* ... Input Email ... */}
+                      <div className="space-y-2">
+                        <Label htmlFor="reg-email">Email</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                          <Input
+                            id="reg-email"
+                            type="email"
+                            placeholder="you@example.com"
+                            className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            value={email}
+                            onChange={(e) => {
+                              setEmail(e.target.value);
+                              if (errors.email)
+                                setErrors((p) => ({ ...p, email: "" }));
+                            }}
+                            required
+                          />
+                        </div>
+                        {/* Hiển thị lỗi validation */}
+                        {errors.email && (
+                          <p className="text-xs text-red-500">{errors.email}</p>
+                        )}
+                      </div>
+                      {/* ... Input Password ... */}
+                      <div className="space-y-2">
+                        <Label htmlFor="reg-password">Password</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                          <Input
+                            id="reg-password"
+                            type="password"
+                            placeholder="Min. 8 characters"
+                            className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            value={password}
+                            onChange={(e) => {
+                              setPassword(e.target.value);
+                              if (errors.password)
+                                setErrors((p) => ({ ...p, password: "" }));
+                            }}
+                            required
+                          />
+                        </div>
+                        {/* Hiển thị lỗi validation */}
+                        {errors.password && (
+                          <p className="text-xs text-red-500">
+                            {errors.password}
+                          </p>
+                        )}
+                        <div className="space-y-2">
+                          <Label htmlFor="reg-repassword">
+                            Confirm Password
+                          </Label>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                            <Input
+                              id="reg-repassword"
+                              type="password"
+                              placeholder="Repeat your password"
+                              className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                              value={repassword}
+                              onChange={(e) => {
+                                setRepassword(e.target.value);
+                                if (errors.repassword)
+                                  setErrors((p) => ({ ...p, repassword: "" }));
+                              }}
+                              required
+                            />
                           </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="reg-email">Email</Label>
-                            <div className="relative">
-                              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-                              <Input
-                                id="reg-email"
-                                type="email"
-                                placeholder="you@example.com"
-                                className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="reg-password">Password</Label>
-                            <div className="relative">
-                              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-                              <Input
-                                id="reg-password"
-                                type="password"
-                                placeholder="Min. 8 characters"
-                                className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                              />
-                            </div>
-                          </div>
-
-                          <Button
-                            type="submit"
-                            className="w-full bg-red-600 hover:bg-red-700 text-white"
-                            disabled={isLoading}
-                          >
-                            {isLoading ? (
-                              <Loader2 className="animate-spin" />
-                            ) : (
-                              "Continue"
-                            )}
-                          </Button>
-                        </form>
-                      </motion.div>
-                    ) : (
-                      /* ─── Step 2: Form OTP ─── */
-                      <motion.div key="reg-otp" {...tabAnimation}>
-                        <DialogHeader className="text-left mb-4">
-                          <DialogTitle>Check your Email</DialogTitle>
-                          <DialogDescription className="text-zinc-400">
-                            We sent a 6-digit code to{" "}
-                            <strong className="text-white">{email}</strong>.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <form
-                          onSubmit={handleRegisterOtp}
-                          className="space-y-4"
-                        >
-                          <div className="space-y-2">
-                            <Label htmlFor="reg-otp">Verification Code</Label>
-                            <div className="relative">
-                              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-                              <Input
-                                id="reg-otp"
-                                placeholder="123456"
-                                className="pl-10 text-center tracking-[0.3em] bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value)}
-                                maxLength={6}
-                                required
-                              />
-                            </div>
-                          </div>
-
-                          {message.text && (
-                            <div
-                              className={`text-center text-sm p-2 rounded-md ${
-                                message.type === "error"
-                                  ? "bg-red-900/30 text-red-400"
-                                  : "bg-emerald-900/30 text-emerald-400"
-                              }`}
-                            >
-                              {message.text}
-                            </div>
+                          {/* Hiển thị lỗi validation */}
+                          {errors.repassword && (
+                            <p className="text-xs text-red-500">
+                              {errors.repassword}
+                            </p>
                           )}
+                        </div>
+                      </div>
 
-                          <Button
-                            type="submit"
-                            className="w-full bg-red-600 hover:bg-red-700 text-white"
-                            disabled={isLoading}
-                          >
-                            {isLoading ? (
-                              <Loader2 className="animate-spin" />
-                            ) : (
-                              "Verify Account"
-                            )}
-                          </Button>
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="w-full text-zinc-400 hover:text-white"
-                            type="button"
-                            onClick={() => setRegisterStep("form")}
-                          >
-                            Back to Register
-                          </Button>
-                        </form>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      <Button
+                        type="submit"
+                        className="w-full bg-red-600 hover:bg-red-700 text-white"
+                        disabled={localLoading}
+                      >
+                        {localLoading ? (
+                          <Loader2 className="animate-spin" />
+                        ) : (
+                          "Continue"
+                        )}
+                      </Button>
+                    </form>
+                  </motion.div>
                 </TabsContent>
               )}
 
-              {/* ─── 3. Forgot Tab (Có 2 bước) ─── */}
+              {/* ─── 3. Forgot Tab (Cập nhật: Xóa step 2, thêm validate) ─── */}
               {activeTab === "forgot" && (
                 <TabsContent value="forgot" forceMount>
-                  <AnimatePresence mode="wait">
-                    {forgotStep === "form" ? (
-                      /* ─── Step 1: Form Forgot ─── */
-                      <motion.div key="forgot-form" {...tabAnimation}>
-                        <DialogHeader className="text-left mb-4">
-                          <DialogTitle>Reset Password</DialogTitle>
-                          <DialogDescription className="text-zinc-400">
-                            We'll send a password reset code to your email.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleForgot} className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="forgot-email">Email</Label>
-                            <div className="relative">
-                              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-                              <Input
-                                id="forgot-email"
-                                type="email"
-                                placeholder="Enter your registered email"
-                                className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                              />
-                            </div>
-                          </div>
+                  {/* Bỏ AnimatePresence lồng nhau vì không còn step */}
+                  <motion.div {...tabAnimation}>
+                    <DialogHeader className="text-left mb-4">
+                      {/* ... Header (không đổi) ... */}
+                      <DialogTitle>Reset Password</DialogTitle>
+                      <DialogDescription className="text-zinc-400">
+                        We'll send a password reset code to your email.
+                      </DialogDescription>
+                    </DialogHeader>
+                    {renderMessage()}
+                    <form onSubmit={handleForgot} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="forgot-email">Email</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                          <Input
+                            id="forgot-email"
+                            type="email"
+                            placeholder="Enter your registered email"
+                            className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            value={email}
+                            onChange={(e) => {
+                              setEmail(e.target.value);
+                              if (errors.email)
+                                setErrors((p) => ({ ...p, email: "" }));
+                            }}
+                            required
+                          />
+                        </div>
+                        {/* Hiển thị lỗi validation */}
+                        {errors.email && (
+                          <p className="text-xs text-red-500">{errors.email}</p>
+                        )}
+                      </div>
 
-                          <Button
-                            type="submit"
-                            className="w-full bg-red-600 hover:bg-red-700 text-white"
-                            disabled={isLoading}
-                          >
-                            {isLoading ? (
-                              <Loader2 className="animate-spin" />
-                            ) : (
-                              "Send Reset Code"
-                            )}
-                          </Button>
-                        </form>
-                      </motion.div>
-                    ) : (
-                      /* ─── Step 2: Form OTP ─── */
-                      <motion.div key="forgot-otp" {...tabAnimation}>
-                        <DialogHeader className="text-left mb-4">
-                          <DialogTitle>Enter Code</DialogTitle>
-                          <DialogDescription className="text-zinc-400">
-                            A 6-digit code was sent to{" "}
-                            <strong className="text-white">{email}</strong>.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleForgotOtp} className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="forgot-otp">
-                              Verification Code
-                            </Label>
-                            <div className="relative">
-                              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
-                              <Input
-                                id="forgot-otp"
-                                placeholder="123456"
-                                className="pl-10 text-center tracking-[0.3em] bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value)}
-                                maxLength={6}
-                                required
-                              />
-                            </div>
-                          </div>
-
-                          {message.text && (
-                            <div
-                              className={`text-center text-sm p-2 rounded-md ${
-                                message.type === "error"
-                                  ? "bg-red-900/30 text-red-400"
-                                  : "bg-emerald-900/30 text-emerald-400"
-                              }`}
-                            >
-                              {message.text}
-                            </div>
-                          )}
-
-                          <Button
-                            type="submit"
-                            className="w-full bg-red-600 hover:bg-red-700 text-white"
-                            disabled={isLoading}
-                          >
-                            {isLoading ? (
-                              <Loader2 className="animate-spin" />
-                            ) : (
-                              "Verify & Reset"
-                            )}
-                          </Button>
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="w-full text-zinc-400 hover:text-white"
-                            type="button"
-                            onClick={() => setForgotStep("form")}
-                          >
-                            Back to Reset
-                          </Button>
-                        </form>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      <Button
+                        type="submit"
+                        className="w-full bg-red-600 hover:bg-red-700 text-white"
+                        disabled={localLoading}
+                      >
+                        {localLoading ? (
+                          <Loader2 className="animate-spin" />
+                        ) : (
+                          "Send Reset Code"
+                        )}
+                      </Button>
+                    </form>
+                  </motion.div>
                 </TabsContent>
               )}
             </AnimatePresence>

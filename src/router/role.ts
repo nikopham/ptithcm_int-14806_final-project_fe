@@ -1,6 +1,8 @@
+import { GlobalConstant } from "@/constants/GlobalConstant";
+
 export enum Role {
-  VIEWER = "viewer",
-  MOVIE_ADMIN = "movie_admin",
-  COMMENT_ADMIN = "comment_admin",
-  SUPER_ADMIN = "super_admin",
+  VIEWER = GlobalConstant.ROLE_VIEWER,
+  MOVIE_ADMIN = GlobalConstant.ROLE_MOVIE_ADMIN,
+  COMMENT_ADMIN = GlobalConstant.ROLE_COMMENT_ADMIN,
+  SUPER_ADMIN = GlobalConstant.ROLE_SUPER_ADMIN,
 }

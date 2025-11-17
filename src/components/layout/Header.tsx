@@ -1,16 +1,31 @@
-import { useState } from "react"; 
+import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Search, Bell, Play, Menu, User } from "lucide-react"; 
+import { Search, Play, Menu, User, LogOut, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import clsx from "clsx";
-import { Button } from "@/components/ui/button"; 
+import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/auth/AuthDialog";
+import { Role } from "@/router/role";
+import { useDispatch } from "react-redux";
+import { logout } from "@/features/auth/authSlice";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/app/store";
+import getRoleBadgeClass, { getRoleName } from "@/utils/getRoleBadgeClass";
+import { Badge } from "../ui/badge";
+import { GlobalConstant } from "@/constants/GlobalConstant";
+import { logoutAsync } from "@/features/auth/authThunks";
 
-type Role = "viewer" | "movie_admin" | "comment_admin" | "super_admin";
-
+// 2. SỬA LẠI PROPS: Xóa các props liên quan đến auth
 interface HeaderProps {
-  isAuth: boolean;
-  roles: Role[];
   onToggleSidebar?: () => void;
 }
 
@@ -20,12 +35,23 @@ const navItems = [
   { to: "/filter", label: "Search" },
   { to: "/subscriptions", label: "Subscriptions" },
 ];
+const getInitials = (name: string | null) => {
+  if (!name) return "??";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase();
+};
 
-export const Header = ({ isAuth, roles, onToggleSidebar }: HeaderProps) => {
-  const isViewer = roles.includes("viewer");
+export const Header = ({ onToggleSidebar }: HeaderProps) => {
   const { pathname } = useLocation();
+  const dispatch = useDispatch();
+  const { isAuth, roles, username, avatarUrl } = useSelector(
+    (state: RootState) => state.auth
+  );
 
-  // 1. ─── State cho Dialog ───
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "register">("login");
 
@@ -33,14 +59,17 @@ export const Header = ({ isAuth, roles, onToggleSidebar }: HeaderProps) => {
     setAuthTab("login");
     setIsAuthOpen(true);
   };
-  // ─────────────────────────────
+  const handleLogout = () => {
+    dispatch(logoutAsync());
+  };
 
   const foundIndex = navItems.findIndex(
     (n) =>
       pathname === n.to || (n.to !== "/" && pathname.startsWith(n.to + "/"))
   );
   const activeIndex = foundIndex === -1 ? 0 : foundIndex;
-
+  console.log(roles);
+  
   return (
     <>
       {" "}
@@ -114,26 +143,71 @@ export const Header = ({ isAuth, roles, onToggleSidebar }: HeaderProps) => {
               <Search className="size-5" />
             </Link>
 
-            {isAuth && isViewer && (
-              <Link
-                to="/notifications"
-                className="text-zinc-300 transition hover:text-white"
-                aria-label="Notifications"
-              >
-                <Bell className="size-5" />
-              </Link>
-            )}
-
             {/* 2. ─── Nút Account (Đăng nhập / Profile) ─── */}
             {isAuth ? (
-              // Nếu đã đăng nhập, hiển thị icon User (dẫn đến Profile)
-              <Link
-                to="/profile" // Thay bằng trang profile của bạn
-                className="text-zinc-300 transition hover:text-white"
-                aria-label="My Account"
-              >
-                <User className="size-5" />
-              </Link>
+              // Nếu đã đăng nhập, hiển thị Avatar và Dropdown
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded-lg p-1 text-zinc-300 transition-colors hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-zinc-900">
+                    {/* Thêm username, ẩn trên màn hình nhỏ (sm) */}
+                    <span className="hidden px-1 text-sm font-medium sm:block">
+                      {username}
+                    </span>
+
+                    <Avatar className="size-8">
+                      <AvatarImage
+                        src={avatarUrl || undefined}
+                        alt={username || "User"}
+                      />
+                      <AvatarFallback>{getInitials(username)}</AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <p className="font-medium">Tài khoản của tôi</p>
+                    <p className="text-xs font-normal text-zinc-400">
+                      {username}{" "}
+                      <Badge
+                        key={roles[0]}
+                        className={getRoleBadgeClass(roles[0])}
+                      >
+                        {getRoleName(roles[0])}
+                      </Badge>
+                    </p>
+                  </DropdownMenuLabel>
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/viewer">
+                      <User className="mr-2 size-4" />
+                      <span>Trang cá nhân</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  {/* Hiển thị link Admin nếu có quyền */}
+                  {(roles.includes(GlobalConstant.SUPER_ADMIN) || // <-- Sửa ở đây
+                    roles.includes(GlobalConstant.MOVIE_ADMIN) ||
+                    roles.includes(GlobalConstant.COMMENT_ADMIN)
+                  ) && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">
+                        <Settings className="mr-2 size-4" />
+                        <span>Trang quản trị</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-red-500 focus:text-red-500"
+                  >
+                    <LogOut className="mr-2 size-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               // Nếu chưa đăng nhập, hiển thị nút Login
               <Button
@@ -141,7 +215,7 @@ export const Header = ({ isAuth, roles, onToggleSidebar }: HeaderProps) => {
                 variant="outline"
                 className="h-8 border-zinc-700 bg-transparent px-3 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
               >
-                Login
+                Account
               </Button>
             )}
             {/* ─────────────────────────────────────────────── */}
