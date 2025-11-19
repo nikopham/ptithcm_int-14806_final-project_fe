@@ -7,7 +7,7 @@ import { clearSearchResults } from "@/features/movie/movieSlice";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, RotateCcw } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -28,11 +28,13 @@ const getPosterUrl = (path: string | null, size = "w92") => {
 interface MovieAddHeaderProps {
   searchType: "movie" | "tv";
   onSearchTypeChange: (type: "movie" | "tv") => void;
+  onReset: () => void;
 }
 
 export function MovieAddHeader({
   searchType,
   onSearchTypeChange,
+  onReset, // <-- Nhận prop
 }: MovieAddHeaderProps) {
   const dispatch = useAppDispatch();
 
@@ -47,7 +49,11 @@ export function MovieAddHeader({
   );
   const isLoading = searchStatus === "loading";
   const isSearching = isLoading && currentPage === 0;
-
+  const handleTypeChange = (v: "movie" | "tv") => {
+    onSearchTypeChange(v);
+    setQuery("");
+    dispatch(clearSearchResults());
+  };
   // 3. Logic
   const doSearch = () => {
     dispatch(searchMediaAsync({ query, page: 1, type: searchType }));
@@ -75,7 +81,19 @@ export function MovieAddHeader({
   return (
     <>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Add new content</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-white">Add new content</h1>
+          {/* 3. (NÚT MỚI) Thêm nút Reset ở đây */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onReset} // <-- Gọi hàm reset từ cha
+            className="text-zinc-400 hover:text-white"
+            title="Reset form"
+          >
+            <RotateCcw className="size-4" />
+          </Button>
+        </div>
         <div className="flex gap-2">
           {/* Select Type */}
           <Select

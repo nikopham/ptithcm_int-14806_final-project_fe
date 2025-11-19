@@ -8,11 +8,11 @@ export interface Option {
 
 // Cho Select Age Rating
 export const ageRatings: Option[] = [
-  { value: "P", label: "P (Mọi lứa tuổi)" },
-  { value: "K", label: "K (Dưới 13 tuổi)" },
-  { value: "T13", label: "T13 (13 tuổi trở lên)" },
-  { value: "T16", label: "T16 (16 tuổi trở lên)" },
-  { value: "T18", label: "T18 (18 tuổi trở lên)" },
+  { value: "P", label: "P (All ages)" },
+  { value: "K", label: "K (Under 13 years old)" },
+  { value: "T13", label: "T13 (13 years and older)" },
+  { value: "T16", label: "T16 (16 years and older)" },
+  { value: "T18", label: "T18 (18 years and older)" },
 ];
 
 // Cho Select Status
@@ -20,7 +20,6 @@ export const statusOptions = [
   { value: "DRAFT", label: "Draft", color: "bg-zinc-500" },
   { value: "PUBLISHED", label: "Published", color: "bg-green-500" },
   { value: "COMING_SOON", label: "Coming Soon", color: "bg-blue-500" },
-  { value: "ARCHIVED", label: "Archived", color: "bg-red-500" },
 ];
 
 // Dữ liệu Mock cho tìm kiếm Director/Actor

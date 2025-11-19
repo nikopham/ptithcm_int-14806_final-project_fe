@@ -68,7 +68,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
       pathname === n.to || (n.to !== "/" && pathname.startsWith(n.to + "/"))
   );
   const activeIndex = foundIndex === -1 ? 0 : foundIndex;
-  console.log(roles);
+  
   
   return (
     <>

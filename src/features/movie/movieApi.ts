@@ -8,6 +8,13 @@ import type {
   GenreListResult,
   CountryListResult,
   TvSeasonDetailsResult,
+  MovieRequestDto, // <-- 1. Import
+  AddMovieResult,
+  MovieListResult,
+  MovieStatus,
+  GetMovieByIdResult, // <-- MỚI
+  UpdateSeasonDto, // <-- MỚI
+  UpdateSeasonResult,
 } from "@/types/movie";
 
 // 1a. API Tìm kiếm MOVIE
@@ -57,6 +64,53 @@ const getTmdbTvSeasonDetails = (
   // Backend API đã được tạo ở bước trước
   return api.get(`/api/movies/details/tv/${tvId}/season/${seasonNumber}`);
 };
+
+const addMovie = (payload: MovieRequestDto): Promise<AddMovieResult> => {
+  return api.post("/api/movies/add", payload);
+};
+
+export interface GetMoviesParams {
+  query?: string;
+  status?: MovieStatus | null; // (Backend nhận Enum hoặc null)
+  isSeries?: boolean | null; // (Backend nhận boolean hoặc null)
+  page: number;
+  size: number;
+}
+
+const getMovies = (params: GetMoviesParams): Promise<MovieListResult> => {
+  return api.get("/api/movies/list", {
+    params: params, // Gửi các tham số
+  });
+};
+
+/**
+ * (MỚI) API GET để LẤY Movie/TV (từ DB) bằng UUID
+ */
+const getMovieById = (id: string): Promise<GetMovieByIdResult> => {
+  return api.get(`/api/movies/detail/${id}`);
+};
+
+/**
+ * (MỚI) API PUT để CẬP NHẬT Movie/TV (dùng FormData)
+ */
+const updateMovie = (
+  id: string,
+  payload: FormData
+): Promise<AddMovieResult> => {
+  return api.put(`/api/movies/update/${id}`, payload);
+};
+
+/**
+ * (MỚI) API PUT để CẬP NHẬT Season/Episodes (dùng JSON)
+ */
+const updateSeason = (
+  id: string,
+  payload: UpdateSeasonDto
+): Promise<UpdateSeasonResult> => {
+  return api.put(`/api/seasons/update/${id}`, payload);
+};
+
+
 export const movieApi = {
   searchTmdbMovie,
   searchTmdbTv,
@@ -65,4 +119,9 @@ export const movieApi = {
   getAllGenres,
   getAllCountries,
   getTmdbTvSeasonDetails,
+  addMovie,
+  getMovies,
+  getMovieById,
+  updateMovie,
+  updateSeason,
 };

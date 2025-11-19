@@ -117,6 +117,97 @@ export interface MovieFormData {
   genres: Genre[];
   countries: Country[];
 }
+
+
+export interface CountryDto {
+  iso_code: string;
+  name: string;
+}
+
+export interface GenreDto {
+  tmdb_id: number;
+  name: string;
+}
+
+export interface PersonDto {
+  id: number; // (tmdb_id)
+  name: string;
+  img: string; // (profile_path)
+}
+
+export interface SeasonDto {
+  id: number; // (tmdb_id của Season)
+  name: string;
+  season_number: number;
+}
+export interface MovieRequestDto {
+  tmdbId: number | null;
+  imdbId: string | null;
+  title: string;
+  description: string;
+  release: string; // (Năm, ví dụ: "2010")
+  duration: number | null;
+  poster: string; // (URL)
+  backdrop: string; // (URL)
+  trailerUrl: string | null; // (Key của Youtube)
+  isSeries: boolean;
+  age: string; // (Enum 'P', 'K', ...)
+  status: string; // (Enum 'DRAFT', 'PUBLISHED', ...)
+
+  countries: CountryDto[];
+  genres: GenreDto[];
+  director: PersonDto | null;
+  actors: PersonDto[];
+
+  seasons: SeasonDto[] | null; // (Chỉ dùng cho TV Series)
+}
+export type MovieStatus = "PUBLISHED" | "DRAFT" | "HIDDEN";
+export interface MovieListItem {
+  id: string; // UUID
+  title: string;
+  poster: string;
+  release: string;
+  duration: number;
+  age: string; // (P, K, T13...)
+  status: MovieStatus;
+  view: number;
+  series: boolean;
+}
+export interface PagedResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
+// --- (THÊM MỚI) DTOs cho API Update Season (PUT /api/seasons/{id}) ---
+
+export interface UpdateEpisodeDto {
+  id: string; // UUID của Episode trong DB
+  title: string;
+  durationMin: number | null;
+  synopsis: string;
+  stillPath: string | null;
+  airDate: string | null; // (Gửi dạng "YYYY-MM-DD")
+}
+
+export interface UpdateSeasonDto {
+  id: string; // UUID của Season trong DB
+  title: string;
+  episodes: UpdateEpisodeDto[];
+}
+export type GetMovieByIdResult = ServiceResult<MovieDetailDto | TvDetailDto>;
+
+// (MỚI) Type cho UpdateSeason
+export interface SeasonWithEpisodes {
+  id: string; // UUID
+  title: string;
+  season_number: number;
+  tmdbId: number;
+  episodes: EpisodeDto[];
+}
+export type UpdateSeasonResult = ServiceResult<SeasonWithEpisodes>;
 // 4. Định nghĩa các kiểu ServiceResult cụ thể
 export type SearchMovieResult = ServiceResult<TmdbSearchResponse>;
 export type MovieDetailsResult = ServiceResult<MovieDetailDto>;
@@ -124,3 +215,5 @@ export type TvDetailsResult = ServiceResult<TvDetailDto>;
 export type GenreListResult = ServiceResult<Genre[]>;
 export type CountryListResult = ServiceResult<Country[]>;
 export type TvSeasonDetailsResult = ServiceResult<TvSeasonDetailDto>;
+export type AddMovieResult = ServiceResult<null>;
+export type MovieListResult = ServiceResult<PagedResponse<MovieListItem>>;

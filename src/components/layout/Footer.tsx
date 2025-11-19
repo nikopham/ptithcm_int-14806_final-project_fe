@@ -100,7 +100,7 @@ export const Footer = () => {
 
       {/* bottom bar ----------------------------------------------------- */}
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 py-6 text-xs md:flex-row">
-        <p>©{year} streamvib, All Rights Reserved</p>
+        <p>©{year} streamify, All Rights Reserved</p>
 
         <nav className="flex flex-wrap items-center gap-4 text-zinc-300">
           <Link to="/terms" className={linkCls}>

@@ -1,12 +1,23 @@
 import { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
-import { fetchMovieFormDataAsync } from "@/features/movie/movieThunks";
-import { clearMovieDetails } from "@/features/movie/movieSlice";
+import {
+  addMovieAsync,
+  fetchMovieFormDataAsync,
+} from "@/features/movie/movieThunks";
+import { clearMovieDetails, resetAddStatus } from "@/features/movie/movieSlice";
 import { MovieAddHeader } from "@/components/admin/movie/MovieAddHeader";
 import { MovieAddForm } from "@/components/admin/movie/MovieAddForm";
 import type { Person } from "@/types/person";
-import type { Genre, Country, CrewMember, CastMember } from "@/types/movie";
+import type {
+  Genre,
+  Country,
+  CrewMember,
+  CastMember,
+  MovieRequestDto,
+} from "@/types/movie";
 import { TvAddForm } from "@/components/admin/movie/TvAddForm";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 // --- Helpers (Nên đưa ra file utils) ---
 
@@ -47,14 +58,16 @@ const personFromCast = (cast: CastMember): Person => ({
 const mergeGenres = (tmdbGenres: any[], reduxGenres: Genre[]) => {
   const genresToSet: Genre[] = [];
   const newGenres: Genre[] = [];
+
   for (const tmdbGenre of tmdbGenres || []) {
-    let foundInDb = reduxGenres.find((g) => g.tmdb_id === tmdbGenre.id);
+    let foundInDb = reduxGenres.find((g) => g.tmdbId == tmdbGenre.id);
+
     if (foundInDb) {
       genresToSet.push(foundInDb);
     } else {
       const tempGenre: Genre = {
         id: null,
-        tmdb_id: tmdbGenre.id,
+        tmdbId: tmdbGenre.id,
         name: tmdbGenre.name,
       };
       genresToSet.push(tempGenre);
@@ -66,18 +79,22 @@ const mergeGenres = (tmdbGenres: any[], reduxGenres: Genre[]) => {
 
 const mergeCountry = (tmdbCountries: any[], reduxCountries: Country[]) => {
   const tmdbCountry = tmdbCountries?.[0];
+
+  console.log(reduxCountries);
+  console.log(tmdbCountries);
+
   let countryToSet: Country | null = null;
   let newCountry: Country | null = null;
   if (tmdbCountry) {
     let foundInDb = reduxCountries.find(
-      (c) => c.iso_code === tmdbCountry.iso_code
+      (c) => c.isoCode === tmdbCountry["iso_3166_1"]
     );
     if (foundInDb) {
       countryToSet = foundInDb;
     } else {
       countryToSet = {
         id: null,
-        iso_code: tmdbCountry.iso_code,
+        isoCode: tmdbCountry["iso_3166_1"],
         name: tmdbCountry.name,
       };
       newCountry = countryToSet;
@@ -107,7 +124,7 @@ const initialFormState = {
 
 export default function MovieAdd() {
   const dispatch = useAppDispatch();
-
+  const navigate = useNavigate();
   // 1. Lấy state từ Redux
   const {
     currentMovie,
@@ -116,6 +133,7 @@ export default function MovieAdd() {
     allGenres: reduxGenres,
     allCountries: reduxCountries,
     formDataStatus,
+    addStatus,
   } = useAppSelector((state) => state.movie);
   const [searchType, setSearchType] = useState<"movie" | "tv">("movie");
   // 2. State Form chính
@@ -125,15 +143,66 @@ export default function MovieAdd() {
   const [displayGenres, setDisplayGenres] = useState<Genre[]>([]);
   const [displayCountries, setDisplayCountries] = useState<Country[]>([]);
 
+  const isLoading = addStatus === "loading";
+
   const update = (k: keyof typeof form, v: any) =>
     setForm((f) => ({ ...f, [k]: v }));
 
   const handleTypeChange = (type: "movie" | "tv") => {
+    resetAllState(type);
+  };
+
+  const resetAllState = (type: "movie" | "tv") => {
     setSearchType(type);
     setForm(initialFormState);
     dispatch(clearMovieDetails());
     setDisplayGenres(reduxGenres);
     setDisplayCountries(reduxCountries);
+  };
+
+  const handleReset = () => {
+    // Reset mọi thứ về trạng thái "movie" ban đầu
+    resetAllState("movie");
+  };
+
+  const validateForm = (): Record<string, string> => {
+    const newErrors: Record<string, string> = {};
+    const {
+      tmdbId,
+      title,
+      description,
+      release,
+      country,
+      genres,
+      director,
+      actors,
+      duration,
+      age,
+      poster,
+      backdrop,
+      video,
+      isSeries,
+    } = form;
+
+    if (!title) newErrors.title = "Title is required.";
+    if (!description) newErrors.description = "Description is required.";
+    if (!release) newErrors.release = "Release year is required.";
+    if (!country) newErrors.country = "Country is required.";
+    if (genres.length === 0)
+      newErrors.genres = "At least one genre is required.";
+    if (!director) newErrors.director = "Director is required.";
+    if (actors.length === 0)
+      newErrors.actors = "At least one actor is required.";
+    if (!age) newErrors.age = "Age rating is required.";
+    if (!poster) newErrors.poster = "Poster image is required.";
+    if (!backdrop) newErrors.backdrop = "Backdrop image is required.";
+
+    if (!isSeries && !duration) {
+      newErrors.duration = "Duration is required for movies.";
+    }
+
+    // setErrors(newErrors); // (XÓA)
+    return newErrors; // <-- 2. Trả về object lỗi
   };
 
   // 4. Tải Genres/Countries 1 LẦN
@@ -163,16 +232,17 @@ export default function MovieAdd() {
         currentMovie.production_countries,
         reduxCountries
       );
+      
       if (newGenres.length > 0) {
         setDisplayGenres((prevDisplayGenres) => {
           // Lấy ID của các genre đã hiển thị
           const existingTmdbIds = new Set(
-            prevDisplayGenres.map((g) => g.tmdb_id)
+            prevDisplayGenres.map((g) => g.tmdbId)
           );
 
           // Lọc ra các genre "mới" mà THỰC SỰ chưa có
           const trulyNewGenres = newGenres.filter(
-            (g) => !existingTmdbIds.has(g.tmdb_id)
+            (g) => !existingTmdbIds.has(g.tmdbId)
           );
 
           // Chỉ thêm các genre thực sự mới
@@ -184,7 +254,7 @@ export default function MovieAdd() {
         setDisplayCountries((prevDisplayCountries) => {
           // Kiểm tra iso_code đã tồn tại chưa
           const exists = prevDisplayCountries.some(
-            (c) => c.iso_code === newCountry.iso_code
+            (c) => c.isoCode === newCountry.isoCode
           );
 
           if (exists) {
@@ -201,6 +271,8 @@ export default function MovieAdd() {
       setForm((f) => ({
         ...f,
         isSeries: false,
+        imdbId: currentMovie.imdbId || "",
+        trailerUrl: currentMovie.trailer_key || "",
         tmdbId: currentMovie.id.toString(),
         title: currentMovie.title,
         description: currentMovie.overview,
@@ -229,10 +301,10 @@ export default function MovieAdd() {
       if (newGenres.length > 0) {
         setDisplayGenres((prevDisplayGenres) => {
           const existingTmdbIds = new Set(
-            prevDisplayGenres.map((g) => g.tmdb_id)
+            prevDisplayGenres.map((g) => g.tmdbId)
           );
           const trulyNewGenres = newGenres.filter(
-            (g) => !existingTmdbIds.has(g.tmdb_id)
+            (g) => !existingTmdbIds.has(g.tmdbId)
           );
           return [...prevDisplayGenres, ...trulyNewGenres];
         });
@@ -240,7 +312,7 @@ export default function MovieAdd() {
       if (newCountry) {
         setDisplayCountries((prevDisplayCountries) => {
           const exists = prevDisplayCountries.some(
-            (c) => c.iso_code === newCountry.iso_code
+            (c) => c.isoCode === newCountry.isoCode
           );
           if (!exists) {
             return [...prevDisplayCountries, newCountry];
@@ -248,15 +320,18 @@ export default function MovieAdd() {
           return prevDisplayCountries;
         });
       }
-
+    
       const director = personFromCrew(currentTv.created_by?.[0]);
 
       const actors = currentTv.cast.map(personFromCast);
-
+      console.log(currentTv);
+      
       setForm((f) => ({
         ...f,
         isSeries: true,
         tmdbId: currentTv.id.toString(),
+        imdbId: currentTv.imdbId || "",
+        trailerUrl: currentTv.trailer_key || "",
         title: currentTv.name,
         description: currentTv.overview,
         release: currentTv.first_air_date?.split("-")[0] || "",
@@ -264,6 +339,7 @@ export default function MovieAdd() {
         genres: genresToSet,
         director: director,
         actors: actors,
+        seasons: currentTv.seasons,
         duration: currentTv.duration.toString(),
         poster: getPosterUrl(currentTv.poster_path, "w500"),
         backdrop: getPosterUrl(currentTv.backdrop_path, "original"),
@@ -279,11 +355,106 @@ export default function MovieAdd() {
     reduxCountries,
   ]);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // setErrors({}); // (XÓA)
+
+    // 1. Chạy Validate và lấy object lỗi
+    const validationErrors = validateForm();
+
+    // 2. (CẬP NHẬT) Xử lý lỗi
+    if (Object.keys(validationErrors).length > 0) {
+      // Hiển thị toast với danh sách lỗi
+      toast.error("ALL FIELD MUST BE NOT EMPTY ⚠️", {
+        description: (
+          <ul className="list-disc pl-5 mt-2 text-sm">
+            {Object.entries(validationErrors).map(([key, message]) => (
+              <li key={key}>
+                <strong className="capitalize">{key}:</strong> {message}
+              </li>
+            ))}
+          </ul>
+        ),
+        duration: 5000,
+      });
+      return; // Dừng lại
+    }
+
+    if (addStatus === "loading") return;
+
+    // --- 1. Tạo đối tượng FormData ---
+    const formData = new FormData();
+
+    let posterUrl: string | undefined = undefined;
+    if (form.poster instanceof File) {
+      // Nếu là File, thêm vào FormData với key "posterFile"
+      formData.append("posterFile", form.poster);
+    } else if (typeof form.poster === "string") {
+      // Nếu là string, nó là URL từ TMDb/Cloudinary
+      posterUrl = form.poster;
+    }
+
+    let backdropUrl: string | undefined = undefined;
+    if (form.backdrop instanceof File) {
+      // Nếu là File, thêm vào key "backdropFile"
+      formData.append("backdropFile", form.backdrop);
+    } else if (typeof form.backdrop === "string") {
+      // Nếu là string, nó là URL
+      backdropUrl = form.backdrop;
+    }
+
+    // Biến đổi DTO
+    const dto: MovieRequestDto = {
+      tmdbId: form.tmdbId,
+      imdbId: form.imdbId,
+      title: form.title,
+      description: form.description,
+      release: form.release,
+      duration: Number(form.duration) || null,
+      poster: posterUrl,
+      backdrop: backdropUrl,
+      trailerUrl: form.trailerUrl,
+      isSeries: form.isSeries,
+      age: form.age,
+      status: form.status,
+      // Chuyển đổi DTO con
+      countries: form.country
+        ? [{ iso_code: form.country.isoCode, name: form.country.name }]
+        : [],
+      genres: form.genres.map((g) => ({ tmdb_id: g.tmdbId, name: g.name })),
+      director: form.director
+        ? {
+            id: form.director.id,
+            name: form.director.name,
+            img: form.director.img,
+          }
+        : null,
+      actors: form.actors.map((a) => ({ id: a.id, name: a.name, img: a.img })),
+      seasons: form.isSeries ? form.seasons : null,
+    };
+
+    formData.append("dto", JSON.stringify(dto));
+    dispatch(addMovieAsync(formData));
+  };
+
+
+  useEffect(() => {
+    if (addStatus === "succeeded") {
+      toast.success("Content added successfully!");
+      navigate("/admin/movies"); // Điều hướng về trang danh sách
+      dispatch(resetAddStatus());
+    }
+    if (addStatus === "failed") {
+      // (Interceptor đã lo modal, có thể thêm toast ở đây nếu muốn)
+      dispatch(resetAddStatus());
+    }
+  }, [addStatus, dispatch, navigate]);
   return (
     <section className="mx-auto max-w-4xl space-y-8 pb-20">
       <MovieAddHeader
         searchType={searchType}
         onSearchTypeChange={handleTypeChange}
+        onReset={handleReset}
       />
       {searchType === "movie" ? (
         <MovieAddForm
@@ -292,6 +463,7 @@ export default function MovieAdd() {
           displayGenres={displayGenres}
           displayCountries={displayCountries}
           formDataStatus={formDataStatus}
+          handleSubmit={handleSubmit}
         />
       ) : (
         <TvAddForm
@@ -301,6 +473,7 @@ export default function MovieAdd() {
           displayCountries={displayCountries}
           formDataStatus={formDataStatus}
           tvDetail={currentTv}
+          handleSubmit={handleSubmit}
         />
       )}
     </section>

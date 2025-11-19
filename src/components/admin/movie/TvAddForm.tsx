@@ -24,15 +24,15 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone"; // Giả định bạn có component này
-import {
-  ImageIcon,
-  X,
-  Trash2,
-  UploadCloud,
-  Loader2, // Import Loader2
-} from "lucide-react";
+import { X, Trash2, UploadCloud, Loader2 } from "lucide-react";
 import type { Person } from "@/types/person";
-import type { Genre, Country, TvDetailDto, EpisodeDto } from "@/types/movie";
+import type {
+  Genre,
+  Country,
+  TvDetailDto,
+  EpisodeDto,
+  MovieRequestDto,
+} from "@/types/movie";
 import {
   ageRatings,
   statusOptions,
@@ -40,6 +40,10 @@ import {
   actorsMock,
 } from "@/constants/movieConstants"; // Giả định
 import { movieApi } from "@/features/movie/movieApi";
+import { useAppDispatch, useAppSelector } from "@/app/hooks";
+import { useNavigate } from "react-router-dom";
+import { addMovieAsync } from "@/features/movie/movieThunks";
+import { toast } from "sonner";
 
 // --- Props Interface ---
 interface TvAddFormProps {
@@ -51,6 +55,10 @@ interface TvAddFormProps {
   // Prop mới để nhận dữ liệu chi tiết TV (bao gồm 'seasons')
   tvDetail: TvDetailDto | null;
 }
+
+// Local flexible types to accommodate mixed key naming from form state
+type GenreLike = { tmdb_id?: number; tmdbId?: number; name: string };
+type CountryLike = { iso_code?: string; isoCode?: string; name: string };
 
 // --- Helper Functions ---
 const getPosterUrl = (
@@ -75,20 +83,25 @@ export function TvAddForm({
   displayCountries,
   formDataStatus,
   tvDetail, // Nhận prop chi tiết TV
+  handleSubmit
 }: TvAddFormProps) {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   // State tìm kiếm Diễn viên/Đạo diễn (Vẫn dùng Mock)
   const [dirQuery, setDirQuery] = useState("");
   const [actQuery, setActQuery] = useState("");
   const [dirResults, setDirResults] = useState<Person[]>([]);
   const [actResults, setActResults] = useState<Person[]>([]);
-  
-  
+
   // State cho logic tải Episodes
   const [loadingSeason, setLoadingSeason] = useState<number | null>(null);
   const [fetchedEpisodes, setFetchedEpisodes] = useState<
     Record<number, EpisodeDto[]>
   >({}); // Cache local cho episodes đã tải
-
+  const {
+    addStatus, // <-- 4. Lấy addStatus
+  } = useAppSelector((state) => state.movie);
+  const isLoading = addStatus === "loading";
   // Hàm tìm kiếm local cho mock
   const search = (q: string, list: Person[]) =>
     list
@@ -116,7 +129,7 @@ export function TvAddForm({
       // 4. Lưu vào state cache
       setFetchedEpisodes((prev) => ({
         ...prev,
-        [seasonNumber]: response.data.episodes,
+        [seasonNumber]: response.data?.episodes ?? [],
       }));
     } catch (error) {
       console.error(`Failed to fetch season ${seasonNumber}`, error);
@@ -124,8 +137,8 @@ export function TvAddForm({
       setLoadingSeason(null);
     }
   };
-  console.log(tvDetail);
-  
+
+  console.log(displayCountries);
   return (
     <form className="grid grid-cols-1 gap-8 lg:grid-cols-[300px_1fr]">
       {/* ─── LEFT COLUMN (Upload Ảnh) ─── */}
@@ -138,7 +151,7 @@ export function TvAddForm({
               accept={{ "image/*": [] }}
               maxFiles={1}
               onDrop={(files) => update("poster", files[0])}
-              className="relative aspect-[2/3] w-full cursor-pointer transition hover:bg-zinc-800/50"
+              className={`relative aspect-2/3 w-full cursor-pointer transition hover:bg-zinc-800/50 ${isLoading ? "opacity-50 pointer-events-none" : ""}`}
             >
               {form.poster ? (
                 <div className="relative h-full w-full group">
@@ -154,11 +167,7 @@ export function TvAddForm({
                   </div>
                 </div>
               ) : (
-                <DropzoneEmptyState
-                  icon={<ImageIcon className="mb-2 size-8 text-zinc-500" />}
-                  label="Upload Poster"
-                  sublabel="Drop image here"
-                />
+                <DropzoneEmptyState />
               )}
               <DropzoneContent />
             </Dropzone>
@@ -172,7 +181,7 @@ export function TvAddForm({
               accept={{ "image/*": [] }}
               maxFiles={1}
               onDrop={(files) => update("backdrop", files[0])}
-              className="relative aspect-video w-full cursor-pointer transition hover:bg-zinc-800/50"
+              className={`relative aspect-video w-full cursor-pointer transition hover:bg-zinc-800/50 ${isLoading ? "opacity-50 pointer-events-none" : ""}`}
             >
               {form.backdrop ? (
                 <div className="relative h-full w-full group">
@@ -186,11 +195,7 @@ export function TvAddForm({
                   </div>
                 </div>
               ) : (
-                <DropzoneEmptyState
-                  icon={<ImageIcon className="mb-2 size-8 text-zinc-500" />}
-                  label="Upload Backdrop"
-                  sublabel="16:9 ratio"
-                />
+                <DropzoneEmptyState />
               )}
               <DropzoneContent />
             </Dropzone>
@@ -207,6 +212,7 @@ export function TvAddForm({
             <Input
               value={form.tmdbId}
               readOnly
+              disabled
               className="bg-zinc-900 text-zinc-500 focus-visible:ring-0 cursor-not-allowed"
               placeholder="Auto-filled"
             />
@@ -216,6 +222,7 @@ export function TvAddForm({
             <Input
               value={form.release}
               onChange={(e) => update("release", e.target.value)}
+              disabled={isLoading}
             />
           </div>
 
@@ -225,23 +232,28 @@ export function TvAddForm({
             <Input
               value={form.title}
               onChange={(e) => update("title", e.target.value)}
+              disabled={isLoading}
             />
           </div>
 
           {/* Country */}
           <div>
             <Label>Country</Label>
-            <div className="mt-2 flex min-h-[40px] flex-wrap gap-2">
+            <div className="mt-2 flex min-h-10 flex-wrap gap-2">
               {formDataStatus === "loading" && (
                 <p className="text-xs text-zinc-400">Loading countries...</p>
               )}
-              {displayCountries.map((c) => {
-                const active = form.country?.iso_code === c.iso_code;
+              {displayCountries.map((c: Country) => {
+                const code = (c as CountryLike).isoCode ?? c.iso_code;
+                const active =
+                  ((form.country as CountryLike)?.isoCode ??
+                    (form.country as CountryLike)?.iso_code) === code;
                 return (
                   <button
-                    key={c.iso_code}
+                    key={code}
                     type="button"
                     onClick={() => update("country", active ? null : c)}
+                    disabled={isLoading}
                   >
                     <Badge
                       className={
@@ -264,6 +276,7 @@ export function TvAddForm({
             <Select
               value={form.age}
               onValueChange={(val) => update("age", val)}
+              disabled={isLoading}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select rating" />
@@ -284,6 +297,7 @@ export function TvAddForm({
             <Select
               value={form.status}
               onValueChange={(val) => update("status", val)}
+              disabled={isLoading}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
@@ -309,20 +323,26 @@ export function TvAddForm({
             {formDataStatus === "loading" && (
               <p className="text-xs text-zinc-400">Loading genres...</p>
             )}
-            {displayGenres.map((g) => {
-              const active = form.genres.some((fg) => fg.tmdb_id === g.tmdb_id);
+            {displayGenres.map((g: GenreLike) => {
+              const gid = g.tmdbId ?? g.tmdb_id;
+              const active = form.genres.some(
+                (fg: GenreLike) => (fg.tmdbId ?? fg.tmdb_id) === gid
+              );
               return (
                 <button
-                  key={g.tmdb_id}
+                  key={gid}
                   type="button"
                   onClick={() =>
                     update(
                       "genres",
                       active
-                        ? form.genres.filter((x) => x.tmdb_id !== g.tmdb_id)
+                        ? form.genres.filter(
+                            (x: GenreLike) => (x.tmdbId ?? x.tmdb_id) !== gid
+                          )
                         : [...form.genres, g]
                     )
                   }
+                  disabled={isLoading}
                 >
                   <Badge
                     className={
@@ -433,6 +453,7 @@ export function TvAddForm({
                 size="icon"
                 className="h-8 w-8 text-zinc-400 hover:text-red-400"
                 onClick={() => update("director", null)}
+                disabled={isLoading}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -448,6 +469,7 @@ export function TvAddForm({
                     e.target.value ? search(e.target.value, directorsMock) : []
                   );
                 }}
+                disabled={isLoading}
               />
               {dirResults.length > 0 && (
                 <ul className="absolute z-50 mt-1 w-full divide-y divide-zinc-800 rounded-md bg-zinc-900 shadow-lg border border-zinc-800">
@@ -509,6 +531,7 @@ export function TvAddForm({
                       form.actors.filter((x: Person) => x.id !== a.id)
                     )
                   }
+                  disabled={isLoading}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -525,6 +548,7 @@ export function TvAddForm({
                   e.target.value ? search(e.target.value, actorsMock) : []
                 );
               }}
+              disabled={isLoading}
             />
             {actResults.length > 0 && (
               <ul className="absolute z-50 mt-1 w-full divide-y divide-zinc-800 rounded-md bg-zinc-900 shadow-lg border border-zinc-800">
@@ -533,7 +557,7 @@ export function TvAddForm({
                     key={p.id}
                     className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-zinc-800/60"
                     onClick={() => {
-                      if (!form.actors.find((x) => x.id == p.id))
+                      if (!form.actors.find((x: Person) => x.id == p.id))
                         update("actors", [...form.actors, p]);
                       setActQuery("");
                       setActResults([]);
@@ -558,6 +582,7 @@ export function TvAddForm({
             rows={4}
             value={form.description}
             onChange={(e) => update("description", e.target.value)}
+            disabled={isLoading}
           />
         </div>
 
@@ -566,8 +591,13 @@ export function TvAddForm({
 
         {/* Submit Button */}
         <div className="pt-4">
-          <Button className="w-full bg-teal-600 py-6 text-lg font-bold hover:bg-teal-700">
-            Save TV Series
+          <Button
+            className="w-full bg-teal-600 py-6 text-lg font-bold hover:bg-teal-700"
+            onClick={handleSubmit}
+            disabled={addStatus === "loading"}
+          >
+            {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+            {isLoading ? "Saving..." : "Save TV Series"}
           </Button>
         </div>
       </div>
