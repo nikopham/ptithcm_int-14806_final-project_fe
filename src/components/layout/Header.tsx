@@ -180,7 +180,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/viewer">
-                      <User className="mr-2 size-4" />
+                      <Settings className="mr-2 size-4" />
                       <span>Trang cá nhân</span>
                     </Link>
                   </DropdownMenuItem>
@@ -188,8 +188,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                   {/* Hiển thị link Admin nếu có quyền */}
                   {(roles.includes(GlobalConstant.SUPER_ADMIN) || // <-- Sửa ở đây
                     roles.includes(GlobalConstant.MOVIE_ADMIN) ||
-                    roles.includes(GlobalConstant.COMMENT_ADMIN)
-                  ) && (
+                    roles.includes(GlobalConstant.COMMENT_ADMIN)) && (
                     <DropdownMenuItem asChild>
                       <Link to="/admin">
                         <Settings className="mr-2 size-4" />

@@ -1,9 +1,9 @@
-// src/components/admin/MovieAddForm.tsx
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { GenreSelector } from "@/components/admin/common/GenreSelector";
+import { CountrySelector } from "@/components/admin/common/CountrySelector";
+import { PersonSelectDialog } from "@/components/admin/common/PersonSelectDialog";
 import {
   Select,
   SelectContent,
@@ -17,31 +17,50 @@ import {
   Dropzone,
   DropzoneContent,
   DropzoneEmptyState,
-} from "@/components/ui/shadcn-io/dropzone"; // Giả định
-import { ImageIcon, X, Trash2, UploadCloud, Loader2 } from "lucide-react";
+} from "@/components/ui/shadcn-io/dropzone";
+import { X, Trash2, Loader2 } from "lucide-react";
 import type { Person } from "@/types/person";
-import type { Genre, Country, MovieRequestDto } from "@/types/movie";
+import { PersonJob } from "@/types/person";
+import { useSearchPeopleQuery } from "@/features/person/personApi";
 import {
-  ageRatings,
-  statusOptions,
-  directorsMock,
-  actorsMock,
-} from "@/constants/movieConstants";
-import {
-  addMovieAsync, // <-- 1. Import
-} from "@/features/movie/movieThunks";
-import { useAppDispatch, useAppSelector } from "@/app/hooks";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { resetAddStatus } from "@/features/movie/movieSlice";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import type { Genre } from "@/types/genre";
+import type { Country } from "@/types/country";
+import { ageRatings, statusOptions } from "@/constants/movieConstants";
+// Removed store usage; using local mock and optional loading prop.
 
 // Props
+interface MovieFormState {
+  title: string;
+  originalTitle: string;
+  description: string;
+  release: string;
+  duration: string | number | null;
+  poster: File | string | null;
+  backdrop: File | string | null;
+  age: string;
+  status: string;
+  countries: Country[]; // multi-select
+  genres: Genre[]; // multi-select
+  director: Person | null;
+  actors: Person[];
+}
+
 interface MovieAddFormProps {
-  form: any;
-  update: (k: string, v: any) => void;
-  displayGenres: Genre[];
-  displayCountries: Country[];
-  formDataStatus: string;
+  form: MovieFormState;
+  update: <K extends keyof MovieFormState>(k: K, v: MovieFormState[K]) => void;
+  displayGenres?: Genre[];
+  displayCountries?: Country[];
+  formDataStatus?: string;
+  handleSubmit: (e: React.FormEvent) => void;
+  loading?: boolean; // optional external loading state
+  submitLabel?: string; // optional override for submit button text
+  showReset?: boolean; // optional flag to show/hide reset button
 }
 
 export function MovieAddForm({
@@ -49,26 +68,82 @@ export function MovieAddForm({
   update,
   displayGenres,
   displayCountries,
-  formDataStatus,
-  handleSubmit
+  formDataStatus = "idle",
+  handleSubmit,
+  loading = false,
+  submitLabel,
+  showReset = true,
 }: MovieAddFormProps) {
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  // State tìm kiếm Diễn viên/Đạo diễn (Vẫn dùng Mock)
-  const [dirQuery, setDirQuery] = useState("");
-  const [actQuery, setActQuery] = useState("");
-  const [dirResults, setDirResults] = useState<Person[]>([]);
-  const [actResults, setActResults] = useState<Person[]>([]);
+  // Country modal state
+  const [countryModalOpen, setCountryModalOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
+  // Modal & search state for People (Director / Actors)
+  const [directorModalOpen, setDirectorModalOpen] = useState(false);
+  const [actorModalOpen, setActorModalOpen] = useState(false);
+  const [directorSearch, setDirectorSearch] = useState("");
+  const [actorSearch, setActorSearch] = useState("");
+  const [directorPage, setDirectorPage] = useState(0); // 0-based UI
+  const [actorPage, setActorPage] = useState(0);
+  const PAGE_SIZE = 8;
 
-  const {
-    addStatus, // <-- 4. Lấy addStatus
-  } = useAppSelector((state) => state.movie);
-   const isLoading = addStatus === "loading";
+  const { data: directorData, isFetching: directorFetching } =
+    useSearchPeopleQuery(
+      {
+        query: directorSearch || undefined,
+        job: PersonJob.DIRECTOR,
+        page: directorPage + 1,
+        size: PAGE_SIZE,
+      },
+      { skip: !directorModalOpen }
+    );
+  const { data: actorData, isFetching: actorFetching } = useSearchPeopleQuery(
+    {
+      query: actorSearch || undefined,
+      job: PersonJob.ACTOR,
+      page: actorPage + 1,
+      size: PAGE_SIZE,
+    },
+    { skip: !actorModalOpen }
+  );
 
-  const search = (q: string, list: Person[]) =>
-    list
-      .filter((p) => p.name.toLowerCase().includes(q.toLowerCase()))
-      .slice(0, 5);
+  const isLoading = loading;
+  // Local mock fallbacks when props undefined or empty
+  const genreMock: Genre[] = [
+    { id: 1, name: "Action", movieCount: 0 },
+    { id: 2, name: "Adventure", movieCount: 0 },
+    { id: 3, name: "Comedy", movieCount: 0 },
+  ];
+  const countryMock: Country[] = [
+    { id: 1, isoCode: "US", name: "United States" },
+    { id: 2, isoCode: "GB", name: "United Kingdom" },
+    { id: 3, isoCode: "JP", name: "Japan" },
+  ];
+  const safeGenres =
+    displayGenres && displayGenres.length > 0 ? displayGenres : genreMock;
+  const safeCountries =
+    displayCountries && displayCountries.length > 0
+      ? displayCountries
+      : countryMock;
+
+  const handleReset = () => {
+    if (isLoading) return;
+    update("title", "");
+    update("originalTitle", "");
+    update("description", "");
+    update("release", "");
+    update("duration", "");
+    update("poster", null);
+    update("backdrop", null);
+    update("age", "");
+    update("status", "");
+    update("countries", []);
+    update("genres", []);
+    update("director", null);
+    update("actors", []);
+  };
+
+  const getProfileUrl = (p: Person) =>
+    p.profilePath || "https://via.placeholder.com/48x48.png?text=?";
 
   const getPreviewUrl = (fileOrString: File | string | undefined) => {
     if (!fileOrString) return undefined;
@@ -76,7 +151,38 @@ export function MovieAddForm({
     return URL.createObjectURL(fileOrString);
   };
 
-  
+  // Prevent memory leaks: revoke object URLs when files change or component unmounts
+  const posterUrlRef = useRef<string | null>(null);
+  const backdropUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    // Generate and store preview URL for poster
+    if (form.poster && typeof form.poster !== "string") {
+      const url = URL.createObjectURL(form.poster);
+      posterUrlRef.current = url;
+    }
+    return () => {
+      if (posterUrlRef.current) {
+        URL.revokeObjectURL(posterUrlRef.current);
+        posterUrlRef.current = null;
+      }
+    };
+  }, [form.poster]);
+
+  useEffect(() => {
+    // Generate and store preview URL for backdrop
+    if (form.backdrop && typeof form.backdrop !== "string") {
+      const url = URL.createObjectURL(form.backdrop);
+      backdropUrlRef.current = url;
+    }
+    return () => {
+      if (backdropUrlRef.current) {
+        URL.revokeObjectURL(backdropUrlRef.current);
+        backdropUrlRef.current = null;
+      }
+    };
+  }, [form.backdrop]);
+
   return (
     <form className="grid grid-cols-1 gap-8 lg:grid-cols-[300px_1fr]">
       {/* ─── LEFT COLUMN ─── */}
@@ -89,7 +195,9 @@ export function MovieAddForm({
               accept={{ "image/*": [] }}
               maxFiles={1}
               onDrop={(files) => update("poster", files[0])}
-              className={`relative aspect-2/3 w-full cursor-pointer transition hover:bg-zinc-800/50 ${isLoading ? "opacity-50 pointer-events-none" : ""}`}
+              className={`relative aspect-2/3 w-full cursor-pointer transition hover:bg-zinc-800/50 ${
+                isLoading ? "opacity-50 pointer-events-none" : ""
+              }`}
             >
               {form.poster ? (
                 <div className="relative h-full w-full group">
@@ -105,11 +213,7 @@ export function MovieAddForm({
                   </div>
                 </div>
               ) : (
-                <DropzoneEmptyState
-                  icon={<ImageIcon className="mb-2 size-8 text-zinc-500" />}
-                  label="Upload Poster"
-                  sublabel="Drop image here"
-                />
+                <DropzoneEmptyState />
               )}
               <DropzoneContent />
             </Dropzone>
@@ -123,7 +227,9 @@ export function MovieAddForm({
               accept={{ "image/*": [] }}
               maxFiles={1}
               onDrop={(files) => update("backdrop", files[0])}
-              className={`relative aspect-video w-full cursor-pointer transition hover:bg-zinc-800/50 ${isLoading ? "opacity-50 pointer-events-none" : ""}`}
+              className={`relative aspect-video w-full cursor-pointer transition hover:bg-zinc-800/50 ${
+                isLoading ? "opacity-50 pointer-events-none" : ""
+              }`}
             >
               {form.backdrop ? (
                 <div className="relative h-full w-full group">
@@ -137,11 +243,7 @@ export function MovieAddForm({
                   </div>
                 </div>
               ) : (
-                <DropzoneEmptyState
-                  icon={<ImageIcon className="mb-2 size-8 text-zinc-500" />}
-                  label="Upload Backdrop"
-                  sublabel="16:9 ratio"
-                />
+                <DropzoneEmptyState />
               )}
               <DropzoneContent />
             </Dropzone>
@@ -152,28 +254,47 @@ export function MovieAddForm({
       {/* ─── RIGHT COLUMN: FORM ─── */}
       <div className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2">
-          {/* TMDB & Release */}
+          {/* Original Title & Release */}
           <div>
-            <Label>TMDB ID</Label>
+            <Label>Original Title</Label>
             <Input
-              value={form.tmdbId}
-              readOnly
-              className="bg-zinc-900 text-zinc-500 focus-visible:ring-0 cursor-not-allowed"
-              placeholder="Auto-filled"
+              value={form.originalTitle}
+              onChange={(e) => update("originalTitle", e.target.value)}
+              disabled={isLoading}
+              placeholder="Enter original title"
             />
           </div>
           <div>
             <Label>Release year</Label>
-            <Input
-              value={form.release}
-              onChange={(e) => update("release", e.target.value)}
-              disabled={isLoading}
-            />
+            {(() => {
+              const currentYear = new Date().getFullYear();
+              const years = Array.from({ length: currentYear - 1900 }, (_, i) =>
+                String(currentYear - i)
+              );
+              return (
+                <Select
+                  value={form.release}
+                  onValueChange={(val) => update("release", val)}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72 overflow-y-auto">
+                    {years.map((y) => (
+                      <SelectItem key={y} value={y}>
+                        {y}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              );
+            })()}
           </div>
 
           {/* Title */}
           <div className="col-span-2">
-            <Label>Title</Label>
+            <Label>Display Title</Label>
             <Input
               value={form.title}
               onChange={(e) => update("title", e.target.value)}
@@ -181,43 +302,31 @@ export function MovieAddForm({
             />
           </div>
 
-          {/* Duration & Country */}
+          {/* Duration */}
           <div>
             <Label>Duration (min)</Label>
             <Input
-              value={form.duration}
-              onChange={(e) => update("duration", e.target.value)}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              step={1}
+              required
+              value={
+                form.duration === null || form.duration === ""
+                  ? ""
+                  : String(form.duration)
+              }
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === "") {
+                  update("duration", "");
+                } else {
+                  const n = Number(v);
+                  if (!Number.isNaN(n)) update("duration", n);
+                }
+              }}
               disabled={isLoading}
             />
-          </div>
-          <div>
-            <Label>Country</Label>
-            <div className="mt-2 flex min-h-[40px] flex-wrap gap-2">
-              {formDataStatus === "loading" && (
-                <p className="text-xs text-zinc-400">Loading countries...</p>
-              )}
-              {displayCountries.map((c) => {
-                const active = form.country?.isoCode === c.isoCode;
-                return (
-                  <button
-                    key={c.isoCode}
-                    type="button"
-                    onClick={() => update("country", active ? null : c)}
-                    disabled={isLoading}
-                  >
-                    <Badge
-                      className={
-                        active
-                          ? "bg-teal-600 hover:bg-teal-700"
-                          : "bg-zinc-800 hover:bg-zinc-700/60"
-                      }
-                    >
-                      {c.name}
-                    </Badge>
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           {/* Age Rating */}
@@ -241,7 +350,7 @@ export function MovieAddForm({
             </Select>
           </div>
 
-          {/* STATUS INPUT SELECTION */}
+          {/* Status */}
           <div>
             <Label>Status</Label>
             <Select
@@ -266,58 +375,40 @@ export function MovieAddForm({
           </div>
         </div>
 
-        {/* Genres */}
-        <div>
-          <Label>Genres</Label>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {formDataStatus === "loading" && (
-              <p className="text-xs text-zinc-400">Loading genres...</p>
-            )}
-            {displayGenres.map((g) => {
-              const active = form.genres.some((fg) => fg.tmdbId === g.tmdbId);
-              return (
-                <button
-                  key={g.tmdbId}
-                  type="button"
-                  onClick={() =>
-                    update(
-                      "genres",
-                      active
-                        ? form.genres.filter((x) => x.tmdbId !== g.tmdbId)
-                        : [...form.genres, g]
-                    )
-                  }
-                  disabled={isLoading}
-                >
-                  <Badge
-                    className={
-                      active
-                        ? "bg-teal-600 hover:bg-teal-700"
-                        : "bg-zinc-800 hover:bg-zinc-700/60"
-                    }
-                  >
-                    {g.name}
-                  </Badge>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {/* Countries (reusable) */}
+        <CountrySelector
+          available={safeCountries}
+          selected={form.countries}
+          onChange={(countries) => update("countries", countries)}
+          isOpen={countryModalOpen}
+          onOpenChange={(open) => {
+            setCountryModalOpen(open);
+            if (!open) setCountrySearch("");
+          }}
+          search={countrySearch}
+          setSearch={setCountrySearch}
+        />
 
-        {/* Director */}
+        <GenreSelector
+          available={safeGenres}
+          selected={form.genres}
+          onChange={(genres) => update("genres", genres)}
+          loading={formDataStatus === "loading"}
+        />
+
         <div className="relative">
           <Label>Director</Label>
           {form.director ? (
             <div className="mt-2 flex items-center justify-between rounded-md border border-zinc-700 bg-zinc-900 p-2 pr-3">
               <div className="flex items-center gap-3">
                 <img
-                  src={form.director.img}
-                  alt={form.director.name}
+                  src={getProfileUrl(form.director)}
+                  alt={form.director.fullName}
                   className="h-10 w-10 rounded-full object-cover"
                 />
                 <div>
                   <p className="text-sm font-medium text-white">
-                    {form.director.name}
+                    {form.director.fullName}
                   </p>
                   <p className="text-xs text-zinc-400">Director</p>
                 </div>
@@ -333,44 +424,44 @@ export function MovieAddForm({
               </Button>
             </div>
           ) : (
-            <div className="relative mt-1">
-              <Input
-                placeholder="Search director..."
-                value={dirQuery}
-                onChange={(e) => {
-                  setDirQuery(e.target.value);
-                  setDirResults(
-                    e.target.value ? search(e.target.value, directorsMock) : []
-                  );
-                }}
-                disabled={isLoading}
-              />
-              {dirResults.length > 0 && (
-                <ul className="absolute z-50 mt-1 w-full divide-y divide-zinc-800 rounded-md bg-zinc-900 shadow-lg border border-zinc-800">
-                  {dirResults.map((p) => (
-                    <li
-                      key={p.id}
-                      className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-zinc-800/60"
-                      onClick={() => {
-                        update("director", p);
-                        setDirQuery("");
-                        setDirResults([]);
-                      }}
-                    >
-                      <img
-                        src={p.img}
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
-                      <span className="text-sm">{p.name}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <Input
+              placeholder="Type to search director..."
+              value={directorSearch}
+              onChange={(e) => {
+                setDirectorSearch(e.target.value);
+                if (!directorModalOpen) setDirectorModalOpen(true);
+                setDirectorPage(0);
+              }}
+              disabled={isLoading}
+            />
           )}
+          <PersonSelectDialog
+            label="Search Director"
+            open={directorModalOpen}
+            onOpenChange={(open) => {
+              setDirectorModalOpen(open);
+              if (!open) {
+                setDirectorSearch("");
+                setDirectorPage(0);
+              }
+            }}
+            search={directorSearch}
+            setSearch={setDirectorSearch}
+            page={directorPage}
+            setPage={setDirectorPage}
+            isFetching={directorFetching}
+            totalPages={directorData?.totalPages || 0}
+            results={directorData?.content || []}
+            singleSelect
+            selected={form.director ?? ({} as Person)}
+            onSelect={(p) => {
+              update("director", p);
+              setDirectorModalOpen(false);
+            }}
+          />
         </div>
 
-        {/* Actors */}
+        {/* Actors (reusable) */}
         <div className="relative">
           <Label className="flex items-center justify-between">
             Actors{" "}
@@ -386,12 +477,14 @@ export function MovieAddForm({
               >
                 <div className="flex items-center gap-3">
                   <img
-                    src={a.img}
-                    alt={a.name}
+                    src={getProfileUrl(a)}
+                    alt={a.fullName}
                     className="h-10 w-10 rounded-full object-cover"
                   />
                   <div>
-                    <p className="text-sm font-medium text-white">{a.name}</p>
+                    <p className="text-sm font-medium text-white">
+                      {a.fullName}
+                    </p>
                     <p className="text-xs text-zinc-400">Cast</p>
                   </div>
                 </div>
@@ -402,7 +495,7 @@ export function MovieAddForm({
                   onClick={() =>
                     update(
                       "actors",
-                      form.actors.filter((x: Person) => x.id !== a.id)
+                      form.actors.filter((x) => x.id !== a.id)
                     )
                   }
                   disabled={isLoading}
@@ -412,41 +505,41 @@ export function MovieAddForm({
               </div>
             ))}
           </div>
-          <div className="relative">
-            <Input
-              placeholder="Add actor..."
-              value={actQuery}
-              onChange={(e) => {
-                setActQuery(e.target.value);
-                setActResults(
-                  e.target.value ? search(e.target.value, actorsMock) : []
-                );
-              }}
-              disabled={isLoading}
-            />
-            {actResults.length > 0 && (
-              <ul className="absolute z-50 mt-1 w-full divide-y divide-zinc-800 rounded-md bg-zinc-900 shadow-lg border border-zinc-800">
-                {actResults.map((p) => (
-                  <li
-                    key={p.id}
-                    className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-zinc-800/60"
-                    onClick={() => {
-                      if (!form.actors.find((x) => x.id == p.id))
-                        update("actors", [...form.actors, p]);
-                      setActQuery("");
-                      setActResults([]);
-                    }}
-                  >
-                    <img
-                      src={p.img}
-                      className="h-8 w-8 rounded-full object-cover"
-                    />
-                    <span className="text-sm">{p.name}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <Input
+            placeholder="Type to search actors..."
+            value={actorSearch}
+            onChange={(e) => {
+              setActorSearch(e.target.value);
+              if (!actorModalOpen) setActorModalOpen(true);
+              setActorPage(0);
+            }}
+            disabled={isLoading}
+          />
+          <PersonSelectDialog
+            label="Search Actors"
+            open={actorModalOpen}
+            onOpenChange={(open) => {
+              setActorModalOpen(open);
+              if (!open) {
+                setActorSearch("");
+                setActorPage(0);
+              }
+            }}
+            search={actorSearch}
+            setSearch={setActorSearch}
+            page={actorPage}
+            setPage={setActorPage}
+            isFetching={actorFetching}
+            totalPages={actorData?.totalPages || 0}
+            results={actorData?.content || []}
+            singleSelect={false}
+            selected={form.actors as Person[]}
+            onSelect={(p) => {
+              if (!form.actors.some((a) => a.id === p.id)) {
+                update("actors", [...form.actors, p]);
+              }
+            }}
+          />
         </div>
 
         {/* Description */}
@@ -460,43 +553,273 @@ export function MovieAddForm({
           />
         </div>
 
-        {/* Video Upload */}
-        {/* <div className="space-y-2 rounded-lg border border-dashed border-zinc-700 bg-zinc-900/30 p-6">
-          <Label>Video File</Label>
-          <Dropzone
-            accept={{ "video/*": [] }}
-            maxFiles={1}
-            maxSize={1024 * 1024 * 1_500}
-            onDrop={(files) => update("video", files[0])}
-            src={form.video ? [form.video] : undefined}
-          >
-            <DropzoneEmptyState
-              icon={<UploadCloud className="mb-2 size-10 text-zinc-500" />}
-              label="Drag & drop movie file"
-              sublabel="or click to browse"
-            />
-            <DropzoneContent />
-          </Dropzone>
-          {form.video && (
-            <p className="text-center text-sm text-emerald-400">
-              Ready: {form.video.name} (
-              {(form.video.size / 1024 / 1024).toFixed(1)} MB)
-            </p>
-          )}
-        </div> */}
-
         {/* Submit Button */}
-        <div className="pt-4">
+        <div className="pt-4 flex flex-col gap-3 sm:flex-row">
+          {/* {showReset && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-40 border-zinc-600 hover:bg-zinc-800"
+              onClick={handleReset}
+              disabled={isLoading}
+            >
+              Reset Form
+            </Button>
+          )} */}
           <Button
-            className="w-full bg-teal-600 py-6 text-lg font-bold hover:bg-teal-700"
+            className="w-full bg-teal-600 py-6 text-lg font-bold hover:bg-teal-700 sm:flex-1"
             onClick={handleSubmit}
-            disabled={addStatus === "loading"}
+            disabled={isLoading}
           >
             {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-            {isLoading ? "Saving..." : "Save Movie"}
+            {isLoading ? "Saving..." : submitLabel || "Save Movie"}
           </Button>
         </div>
       </div>
+      {/* Director Modal */}
+      <Dialog
+        open={directorModalOpen}
+        onOpenChange={(open) => {
+          setDirectorModalOpen(open);
+          if (!open) {
+            setDirectorSearch("");
+            setDirectorPage(0);
+          }
+        }}
+      >
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Search Director</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              autoFocus
+              placeholder="Enter name..."
+              value={directorSearch}
+              onChange={(e) => {
+                setDirectorSearch(e.target.value);
+                setDirectorPage(0);
+              }}
+            />
+            <div className="max-h-72 overflow-y-auto rounded-md border border-zinc-700">
+              {directorFetching && (
+                <div className="p-4 text-center">
+                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-zinc-500" />
+                </div>
+              )}
+              {!directorFetching &&
+                (directorData?.content?.length ?? 0) === 0 && (
+                  <p className="p-3 text-sm text-zinc-400">No results.</p>
+                )}
+              {!directorFetching &&
+                directorData?.content?.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => {
+                      update("director", p);
+                      setDirectorModalOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 border-b border-zinc-800 p-3 text-left hover:bg-zinc-800/60"
+                  >
+                    <img
+                      src={getProfileUrl(p)}
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
+                    <span className="text-sm font-medium">{p.fullName}</span>
+                  </button>
+                ))}
+            </div>
+            <div className="flex items-center justify-between text-xs text-zinc-400">
+              <Button
+                variant="outline"
+                disabled={directorPage === 0 || directorFetching}
+                onClick={() => setDirectorPage((p) => Math.max(0, p - 1))}
+                className="h-7 px-2"
+              >
+                Prev
+              </Button>
+              <span>
+                Page {directorPage + 1} of {directorData?.totalPages || 0}
+              </span>
+              <Button
+                variant="outline"
+                disabled={
+                  directorFetching ||
+                  (directorData?.totalPages || 0) === 0 ||
+                  directorPage + 1 >= (directorData?.totalPages || 0)
+                }
+                onClick={() =>
+                  setDirectorPage((p) =>
+                    p + 1 < (directorData?.totalPages || 0) ? p + 1 : p
+                  )
+                }
+                className="h-7 px-2"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+          <DialogFooter></DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Actor Modal */}
+      <Dialog
+        open={actorModalOpen}
+        onOpenChange={(open) => {
+          setActorModalOpen(open);
+          if (!open) {
+            setActorSearch("");
+            setActorPage(0);
+          }
+        }}
+      >
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Search Actors</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              autoFocus
+              placeholder="Enter name..."
+              value={actorSearch}
+              onChange={(e) => {
+                setActorSearch(e.target.value);
+                setActorPage(0);
+              }}
+            />
+            <div className="max-h-72 overflow-y-auto rounded-md border border-zinc-700">
+              {actorFetching && (
+                <div className="p-4 text-center">
+                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-zinc-500" />
+                </div>
+              )}
+              {!actorFetching && (actorData?.content?.length ?? 0) === 0 && (
+                <p className="p-3 text-sm text-zinc-400">No results.</p>
+              )}
+              {!actorFetching &&
+                actorData?.content?.map((p) => {
+                  const already = form.actors.some((a) => a.id === p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        if (!already) update("actors", [...form.actors, p]);
+                      }}
+                      className="flex w-full items-center gap-3 border-b border-zinc-800 p-3 text-left hover:bg-zinc-800/60 disabled:opacity-40"
+                      disabled={already}
+                    >
+                      <img
+                        src={getProfileUrl(p)}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {p.fullName}
+                        </span>
+                        {already && (
+                          <span className="text-[10px] text-teal-400">
+                            Added
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
+            <div className="flex items-center justify-between text-xs text-zinc-400">
+              <Button
+                variant="outline"
+                disabled={actorPage === 0 || actorFetching}
+                onClick={() => setActorPage((p) => Math.max(0, p - 1))}
+                className="h-7 px-2"
+              >
+                Prev
+              </Button>
+              <span>
+                Page {actorPage + 1} of {actorData?.totalPages || 0}
+              </span>
+              <Button
+                variant="outline"
+                disabled={
+                  actorFetching ||
+                  (actorData?.totalPages || 0) === 0 ||
+                  actorPage + 1 >= (actorData?.totalPages || 0)
+                }
+                onClick={() =>
+                  setActorPage((p) =>
+                    p + 1 < (actorData?.totalPages || 0) ? p + 1 : p
+                  )
+                }
+                className="h-7 px-2"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+          <DialogFooter></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Country Modal */}
+      <Dialog
+        open={countryModalOpen}
+        onOpenChange={(open) => {
+          setCountryModalOpen(open);
+          if (!open) {
+            setCountrySearch("");
+          }
+        }}
+      >
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Search Countries</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              autoFocus
+              placeholder="Enter country name..."
+              value={countrySearch}
+              onChange={(e) => setCountrySearch(e.target.value)}
+            />
+            <div className="max-h-72 overflow-y-auto rounded-md border border-zinc-700">
+              {(
+                safeCountries.filter((c) =>
+                  countrySearch
+                    ? c.name.toLowerCase().includes(countrySearch.toLowerCase())
+                    : true
+                ) || []
+              ).map((c) => {
+                const selected = form.countries.some((x) => x.id === c.id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => {
+                      if (selected) {
+                        update(
+                          "countries",
+                          form.countries.filter((x) => x.id !== c.id)
+                        );
+                      } else {
+                        update("countries", [...form.countries, c]);
+                      }
+                    }}
+                    className="flex w-full items-center justify-between gap-3 border-b border-zinc-800 p-3 text-left hover:bg-zinc-800/60"
+                  >
+                    <span className="text-sm font-medium">{c.name}</span>
+                    {selected && (
+                      <span className="text-[10px] text-teal-400">Added</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <DialogFooter></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }

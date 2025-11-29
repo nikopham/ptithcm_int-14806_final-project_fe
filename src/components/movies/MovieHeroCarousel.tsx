@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Play,
   ChevronLeft,
@@ -10,9 +10,10 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import { Link } from "react-router-dom";
+import { useGetTop10MovieQuery } from "@/features/movie/movieApi";
 
 /* ------------------------------------------------------------------ */
-/*  Demo data – replace with API fetch                                */
+/*  Demo data (fallback)                                              */
 /* ------------------------------------------------------------------ */
 interface Slide {
   id: string;
@@ -55,10 +56,29 @@ export const MovieHeroCarousel = () => {
   const [idx, setIdx] = useState(0);
   const [mute, setMute] = useState(true);
 
-  const next = () => setIdx((i) => (i + 1) % SLIDES.length);
-  const prev = () => setIdx((i) => (i - 1 + SLIDES.length) % SLIDES.length);
+  // Fetch top 10 movies and pick at most 5 for the hero
+  const { data: top10 } = useGetTop10MovieQuery({ isSeries: null });
+  const apiSlides = useMemo(() => {
+    const list = (top10 ?? []).slice(0, 5);
+    return list.map((m) => ({
+      id: m.id,
+      title: m.title,
+      overview: "",
+      backdrop: m.backdropUrl || "/placeholder.svg",
+    }));
+  }, [top10]);
 
-  const slide = SLIDES[idx];
+  const slides = apiSlides.length > 0 ? apiSlides : SLIDES;
+
+  // Clamp current index when slides length changes
+  useEffect(() => {
+    if (idx >= slides.length) setIdx(0);
+  }, [slides.length, idx]);
+
+  const next = () => setIdx((i) => (i + 1) % slides.length);
+  const prev = () => setIdx((i) => (i - 1 + slides.length) % slides.length);
+
+  const slide = slides[idx];
 
   return (
     <div className="relative mx-auto max-w-7xl overflow-hidden rounded-xl">
@@ -92,22 +112,7 @@ export const MovieHeroCarousel = () => {
               Play Now
             </Link>
 
-            <button className="grid h-11 w-11 place-items-center rounded-md border border-zinc-600 bg-zinc-800 text-white transition hover:bg-zinc-700">
-              <Plus className="size-4" />
-            </button>
-            <button className="grid h-11 w-11 place-items-center rounded-md border border-zinc-600 bg-zinc-800 text-white transition hover:bg-zinc-700">
-              <ThumbsUp className="size-4" />
-            </button>
-            <button
-              onClick={() => setMute((m) => !m)}
-              className="grid h-11 w-11 place-items-center rounded-md border border-zinc-600 bg-zinc-800 text-white transition hover:bg-zinc-700"
-            >
-              {mute ? (
-                <VolumeX className="size-4" />
-              ) : (
-                <Volume2 className="size-4" />
-              )}
-            </button>
+       
           </div>
         </div>
 
@@ -127,7 +132,7 @@ export const MovieHeroCarousel = () => {
 
         {/* dot indicators */}
         <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">
-          {SLIDES.map((_, i) => (
+          {slides.map((_, i) => (
             <span
               key={i}
               className={clsx(

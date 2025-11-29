@@ -1,49 +1,82 @@
-// src/services/genreApi.ts
+import { createApi } from "@reduxjs/toolkit/query/react";
+import type { Genre, GenreSearchParams, GenreRequest } from "@/types/genre";
+import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
+import type { PageResponse, ServiceResult } from "@/types/common";
+import type { GenreWithMovies } from "@/types/home";
 
-import { api } from "@/lib/axios";
-import type { ServiceResult } from "@/types/common";
-import type {
-  GenreListResult,
-  GetGenresParams,
-  TmdbGenre,
-} from "@/types/genre";
+export const genreApi = createApi({
+  reducerPath: "genreApi",
+  baseQuery: axiosBaseQuery({ baseUrl: "" }),
+  tagTypes: ["Genres"],
+  endpoints: (builder) => ({
+    searchGenres: builder.query<PageResponse<Genre>, GenreSearchParams>({
+      query: (params) => ({
+        url: "/api/v1/genres/search",
+        method: "GET",
+        params: {
+          ...params,
 
-/**
- * API Lấy danh sách Genre (có phân trang, tìm kiếm, đếm phim)
- * Endpoint: GET /api/genres/search
- */
-const getGenres = (params: GetGenresParams): Promise<GenreListResult> => {
-  return api.get("/api/genres/list", {
-    params: params,
-  });
-};
+          page: params.page && params.page > 0 ? params.page - 1 : 0,
+        },
+      }),
 
-const searchTmdbGenres = (
-  query: string
-): Promise<ServiceResult<TmdbGenre[]>> => {
-  return api.get("/api/genres/tmdb/genres", {
-    params: { query },
-  });
-};
+      transformResponse: (response: ServiceResult<PageResponse<Genre>>) => {
+        return response.data as PageResponse<Genre>;
+      },
+      keepUnusedDataFor: 60,
+    }),
+    getAllGenres: builder.query<Genre[], void>({
+      query: () => ({ url: "/api/v1/genres/get-all", method: "GET" }),
+      transformResponse: (res: ServiceResult) => res.data,
+      keepUnusedDataFor: 300,
+    }),
+    createGenre: builder.mutation<Genre, GenreRequest>({
+      query: (body) => ({
+        url: "/api/v1/genres/add",
+        method: "POST",
+        data: body,
+      }),
+      transformResponse: (res: ServiceResult<Genre>) => res.data as Genre,
+      invalidatesTags: ["Genres"],
+    }),
 
-const updateGenre = (
-  id: number,
-  data: { name: string; tmdbId: number | null }
-): Promise<any> => {
-  return api.put(`/api/genres/update/${id}`, data);
-};
+    updateGenre: builder.mutation<Genre, { id: number; body: GenreRequest }>({
+      query: ({ id, body }) => ({
+        url: `/api/v1/genres/update/${id}`,
+        method: "PUT",
+        data: body,
+      }),
+      transformResponse: (res: ServiceResult<Genre>) => res.data as Genre,
+      invalidatesTags: ["Genres"],
+    }),
+    getFeaturedGenres: builder.query<
+      GenreWithMovies[],
+      { isSeries?: boolean } | void
+    >({
+      query: (params) => ({
+        url: "/api/v1/genres/featured",
+        method: "GET",
+        params: params || {}, // Truyền params { isSeries: true/false }
+      }),
+      transformResponse: (res: ServiceResult<GenreWithMovies[]>) => res.data,
+      keepUnusedDataFor: 300,
+    }),
+    deleteGenre: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/api/v1/genres/delete/${id}`,
+        method: "DELETE",
+      }),
 
-// (Ví dụ API create, bạn sẽ cần cái này để lưu)
-const createGenre = (data: {
-  name: string;
-  tmdbId: number | null;
-}): Promise<any> => {
-  return api.post("/api/genres/add", data);
-};
+      invalidatesTags: ["Genres"],
+    }),
+  }),
+});
 
-export const genreApi = {
-  getGenres,
-  searchTmdbGenres, // <-- Thêm
-  createGenre,
-  updateGenre,
-};
+export const {
+  useSearchGenresQuery,
+  useGetFeaturedGenresQuery,
+  useGetAllGenresQuery,
+  useCreateGenreMutation,
+  useUpdateGenreMutation,
+  useDeleteGenreMutation,
+} = genreApi;

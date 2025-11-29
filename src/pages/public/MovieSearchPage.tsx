@@ -1,45 +1,63 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Filter } from "lucide-react";
 import clsx from "clsx";
 import MovieFilter from "@/components/moviesSearch/MovieFilter";
-
-type Movie = {
-  id: string;
-  vi: string;
-  en: string;
-  poster: string;
-  badges: string[]; // e.g ["P.ĐB", "Th.Minh"]
-};
+import { useSearchMoviesQuery } from "@/features/movie/movieApi";
+import type { AgeRating } from "@/types/movie";
+import type { Movie } from "@/types/movie";
 
 /* —— temporary mock — replace with API result —— */
-const mockMovies: Movie[] = [
-  {
-    id: "xm1",
-    vi: "Giáng Sinh Cùng Ex",
-    en: "A Merry Little Ex-Mas",
-    poster: "https://picsum.photos/seed/exmas/260/390",
-    badges: ["P.ĐB"],
-  },
-  {
-    id: "xm2",
-    vi: "Khách Sạn Vườn Xoài",
-    en: "Mango",
-    poster: "https://picsum.photos/seed/mango/260/390",
-    badges: ["P.ĐB"],
-  },
-  {
-    id: "xm3",
-    vi: "Frankenstein",
-    en: "Frankenstein",
-    poster: "https://picsum.photos/seed/frank/260/390",
-    badges: ["P.ĐB", "Th.Minh"],
-  },
-  /* … thêm 18 phim để lấp grid … */
-];
+// Keeping placeholder type but no longer using the mock data
 
 export default function MovieSearchPage() {
-  const [movies] = useState<Movie[]>(mockMovies);
+  const location = useLocation();
   const [showFilter, setShowFilter] = useState(false);
+  const [filters, setFilters] = useState<{
+    countryIds?: number[];
+    genreIds?: number[];
+    isSeries?: boolean;
+    ageRating?: AgeRating;
+    sort?: string;
+  }>({});
+  const [page, setPage] = useState(1); // UI 1-based
+  const [size] = useState(24);
+
+  // Read `genre` from query string and apply to filters
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const genreParam = params.get("genre");
+    if (genreParam) {
+      const asNumber = Number(genreParam);
+      const genreId = Number.isNaN(asNumber) ? undefined : asNumber;
+
+      setFilters((prev) => ({
+        ...prev,
+        genreIds: genreId !== undefined ? [genreId] : prev.genreIds,
+      }));
+      setPage(1);
+    }
+  }, [location.search]);
+
+  const params = useMemo(
+    () => ({
+      ...filters,
+      page,
+      size,
+    }),
+    [filters, page, size]
+  );
+
+  const { data, isLoading, isError } = useSearchMoviesQuery(params);
+  const resultMovies: Movie[] = data?.content ?? [];
+  const totalPages = data?.totalPages ?? 0;
+
+  // Auto open filter panel when a genre is preselected from URL
+  useEffect(() => {
+    if (filters.genreIds && filters.genreIds.length > 0) {
+      setShowFilter(true);
+    }
+  }, [filters.genreIds]);
 
   return (
     <section className="mx-auto max-w-7xl px-4 pb-24 text-white mt-8">
@@ -56,43 +74,102 @@ export default function MovieSearchPage() {
         <Filter className="size-4" /> Bộ lọc
       </button>
 
-      <MovieFilter open={showFilter} onClose={() => setShowFilter(false)} />
+      <MovieFilter
+        open={showFilter}
+        onClose={() => setShowFilter(false)}
+        onApply={(f) => {
+          setFilters(f);
+          setPage(1);
+          setShowFilter(false);
+        }}
+        initialGenreIds={filters.genreIds}
+      />
 
-      {/* movie grid */}
-      <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 mt-4">
-        {movies.map((m) => (
-          <div key={m.id}>
-            {/* poster */}
-            <div className="relative">
-              <img
-                src={m.poster}
-                alt={m.vi}
-                loading="lazy"
-                className="h-[290px] w-full rounded-lg object-cover"
-              />
+      {/* results */}
+      {isLoading && <div className="mt-6 text-sm text-zinc-400">Đang tải…</div>}
+      {isError && (
+        <div className="mt-6 text-sm text-red-400">Tải danh sách thất bại.</div>
+      )}
+      {!isLoading && !isError && resultMovies.length === 0 && (
+        <div className="mt-6 text-sm text-zinc-400">Không có kết quả.</div>
+      )}
 
-              {/* badges */}
-              <div className="absolute bottom-2 left-2 flex gap-1">
-                {m.badges.map((b) => (
-                  <span
-                    key={b}
-                    className={clsx(
-                      "rounded px-1.5 py-0.5 text-[10px] font-bold uppercase",
-                      b.includes("Th.Minh") ? "bg-emerald-600" : "bg-red-700"
+      {!isLoading && !isError && resultMovies.length > 0 && (
+        <>
+          <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 mt-4">
+            {resultMovies.map((m) => (
+              <Link
+                key={m.id}
+                to={`/movie/detail/${m.id}`}
+                className="block transform transition-transform duration-200 hover:scale-105"
+              >
+                {/* poster */}
+                <div className="relative">
+                  <img
+                    src={m.posterUrl}
+                    alt={m.title}
+                    loading="lazy"
+                    className="h-[290px] w-full rounded-lg object-cover"
+                  />
+
+                  {/* badges */}
+                  <div className="absolute bottom-2 left-2 flex gap-1">
+                    {m.ageRating && (
+                      <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-red-700">
+                        {m.ageRating}
+                      </span>
                     )}
-                  >
-                    {b}
-                  </span>
-                ))}
-              </div>
-            </div>
+                    {m.series && (
+                      <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-emerald-600">
+                        Series
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-            {/* titles */}
-            <p className="mt-2 truncate text-sm font-medium">{m.vi}</p>
-            <p className="truncate text-xs text-zinc-400">{m.en}</p>
+                {/* titles */}
+                <p className="mt-2 truncate text-sm font-medium">{m.title}</p>
+                <p className="truncate text-xs text-zinc-400">
+                  {m.originalTitle}
+                </p>
+              </Link>
+            ))}
           </div>
-        ))}
-      </div>
+
+          {/* pagination */}
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-2">
+              <button
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className={clsx(
+                  "rounded border px-3 py-1 text-sm",
+                  page <= 1
+                    ? "border-zinc-700 text-zinc-500"
+                    : "border-zinc-600 text-zinc-200 hover:bg-zinc-800"
+                )}
+              >
+                Trước
+              </button>
+              <span className="text-xs text-zinc-400">
+                Trang {page} / {totalPages}
+              </span>
+              <button
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className={clsx(
+                  "rounded border px-3 py-1 text-sm",
+                  page >= totalPages
+                    ? "border-zinc-700 text-zinc-500"
+                    : "border-zinc-600 text-zinc-200 hover:bg-zinc-800"
+                )}
+              >
+                Sau
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </section>
   );
 }

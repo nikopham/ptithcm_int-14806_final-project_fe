@@ -6,6 +6,7 @@ import { Role } from "@/router/role";
 import { loginAsync, verifyAsync } from "./authThunks";
 import { toast } from "sonner";
 interface AuthState {
+  id: string | null;
   isAuth: boolean;
   roles: Role[];
   status: "idle" | "loading" | "succeeded" | "failed";
@@ -15,6 +16,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
+  id: null,
   isAuth: false,
   roles: [],
   status: "idle",
@@ -28,6 +30,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     logout: (state) => {
+      state.id = null;
       state.isAuth = false;
       state.roles = [];
       state.status = "idle";
@@ -57,6 +60,7 @@ const authSlice = createSlice({
       .addCase(loginAsync.fulfilled, (state, action) => {
         state.status = "idle";
         state.isAuth = true;
+        state.id = action.payload.id;
         state.roles = action.payload.roles;
         state.username = action.payload.username;
         state.avatarUrl = action.payload.avatarUrl;
@@ -75,6 +79,7 @@ const authSlice = createSlice({
       .addCase(verifyAsync.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.isAuth = true; // <-- Quan trọng
+        state.id = action.payload.id;
         state.roles = action.payload.roles;
         state.username = action.payload.username;
         state.avatarUrl = action.payload.avatarUrl;

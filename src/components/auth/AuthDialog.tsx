@@ -18,7 +18,11 @@ import { Label } from "@/components/ui/label";
 
 import { loginAsync } from "@/features/auth/authThunks"; // Giả định
 import { clearAuthError } from "@/features/auth/authSlice"; // Giả định
-import type { ForgotPasswordRequest, LoginRequest, RegisterRequest } from "@/types/auth"; // Giả định
+import type {
+  ForgotPasswordRequest,
+  LoginRequest,
+  RegisterRequest,
+} from "@/types/auth"; // Giả định
 import { authApi } from "@/features/auth/authApi";
 
 /* ─── Props ─── */
@@ -56,6 +60,7 @@ const validatePassword = (password: string) => {
     return "Mật khẩu phải chứa ít nhất 1 ký tự thường.";
   if (!/(?=.*[A-Z])/.test(password))
     return "Mật khẩu phải chứa ít nhất 1 ký tự hoa.";
+  if (!/(?=.*\d)/.test(password)) return "Mật khẩu phải chứa ít nhất 1 chữ số.";
   // Ký tự đặc biệt là bất cứ thứ gì KHÔNG phải chữ/số
   if (!/(?=.*[^a-zA-Z0-9])/.test(password))
     return "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt.";
@@ -94,6 +99,8 @@ export function AuthDialog({
   const [localLoading, setLocalLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [showRegRepassword, setShowRegRepassword] = useState(false);
 
   // STATE MỚI: Dành cho validation
   const [errors, setErrors] = useState({
@@ -123,7 +130,7 @@ export function AuthDialog({
       clearForm();
       dispatch(clearAuthError());
       clearForm();
-      setErrors({ email: "", password: "", username: "" }); // Dọn dẹp lỗi
+      setErrors({ email: "", password: "", username: "", repassword: "" }); // Dọn dẹp lỗi
     }
   };
 
@@ -150,7 +157,7 @@ export function AuthDialog({
       const credentials: LoginRequest = { email, password };
       await dispatch(loginAsync(credentials)).unwrap();
       onClose(); // Thành công
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login failed:", err);
       // Lỗi đã được xử lý bởi interceptor (hiện modal)
       // hoặc bạn có thể set lỗi local ở đây nếu cần
@@ -197,19 +204,20 @@ export function AuthDialog({
         text: "Registration successful! Please check your email for verification.",
       });
       clearForm();
-    } catch (error: any) {
-   
-      const errorMsg =
-        error.response?.data?.message ||
-        error.message ||
-        "An unknown error occurred.";
-
+    } catch (error: unknown) {
+      let errorMsg = "An unknown error occurred.";
+      if (typeof error === "object" && error !== null) {
+        const anyErr = error as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
+        errorMsg = anyErr.response?.data?.message || anyErr.message || errorMsg;
+      }
       setMessage({ type: "error", text: errorMsg });
     } finally {
       setLocalLoading(false);
     }
   };
-
 
   const handleForgot = async (e: React.FormEvent) => {
     // 3.1 Thêm async
@@ -239,10 +247,13 @@ export function AuthDialog({
           "If that email is in our system, we've sent instructions.",
       });
       clearForm();
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 3.4 Hiển thị lỗi (ví dụ: 60s cooldown)
-      const errorMsg =
-        error.response?.data?.message || "An error occurred. Please try again.";
+      let errorMsg = "An error occurred. Please try again.";
+      if (typeof error === "object" && error !== null) {
+        const anyErr = error as { response?: { data?: { message?: string } } };
+        errorMsg = anyErr.response?.data?.message || errorMsg;
+      }
       setMessage({ type: "error", text: errorMsg });
     } finally {
       setLocalLoading(false);
@@ -278,7 +289,7 @@ export function AuthDialog({
               username: "",
               repassword: "",
             }); // Xóa lỗi khi đổi tab
-            setActiveTab(value as any);
+            setActiveTab(value as "login" | "register" | "forgot");
             dispatch(clearAuthError());
             clearForm();
           }}
@@ -463,9 +474,9 @@ export function AuthDialog({
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
                           <Input
                             id="reg-password"
-                            type="password"
+                            type={showRegPassword ? "text" : "password"}
                             placeholder="Min. 8 characters"
-                            className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            className="pl-10 pr-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
                             value={password}
                             onChange={(e) => {
                               setPassword(e.target.value);
@@ -474,6 +485,20 @@ export function AuthDialog({
                             }}
                             required
                           />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300"
+                            onClick={() => setShowRegPassword(!showRegPassword)}
+                            aria-label={
+                              showRegPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                            }
+                          >
+                            {showRegPassword ? (
+                              <EyeOff className="size-4" />
+                            ) : (
+                              <Eye className="size-4" />
+                            )}
+                          </button>
                         </div>
                         {/* Hiển thị lỗi validation */}
                         {errors.password && (
@@ -489,9 +514,9 @@ export function AuthDialog({
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
                             <Input
                               id="reg-repassword"
-                              type="password"
+                              type={showRegRepassword ? "text" : "password"}
                               placeholder="Repeat your password"
-                              className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                              className="pl-10 pr-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
                               value={repassword}
                               onChange={(e) => {
                                 setRepassword(e.target.value);
@@ -500,6 +525,24 @@ export function AuthDialog({
                               }}
                               required
                             />
+                            <button
+                              type="button"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300"
+                              onClick={() =>
+                                setShowRegRepassword(!showRegRepassword)
+                              }
+                              aria-label={
+                                showRegRepassword
+                                  ? "Ẩn mật khẩu"
+                                  : "Hiện mật khẩu"
+                              }
+                            >
+                              {showRegRepassword ? (
+                                <EyeOff className="size-4" />
+                              ) : (
+                                <Eye className="size-4" />
+                              )}
+                            </button>
                           </div>
                           {/* Hiển thị lỗi validation */}
                           {errors.repassword && (

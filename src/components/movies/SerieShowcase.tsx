@@ -2,33 +2,11 @@ import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import clsx from "clsx";
 import { Link } from "react-router-dom";
+import { useGetFeaturedGenresQuery } from "@/features/genre/genreApi";
+import type { GenreWithMovies, MovieShort } from "@/types/home";
+import { useGetTop10MovieQuery } from "@/features/movie/movieApi";
 
-/* ------------------------------------------------------------------ */
-/*  MOCK DATA – replace with API                                       */
-/* ------------------------------------------------------------------ */
-interface GenreCard {
-  id: string;
-  name: string;
-  posters: string[]; // 4 image URLs 2×2
-}
-
-const GENRES: GenreCard[] = [
-  /* ---------- Our Genres --------- */
-  {
-    id: "action",
-    name: "Action",
-    posters: [
-      "https://image.tmdb.org/t/p/w300/8uO0gUM8aNqYLs1OsTBQiXu0fEv.jpg",
-      "https://image.tmdb.org/t/p/w300/6WBeq4fCfn7AN0o21W9qNcRF2l9.jpg",
-      "https://image.tmdb.org/t/p/w300/pThyQovXQrw2m0s9x82twj48Jq4.jpg",
-      "https://image.tmdb.org/t/p/w300/q719jXXEzOoYaps6babgKnONONX.jpg",
-    ],
-  },
-  /* … Adventure, Comedy, Drama, Horror … */
-];
-
-/* For “Top 10 In” section you may reuse the same array or filter         */
-const TOP10 = GENRES;
+// TV showcase will render featured genres with isSeries=true
 
 /* ------------------------------------------------------------------ */
 /*  REUSABLE COMPONENTS                                                */
@@ -79,58 +57,42 @@ const NavControl = ({
   </div>
 );
 
-const GenreCard = ({ g, badge }: { g: GenreCard; badge?: boolean }) => (
+const TvThumb = ({ m }: { m: MovieShort }) => (
   <Link
-    to={`/movies?genre=${g.id}`}
-    className="w-[220px] flex-shrink-0 rounded-xl bg-zinc-900 p-4 transition hover:-translate-y-1 hover:bg-zinc-800"
+    to={`/movie/detail/${m.id}`}
+    className="w-[180px] shrink-0 overflow-hidden rounded-xl bg-zinc-900 transition hover:-translate-y-1 hover:bg-zinc-800"
   >
-    <div className="grid grid-cols-2 gap-2 pb-4">
-      {g.posters.slice(0, 4).map((src, i) => (
-        <img
-          key={i}
-          src={src}
-          alt=""
-          loading="lazy"
-          className="h-24 w-full rounded-md object-cover"
-        />
-      ))}
-    </div>
-
-    <div className="flex items-end justify-between">
-      <div className="flex flex-col">
-        {badge && (
-          <span className="mb-1 inline-block rounded bg-red-600 px-2 py-0.5 text-[10px] font-semibold text-white">
-            Top 10 In
-          </span>
-        )}
-        <span className="font-medium text-white">{g.name}</span>
-      </div>
-      <ArrowRight className="size-4 text-zinc-400 transition group-hover:translate-x-1 group-hover:text-white" />
-    </div>
+    <img
+      src={
+        typeof m.posterUrl === "string" && m.posterUrl
+          ? m.posterUrl
+          : "/placeholder.svg"
+      }
+      alt={m.title}
+      className="h-60 w-full object-cover"
+      loading="lazy"
+    />
+    <div className="px-3 py-2 text-sm text-white line-clamp-2">{m.title}</div>
   </Link>
 );
 
 /* ------------------------------------------------------------------ */
 /*  Section builder                                                    */
 /* ------------------------------------------------------------------ */
-const Section = ({
+const GenreRow = ({
   title,
-  data,
-  badge = false,
+  movies,
 }: {
   title: string;
-  data: GenreCard[];
-  badge?: boolean;
+  movies: MovieShort[];
 }) => {
-  const PER_PAGE = 5;
-  const total = Math.ceil(data.length / PER_PAGE);
+  const PER_PAGE = 6;
+  const total = Math.max(1, Math.ceil(movies.length / PER_PAGE));
   const [page, setPage] = useState(0);
-
-  const slice = data.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
+  const slice = movies.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
 
   return (
     <div className="mb-16">
-      {/* title + nav */}
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl font-extrabold text-white">{title}</h2>
         <NavControl
@@ -140,26 +102,82 @@ const Section = ({
           next={() => setPage((p) => Math.min(p + 1, total - 1))}
         />
       </div>
-
-      {/* cards */}
-      <div className="flex gap-6">
-        {slice.map((g) => (
-          <GenreCard key={g.id} g={g} badge={badge} />
+      <div className="flex gap-8">
+        {slice.map((m) => (
+          <TvThumb key={m.id} m={m} />
         ))}
       </div>
     </div>
   );
 };
 
+const SectionTrending = () => {
+  const {
+    data: top10,
+    isLoading,
+    error,
+  } = useGetTop10MovieQuery({ isSeries: true });
+  const PER_PAGE = 6;
+  const [page, setPage] = useState(0);
+  const list = top10 ?? [];
+  const total = Math.max(1, Math.ceil(list.length / PER_PAGE));
+  const slice = list.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
+
+  return (
+    <div className="mb-16">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-extrabold text-white">Trending Now</h2>
+        <NavControl
+          page={page}
+          total={total}
+          prev={() => setPage((p) => Math.max(p - 1, 0))}
+          next={() => setPage((p) => Math.min(p + 1, total - 1))}
+        />
+      </div>
+      {isLoading && (
+        <div className="text-sm text-zinc-400">Loading trending...</div>
+      )}
+      {!!error && !isLoading && (
+        <div className="text-sm text-red-400">Failed to load trending.</div>
+      )}
+      <div className="flex gap-8">
+        {slice.map((m) => (
+          <TvThumb key={m.id} m={m} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
 /* ------------------------------------------------------------------ */
 /*  Main exported showcase                                            */
 /* ------------------------------------------------------------------ */
-export const SerieShowcase = () => (
-  <section className="mx-auto max-w-7xl px-4 pb-24 mt-12">
-    <span className="mb-6 inline-block rounded-md bg-red-600 px-5 py-1.5 text-sm font-medium text-white">
-      TV Series
-    </span>
-    <Section title="Our Genres" data={GENRES} />
-    <Section title="Popular Top 10 In Genres" data={TOP10} badge />
-  </section>
-);
+export const SerieShowcase = () => {
+  const {
+    data: featured,
+    isLoading,
+    error,
+  } = useGetFeaturedGenresQuery({ isSeries: true });
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 pb-24 mt-12">
+      <span className="mb-6 inline-block rounded-md bg-red-600 px-5 py-1.5 text-sm font-medium text-white">
+        TV Series
+      </span>
+
+      {isLoading && (
+        <div className="mb-8 text-sm text-zinc-400">Loading genres...</div>
+      )}
+      {!!error && !isLoading && (
+        <div className="mb-8 text-sm text-red-400">Failed to load genres.</div>
+      )}
+
+      {(featured || []).map((g: GenreWithMovies) => (
+        <GenreRow key={g.genreId} title={g.genreName} movies={g.movies || []} />
+      ))}
+
+      <SectionTrending />
+    </section>
+  );
+};

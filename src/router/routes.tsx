@@ -25,9 +25,10 @@ import SubscriptionList from "@/pages/admin/SubscriptionList";
 import ViewerList from "@/pages/admin/ViewerList";
 import AdminList from "@/pages/admin/AdminList";
 import TransactionList from "@/pages/admin/TransactionList";
+import SourceManager from "@/pages/admin/SourceManager";
 import { RootLayout } from "@/layouts/RootLayout";
 import { GlobalConstant } from "@/constants/GlobalConstant";
-import {  VerifySuccessPage } from "@/pages/verify/VerifySuccessPage";
+import { VerifySuccessPage } from "@/pages/verify/VerifySuccessPage";
 import { VerifyFailPage } from "@/pages/verify/VerifyFailPage";
 import { ResetPasswordPage } from "@/pages/verify/ResetPasswordPage";
 import { ForbiddenPage } from "@/pages/public/ForbiddenPage";
@@ -45,14 +46,23 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Home /> },
           { path: "/movies", element: <MoviesPage /> },
-          { path: "/movies/1", element: <MovieDetailPage /> },
+          { path: "/movie/detail/:id", element: <MovieDetailPage /> },
           { path: "/subscriptions", element: <SubscriptionPage /> },
           { path: "/filter", element: <MovieSearchPage /> },
           { path: "login", element: <Login /> },
         ],
       },
       {
-        element: <ProtectedRoute allow={[GlobalConstant.VIEWER]} />, // same guard you have
+        element: (
+          <ProtectedRoute
+            allow={[
+              GlobalConstant.VIEWER,
+              GlobalConstant.SUPER_ADMIN,
+              GlobalConstant.COMMENT_ADMIN,
+              GlobalConstant.COMMENT_ADMIN,
+            ]}
+          />
+        ), // same guard you have
         children: [
           {
             path: "viewer",
@@ -87,6 +97,7 @@ export const router = createBrowserRouter([
               { path: "movies/new", element: <MovieAdd /> },
               { path: "movies/edit/:id", element: <MovieEdit /> },
               { path: "movies", element: <MovieList /> },
+              { path: "movies/source/:id", element: <SourceManager /> },
               { path: "genres", element: <GenreList /> },
               { path: "movie-people", element: <MoviePeopleList /> },
               { path: "ratings", element: <RatingList /> },
@@ -95,7 +106,7 @@ export const router = createBrowserRouter([
               { path: "users/viewer", element: <ViewerList /> },
               { path: "users/admin", element: <AdminList /> },
               { path: "transactions", element: <TransactionList /> },
-              { path: "settings", element: <AccountPage /> },
+
               // { path: "balance-account", element: <BalancePage /> },
               // { index: true, element: <AccountPage /> },
             ],

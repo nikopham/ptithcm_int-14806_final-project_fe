@@ -1,311 +1,335 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "@/app/hooks";
-import {
-  fetchMovieByIdAsync, // Thunk lấy chi tiết từ DB
-  updateMovieAsync, // Thunk cập nhật (PUT)
-  fetchMovieFormDataAsync, // Thunk lấy genres/countries
-} from "@/features/movie/movieThunks";
-import {
-  clearMovieDetails,
-  resetSubmitStatus,
-} from "@/features/movie/movieSlice";
-import { MovieAddForm } from "@/components/admin/movie/MovieAddForm";
-import { TvAddForm } from "@/components/admin/movie/TvAddForm";
+import { MovieEditForm } from "@/components/admin/movie/MovieEditForm";
+import { TvEditForm } from "@/components/admin/movie/TvEditForm";
+import { MovieEditHeader } from "@/components/admin/movie/MovieEditHeader";
+import type { Genre } from "@/types/genre";
+import type { Country } from "@/types/country";
 import type { Person } from "@/types/person";
-import type {
-  Genre,
-  Country,
-  MovieRequestDto,
-  MovieDetailDto,
-  TvDetailDto,
-} from "@/types/movie";
+import { PersonJob } from "@/types/person";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useGetMovieInfoQuery } from "@/features/movie/movieApi";
+import { useUpdateMovieMutation } from "@/features/movie/movieApi";
+import {
+  useAddSeasonMutation,
+  useAddEpisodeMutation,
+  useUpdateSeasonMutation,
+  useUpdateEpisodeMutation,
+} from "@/features/series/seriesApi";
+import type { TvFormState } from "@/components/admin/movie/TvAddForm";
+// MovieEditFormState is internal to the component; no need to import
 
-
-const getPosterUrl = (
-  path: string | null,
-  size: "w92" | "w185" | "w500" | "original" = "w500"
-) => {
-  if (!path) return `https://via.placeholder.com/500x750.png?text=No+Image`;
-  return `https://image.tmdb.org/t/p/${size}${path}`;
-};
-
-const personFromCrew = (crew?: CrewMember | null): Person | null => {
-  if (!crew) return null;
-  return {
-    id: crew.id,
-    name: crew.name,
-    img: crew.profile_path
-      ? getPosterUrl(crew.profile_path, "w185")
-      : `https://ui-avatars.com/api/?name=${crew.name.replace(
-          /\s/g,
-          "+"
-        )}&background=random`,
-  };
-};
-
-const personFromCast = (cast: CastMember): Person => ({
-  id: cast.id,
-  name: cast.name,
-  img: cast.profile_path
-    ? getPosterUrl(cast.profile_path, "w185")
-    : `https://ui-avatars.com/api/?name=${cast.name.replace(
-        /\s/g,
-        "+"
-      )}&background=random`,
-});
-
-// Helper merge
-const mergeGenres = (tmdbGenres: any[], reduxGenres: Genre[]) => {
-  const genresToSet: Genre[] = [];
-  const newGenres: Genre[] = [];
-
-  for (const tmdbGenre of tmdbGenres || []) {
-    let foundInDb = reduxGenres.find((g) => g.tmdbId == tmdbGenre.id);
-
-    if (foundInDb) {
-      genresToSet.push(foundInDb);
-    } else {
-      const tempGenre: Genre = {
-        id: null,
-        tmdbId: tmdbGenre.id,
-        name: tmdbGenre.name,
-      };
-      genresToSet.push(tempGenre);
-      newGenres.push(tempGenre);
-    }
-  }
-  return { genresToSet, newGenres };
-};
-
-const mergeCountry = (tmdbCountries: any[], reduxCountries: Country[]) => {
-  const tmdbCountry = tmdbCountries?.[0];
-
-  console.log(reduxCountries);
-  console.log(tmdbCountries);
-
-  let countryToSet: Country | null = null;
-  let newCountry: Country | null = null;
-  if (tmdbCountry) {
-    let foundInDb = reduxCountries.find(
-      (c) => c.isoCode === tmdbCountry["iso_3166_1"]
-    );
-    if (foundInDb) {
-      countryToSet = foundInDb;
-    } else {
-      countryToSet = {
-        id: null,
-        isoCode: tmdbCountry["iso_3166_1"],
-        name: tmdbCountry.name,
-      };
-      newCountry = countryToSet;
-    }
-  }
-  return { countryToSet, newCountry };
-};
-
-// --- Component Chính ---
-const initialFormState = {
-  tmdbId: "",
-  title: "",
-  description: "",
-  release: "",
-  country: null as Country | null,
-  genres: [] as Genre[],
-  director: null as Person | null,
-  actors: [] as Person[],
-  duration: "",
-  age: "",
-  status: "DRAFT",
-  poster: undefined as File | string | undefined,
-  backdrop: undefined as File | string | undefined,
-  video: undefined as File | undefined,
-  isSeries: false,
-};
-
+// Simplified local initial states (aligned with refactored forms)
+interface LocalMovieFormState {
+  originalTitle: string;
+  title: string;
+  description: string;
+  release: string;
+  duration: number | string | null;
+  poster: File | string | null;
+  backdrop: File | string | null;
+  trailerUrl?: string;
+  age: string;
+  status: string;
+  countries: Country[];
+  genres: Genre[];
+  director: Person | null;
+  actors: Person[];
+}
+// Use TvFormState from TvAddForm for typing
 
 export default function MovieEdit() {
-  const { id } = useParams<{ id: string }>(); // Lấy ID từ URL
-  const dispatch = useAppDispatch();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  // 1. Lấy state từ Redux
+  const [saving, setSaving] = useState(false);
+  const [isSeries, setIsSeries] = useState(false);
+  const [movieForm, setMovieForm] = useState<LocalMovieFormState | null>(null);
+  const [tvForm, setTvForm] = useState<TvFormState | null>(null);
+  const seasonIdByNumberRef = useRef<Map<number, string>>(new Map());
+  const episodeIdMapRef = useRef<Map<string, string>>(new Map());
   const {
-    currentMovie, // Dữ liệu Movie (từ DB)
-    currentTv, // Dữ liệu TV (từ DB)
-    detailsStatus, // Trạng thái load dữ liệu
-    allGenres,
-    allCountries,
-    formDataStatus,
-    submitStatus, // Trạng thái submit (PUT)
-  } = useAppSelector((state) => state.movie);
-
-  const isDataLoading =
-    detailsStatus === "loading" || formDataStatus === "loading";
-  const isSubmitting = submitStatus === "loading";
-
-  // 2. State Form
-  // (Khởi tạo rỗng, sẽ được điền khi data tải xong)
-  const [form, setForm] = useState<any>({
-    tmdbId: "",
-    title: "",
-    description: "",
-    release: "",
-    country: null,
-    genres: [],
-    director: null,
-    actors: [],
-    duration: "",
-    age: "",
-    status: "",
-    poster: undefined,
-    backdrop: undefined,
-    video: undefined,
-    isSeries: false,
-    trailerUrl: "",
-    seasons: [],
+    data,
+    isLoading: infoLoading,
+    isError,
+  } = useGetMovieInfoQuery(id as string, {
+    skip: !id,
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
   });
+  const [updateMovieMutation] = useUpdateMovieMutation();
+  const [addSeason] = useAddSeasonMutation();
+  const [addEpisode] = useAddEpisodeMutation();
+  const [updateSeason] = useUpdateSeasonMutation();
+  const [updateEpisode] = useUpdateEpisodeMutation();
 
-  // 3. State hiển thị (để merge)
-  const [displayGenres, setDisplayGenres] = useState<Genre[]>([]);
-  const [displayCountries, setDisplayCountries] = useState<Country[]>([]);
-
-  // 4. Load dữ liệu khi component mount
   useEffect(() => {
-    if (id) {
-      // Gọi API lấy chi tiết phim từ DB
-      dispatch(fetchMovieByIdAsync(id));
-      // Gọi API lấy genres/countries (nếu chưa có)
-      if (formDataStatus === "idle") {
-        dispatch(fetchMovieFormDataAsync());
-      }
-    }
+    if (!data) return;
+    const mapDirector = (): Person | null =>
+      data.director
+        ? {
+            id: data.director.id,
+            fullName: data.director.name,
+            job: PersonJob.DIRECTOR,
+          }
+        : null;
+    const mapActors = (): Person[] =>
+      (data.actors || []).map((a) => ({
+        id: a.id,
+        fullName: a.name,
+        job: PersonJob.ACTOR,
+      }));
 
-    // Cleanup khi thoát trang
-    return () => {
-      dispatch(clearMovieDetails());
-      dispatch(resetSubmitStatus());
-    };
-  }, [id, dispatch, formDataStatus]);
-
-  // 5. Đồng bộ Genres/Countries nền
-  useEffect(() => {
-    if (formDataStatus === "succeeded") {
-      setDisplayGenres(allGenres);
-      setDisplayCountries(allCountries);
-    }
-  }, [formDataStatus, allGenres, allCountries]);
-
-  // 6. Điền dữ liệu vào Form (Khi fetch thành công)
-  useEffect(() => {
-    if (detailsStatus === "succeeded") {
-      let data: MovieDetailDto | TvDetailDto | null = null;
-      let isSeries = false;
-
-      if (currentMovie) {
-        data = currentMovie;
-        isSeries = false;
-      } else if (currentTv) {
-        data = currentTv;
-        isSeries = true;
-      }
-
-      if (data) {
-        // --- Merge Genres/Countries (Logic giống MovieAdd) ---
-        // (Lược bỏ logic merge phức tạp để ngắn gọn, bạn có thể copy từ MovieAdd)
-        // Ở đây giả sử dữ liệu từ DB đã chuẩn và có trong allGenres
-
-        // --- Map dữ liệu vào Form ---
-        setForm({
-          tmdbId: data.id.toString(),
-          imdbId: data.imdb_id || "",
-          title: isSeries
-            ? (data as TvDetailDto).name
-            : (data as MovieDetailDto).title,
-          description: data.overview,
-          // (Xử lý ngày tháng)
-          release: isSeries
-            ? (data as TvDetailDto).first_air_date?.split("-")[0]
-            : (data as MovieDetailDto).release_date?.split("-")[0],
-
-          country: data.production_countries[0]
-            ? {
-                isoCode: data.production_countries[0].iso_code,
-                name: data.production_countries[0].name,
-              }
-            : null,
-
-          genres: data.genres.map((g) => ({ tmdbId: g.id, name: g.name })), // Map lại key nếu cần
-
-          // (Director & Cast cần map sang type Person)
-          director: data.director
-            ? {
-                /* map director */
-              }
-            : null,
-          actors: data.cast.slice(0, 10).map((c) => ({
-            /* map actor */
-          })),
-
-          duration: isSeries
-            ? (data as TvDetailDto).duration?.toString()
-            : (data as MovieDetailDto).runtime?.toString(),
-
-          age: "", // (Lưu ý: DB của bạn có lưu age_rating, API cần trả về trường này)
-          status: "PUBLISHED", // (Lưu ý: API cần trả về status)
-
-          // (URL ảnh từ DB/Cloudinary)
-          poster: data.poster_path,
-          backdrop: data.backdrop_path,
-          trailerUrl: data.trailer_key,
-
-          isSeries: isSeries,
-          seasons: isSeries ? (data as TvDetailDto).seasons : [],
+    if (data.series) {
+      type ApiEpisode = {
+        id?: string;
+        episodeNumber?: number;
+        episode_number?: number;
+        title?: string;
+        duration?: number;
+        durationMin?: number;
+        synopsis?: string;
+        airDate?: string;
+      };
+      type ApiSeason = {
+        id?: string;
+        seasonNumber?: number;
+        season_number?: number;
+        title?: string;
+        name?: string;
+        episodes?: ApiEpisode[];
+      };
+      const seasonsFromApi =
+        (data as unknown as { seasons?: ApiSeason[] })?.seasons || [];
+      // build quick lookup maps for updates
+      const seasonIdByNumber = new Map<number, string>();
+      const episodeIdMap = new Map<string, string>();
+      seasonsFromApi.forEach((s) => {
+        const sn = s.seasonNumber ?? s.season_number;
+        if (sn != null && s.id) seasonIdByNumber.set(sn, String(s.id));
+        (s.episodes || []).forEach((ep) => {
+          const en = ep.episodeNumber ?? ep.episode_number;
+          if (en != null && ep.id && sn != null) {
+            episodeIdMap.set(`${sn}:${en}`, String(ep.id));
+          }
         });
-      }
+      });
+      seasonIdByNumberRef.current = seasonIdByNumber;
+      episodeIdMapRef.current = episodeIdMap;
+      const draftSeasons: TvFormState["seasonDrafts"] = seasonsFromApi.map(
+        (s: ApiSeason) => ({
+          seasonNumber: s.seasonNumber ?? s.season_number ?? 0,
+          title: s.title ?? s.name ?? "",
+          episodes: (s.episodes || []).map((ep: ApiEpisode) => ({
+            episodeNumber: ep.episodeNumber ?? ep.episode_number ?? 0,
+            title: ep.title ?? "",
+            durationMin: ep.duration ?? ep.durationMin,
+            synopsis: ep.synopsis ?? "",
+            airDate: ep.airDate ?? "",
+          })),
+        })
+      );
+      setIsSeries(true);
+      setTvForm({
+        title: data.title,
+        originalTitle: data.originalTitle,
+        description: data.description,
+        release: data.release,
+        duration: data.duration,
+        poster: data.poster,
+        backdrop: data.backdrop,
+        trailerUrl: data.trailerUrl ?? "",
+        isSeries: true,
+        age: data.age,
+        status: data.status,
+        countries: data.countries as Country[],
+        genres: data.genres as Genre[],
+        director: mapDirector(),
+        actors: mapActors(),
+        seasons: seasonsFromApi
+          .filter((s) => (s.seasonNumber ?? s.season_number) != null)
+          .map((s) => ({
+            id: Number(s.id),
+            name:
+              s.title ??
+              s.name ??
+              `Season ${(s.seasonNumber ?? s.season_number) || ""}`,
+            season_number: Number(s.seasonNumber ?? s.season_number),
+          })),
+        seasonDrafts: draftSeasons,
+      });
+    } else {
+      setIsSeries(false);
+      setMovieForm({
+        originalTitle: data.originalTitle,
+        title: data.title,
+        description: data.description,
+        release: data.release,
+        duration: data.duration,
+        poster: data.poster,
+        backdrop: data.backdrop,
+        trailerUrl: data.trailerUrl ?? "",
+        age: data.age,
+        status: data.status,
+        countries: data.countries as Country[],
+        genres: data.genres as Genre[],
+        director: mapDirector(),
+        actors: mapActors(),
+      });
     }
-  }, [currentMovie, currentTv, detailsStatus]);
+  }, [data]);
 
-  // 7. Hàm Update State
-  const update = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
-
-  // 8. Hàm Validate (Tái sử dụng logic)
-  const validateForm = () => {
-    /* Copy logic validate từ MovieAdd */ return {};
+  const updateMovie = <K extends keyof LocalMovieFormState>(
+    k: K,
+    v: LocalMovieFormState[K]
+  ) => {
+    setMovieForm((f) => (f ? { ...f, [k]: v } : f));
+  };
+  const updateTv = <K extends keyof TvFormState>(k: K, v: TvFormState[K]) => {
+    setTvForm((f) => (f ? { ...f, [k]: v } : f));
   };
 
-  // 9. Hàm Submit (PUT)
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleMovieSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting || !id) return;
+    if (!movieForm || saving || !id) return;
+    setSaving(true);
+    try {
+      const fd = new FormData();
+      fd.append("title", movieForm.title);
+      fd.append("originalTitle", movieForm.originalTitle || movieForm.title);
+      fd.append("description", movieForm.description);
+      fd.append("releaseYear", movieForm.release);
+      if (movieForm.duration != null && movieForm.duration !== "")
+        fd.append("durationMin", String(movieForm.duration));
+      fd.append("ageRating", movieForm.age);
+      fd.append("status", movieForm.status);
+      fd.append("isSeries", "false");
+      (movieForm.countries || []).forEach((c) =>
+        fd.append("countryIds", String(c.id))
+      );
+      (movieForm.genres || []).forEach((g) =>
+        fd.append("genreIds", String(g.id))
+      );
+      if (movieForm.director)
+        fd.append("directorId", String(movieForm.director.id));
+      (movieForm.actors || []).forEach((a) =>
+        fd.append("actorIds", String(a.id))
+      );
+      if (movieForm.poster instanceof File)
+        fd.append("posterImage", movieForm.poster);
+      if (movieForm.backdrop instanceof File)
+        fd.append("backdropImage", movieForm.backdrop);
 
-    // (Validate...)
-
-    const formData = new FormData();
-    // (Append files...)
-    // (Tạo DTO...)
-
-    // Dispatch Update Thunk
-    dispatch(updateMovieAsync({ id, payload: formData }));
+      await updateMovieMutation({ id, body: fd }).unwrap();
+      toast.success("Movie updated successfully");
+      navigate("/admin/movies");
+    } catch (err) {
+      const message = (err as Error)?.message || "Unknown error";
+      toast.error("Failed to update movie", { description: message });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // 10. Xử lý sau khi Submit
-  useEffect(() => {
-    if (submitStatus === "succeeded") {
-      toast.success("Movie updated successfully!");
+  const handleTvSubmit = async (formData: TvFormState) => {
+    if (saving || !id) return;
+    setSaving(true);
+    try {
+      // 1) Update base movie fields (series=true)
+      const fd = new FormData();
+      fd.append("title", formData.title);
+      fd.append("originalTitle", formData.originalTitle || formData.title);
+      fd.append("description", formData.description);
+      fd.append("releaseYear", formData.release);
+      if (formData.duration != null && formData.duration !== "")
+        fd.append("durationMin", String(formData.duration));
+      fd.append("ageRating", formData.age);
+      fd.append("status", formData.status);
+      fd.append("isSeries", "true");
+      (formData.countries || []).forEach((c) =>
+        fd.append("countryIds", String(c.id))
+      );
+      (formData.genres || []).forEach((g) =>
+        fd.append("genreIds", String(g.id))
+      );
+      if (formData.director)
+        fd.append("directorId", String(formData.director.id));
+      (formData.actors || []).forEach((a) =>
+        fd.append("actorIds", String(a.id))
+      );
+      if (formData.poster instanceof File)
+        fd.append("posterImage", formData.poster);
+      if (formData.backdrop instanceof File)
+        fd.append("backdropImage", formData.backdrop);
+
+      await updateMovieMutation({ id, body: fd }).unwrap();
+
+      // 2) Update or create seasons and episodes
+      const seasonIdByNumber = seasonIdByNumberRef.current;
+      for (const s of formData.seasonDrafts || []) {
+        const existingSeasonId = seasonIdByNumber.get(s.seasonNumber);
+        let seasonIdToUse = existingSeasonId;
+        if (existingSeasonId) {
+          await updateSeason({
+            id: existingSeasonId,
+            body: { seasonNumber: s.seasonNumber, title: s.title },
+          }).unwrap();
+        } else {
+          const createdSeason = await addSeason({
+            movieId: String(id),
+            body: { seasonNumber: s.seasonNumber, title: s.title },
+          }).unwrap();
+          seasonIdToUse = String(createdSeason.id);
+          seasonIdByNumber.set(s.seasonNumber, seasonIdToUse);
+        }
+        if (!seasonIdToUse) continue;
+        for (const ep of s.episodes || []) {
+          const key = `${s.seasonNumber}:${ep.episodeNumber}`;
+          const existingEpisodeId = episodeIdMapRef.current.get(key);
+          const body = {
+            episodeNumber: ep.episodeNumber,
+            title: ep.title,
+            durationMin: ep.durationMin,
+            synopsis: ep.synopsis,
+            airDate: ep.airDate,
+          };
+          if (existingEpisodeId) {
+            await updateEpisode({ id: existingEpisodeId, body }).unwrap();
+          } else {
+            await addEpisode({
+              seasonId: String(seasonIdToUse),
+              body,
+            }).unwrap();
+          }
+        }
+      }
+
+      toast.success("TV Series updated successfully");
       navigate("/admin/movies");
+    } catch (err) {
+      const message = (err as Error)?.message || "Unknown error";
+      toast.error("Failed to update TV Series", { description: message });
+    } finally {
+      setSaving(false);
     }
-  }, [submitStatus, navigate]);
+  };
 
-  // --- RENDER ---
-
-  if (isDataLoading) {
+  if (infoLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
         <Loader2 className="size-10 animate-spin text-teal-500" />
+      </div>
+    );
+  }
+  if (isError || (!movieForm && !tvForm)) {
+    return (
+      <div className="mx-auto max-w-xl p-10 text-center text-zinc-400">
+        <p>Unable to load movie info. Please try again.</p>
+        <Button className="mt-4" onClick={() => navigate(-1)}>
+          Go Back
+        </Button>
       </div>
     );
   }
@@ -317,33 +341,41 @@ export default function MovieEdit() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="size-5" />
         </Button>
-        <h1 className="text-2xl font-bold text-white">
-          Edit {form.isSeries ? "TV Series" : "Movie"}
-        </h1>
+        <div className="flex-1">
+          <MovieEditHeader
+            contentType={isSeries ? "tv" : "movie"}
+            // Selection is locked based on API isSeries
+            disabled
+            onReset={() => {
+              setMovieForm(null);
+              setTvForm(null);
+            }}
+          />
+        </div>
       </div>
 
       {/* Form */}
       {/* Tái sử dụng component form */}
-      {!form.isSeries ? (
-        <MovieAddForm
-          form={form}
-          update={update}
-          displayGenres={displayGenres}
-          displayCountries={displayCountries}
-          formDataStatus={formDataStatus}
-          isLoading={isSubmitting}
-          handleSubmit={handleSubmit} // (Bạn cần truyền prop này vào component con)
+      {!isSeries && movieForm && (
+        <MovieEditForm
+          form={movieForm}
+          update={updateMovie}
+          displayGenres={(data?.genres as Genre[]) || []}
+          displayCountries={(data?.countries as Country[]) || []}
+          formDataStatus="succeeded"
+          loading={saving}
+          onSubmit={handleMovieSubmit}
         />
-      ) : (
-        <TvAddForm
-          form={form}
-          update={update}
-          displayGenres={displayGenres}
-          displayCountries={displayCountries}
-          formDataStatus={formDataStatus}
-          tvDetail={currentTv} // (Dữ liệu seasons lấy từ DB)
-          isLoading={isSubmitting}
-          handleSubmit={handleSubmit}
+      )}
+      {isSeries && tvForm && (
+        <TvEditForm
+          form={tvForm}
+          update={updateTv}
+          displayGenres={(data?.genres as Genre[]) || []}
+          displayCountries={(data?.countries as Country[]) || []}
+          formDataStatus="succeeded"
+          loading={saving}
+          onSubmit={handleTvSubmit}
         />
       )}
     </section>

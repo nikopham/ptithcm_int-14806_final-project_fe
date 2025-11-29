@@ -1,127 +1,157 @@
-// src/services/movieApi.ts
-
-import { api } from "@/lib/axios";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import type {
-  SearchMovieResult,
-  MovieDetailsResult,
-  TvDetailsResult,
-  GenreListResult,
-  CountryListResult,
-  TvSeasonDetailsResult,
-  MovieRequestDto, // <-- 1. Import
-  AddMovieResult,
-  MovieListResult,
-  MovieStatus,
-  GetMovieByIdResult, // <-- MỚI
-  UpdateSeasonDto, // <-- MỚI
-  UpdateSeasonResult,
+  Movie,
+  MovieDetail,
+  MovieDetailResponse,
+  MovieSearchParams,
+  VideoStatusResponse,
 } from "@/types/movie";
+import type { PageResponse, ServiceResult } from "@/types/common";
+import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
+import type { MovieShort } from "@/types/home";
+import type { Review } from "@/types/review";
 
-// 1a. API Tìm kiếm MOVIE
-const searchTmdbMovie = (
-  query: string,
-  page: number
-): Promise<SearchMovieResult> => {
-  return api.get("/api/movies/search/movie", {
-    params: { query, page },
-  });
-};
+export const movieApi = createApi({
+  reducerPath: "movieApi",
+  baseQuery: axiosBaseQuery({ baseUrl: "" }),
+  tagTypes: ["Movies"],
 
-// 1b. API Tìm kiếm TV
-const searchTmdbTv = (
-  query: string,
-  page: number
-): Promise<SearchMovieResult> => {
-  return api.get("/api/movies/search/tv", {
-    params: { query, page },
-  });
-};
+  endpoints: (builder) => ({
+    searchMovies: builder.query<PageResponse<Movie>, MovieSearchParams>({
+      query: (params) => ({
+        url: "/api/v1/movies/search",
+        method: "GET",
+        params: {
+          ...params,
+          page: params.page && params.page > 0 ? params.page - 1 : 0,
+        },
+      }),
 
-// 2a. API Lấy chi tiết MOVIE
-const getTmdbMovieDetails = (tmdbId: number): Promise<MovieDetailsResult> => {
-  return api.get(`/api/movies/details/movie/${tmdbId}`);
-};
+      transformResponse: (response: ServiceResult<PageResponse<Movie>>) => {
+        return response.data;
+      },
+      providesTags: ["Movies"],
+    }),
 
-// 2b. API Lấy chi tiết TV
-const getTmdbTvDetails = (tmdbId: number): Promise<TvDetailsResult> => {
-  return api.get(`/api/movies/details/tv/${tmdbId}`);
-};
+    searchMoviesLiked: builder.query<PageResponse<Movie>, MovieSearchParams>({
+      query: (params) => ({
+        url: "/api/v1/movies/search-liked",
+        method: "GET",
+        params: {
+          ...params,
+          page: params.page && params.page > 0 ? params.page - 1 : 0,
+        },
+      }),
 
-// 3. API lấy Genres
-const getAllGenres = (): Promise<GenreListResult> => {
-  return api.get("/api/movies/genres");
-};
+      transformResponse: (response: ServiceResult<PageResponse<Movie>>) => {
+        return response.data;
+      },
+      providesTags: ["Movies"],
+    }),
 
-// 4. API lấy Countries
-const getAllCountries = (): Promise<CountryListResult> => {
-  return api.get("/api/movies/countries");
-};
+    createMovie: builder.mutation<Movie, FormData>({
+      query: (formData) => ({
+        url: "/api/v1/movies/add",
+        method: "POST",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }),
+      transformResponse: (response: ServiceResult) => {
+        return response.data;
+      },
+      invalidatesTags: ["Movies"],
+    }),
+    getTop10Movie: builder.query<MovieShort[], { isSeries?: boolean } | void>({
+      query: (params) => ({
+        url: "/api/v1/movies/top-10",
+        method: "GET",
+        params: params || {},
+      }),
+      transformResponse: (res: ServiceResult<MovieShort[]>) => res.data,
+      keepUnusedDataFor: 300,
+    }),
+    getMovieInfo: builder.query<MovieDetail, string>({
+      query: (id) => ({
+        url: `/api/v1/movies/${id}/info`,
+        method: "GET",
+      }),
+      transformResponse: (res: ServiceResult<MovieDetail>) => res.data,
+    }),
 
-const getTmdbTvSeasonDetails = (
-  tvId: number,
-  seasonNumber: number
-): Promise<TvSeasonDetailsResult> => {
-  // Backend API đã được tạo ở bước trước
-  return api.get(`/api/movies/details/tv/${tvId}/season/${seasonNumber}`);
-};
+    updateMovie: builder.mutation<MovieDetail, { id: string; body: FormData }>({
+      query: ({ id, body }) => ({
+        url: `/api/v1/movies/update/${id}`,
+        method: "PUT",
+        data: body,
+        headers: { "Content-Type": "multipart/form-data" },
+      }),
 
-const addMovie = (payload: MovieRequestDto): Promise<AddMovieResult> => {
-  return api.post("/api/movies/add", payload);
-};
+      invalidatesTags: (result, error, { id }) => [
+        "Movies",
+        { type: "Movies", id },
+      ],
+    }),
+    deleteMovie: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/api/v1/movies/delete/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Movies"],
+    }),
 
-export interface GetMoviesParams {
-  query?: string;
-  status?: MovieStatus | null; // (Backend nhận Enum hoặc null)
-  isSeries?: boolean | null; // (Backend nhận boolean hoặc null)
-  page: number;
-  size: number;
-}
+    getMovieReviews: builder.query<
+      PageResponse<Review>,
+      { movieId: string; page: number; size: number }
+    >({
+      query: ({ movieId, page, size }) => ({
+        url: `/api/v1/movies/detail/${movieId}/reviews`,
+        method: "GET",
+        params: {
+          page: page > 0 ? page - 1 : 0,
+          size,
+          sort: "createdAt,desc",
+        },
+      }),
+      transformResponse: (res: ServiceResult<PageResponse<Review>>) => res.data,
+      keepUnusedDataFor: 60,
+    }),
 
-const getMovies = (params: GetMoviesParams): Promise<MovieListResult> => {
-  return api.get("/api/movies/list", {
-    params: params, // Gửi các tham số
-  });
-};
+    getMovieDetail: builder.query<MovieDetailResponse, string>({
+      query: (id) => ({
+        url: `/api/v1/movies/detail/${id}`,
+        method: "GET",
+      }),
+      transformResponse: (res: ServiceResult<MovieDetailResponse>) =>
+        res.data as MovieDetailResponse,
+      providesTags: (_result, _error, id) => [{ type: "Movies", id }],
+    }),
 
-/**
- * (MỚI) API GET để LẤY Movie/TV (từ DB) bằng UUID
- */
-const getMovieById = (id: string): Promise<GetMovieByIdResult> => {
-  return api.get(`/api/movies/detail/${id}`);
-};
+    toggleLikeMovie: builder.mutation<string, string>({
+      query: (movieId) => ({
+        url: `/api/v1/movies/like/${movieId}`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, movieId) => [
+        { type: "Movies", id: movieId },
+      ],
+    }),
 
-/**
- * (MỚI) API PUT để CẬP NHẬT Movie/TV (dùng FormData)
- */
-const updateMovie = (
-  id: string,
-  payload: FormData
-): Promise<AddMovieResult> => {
-  return api.put(`/api/movies/update/${id}`, payload);
-};
+    
+  }),
+});
 
-/**
- * (MỚI) API PUT để CẬP NHẬT Season/Episodes (dùng JSON)
- */
-const updateSeason = (
-  id: string,
-  payload: UpdateSeasonDto
-): Promise<UpdateSeasonResult> => {
-  return api.put(`/api/seasons/update/${id}`, payload);
-};
-
-
-export const movieApi = {
-  searchTmdbMovie,
-  searchTmdbTv,
-  getTmdbMovieDetails,
-  getTmdbTvDetails,
-  getAllGenres,
-  getAllCountries,
-  getTmdbTvSeasonDetails,
-  addMovie,
-  getMovies,
-  getMovieById,
-  updateMovie,
-  updateSeason,
-};
+export const {
+  useSearchMoviesQuery,
+  useCreateMovieMutation,
+  useGetTop10MovieQuery,
+  useGetMovieInfoQuery,
+  useUpdateMovieMutation,
+  useDeleteMovieMutation,
+  useGetMovieReviewsQuery,
+  useGetMovieDetailQuery,
+  useToggleLikeMovieMutation,
+  useSearchMoviesLikedQuery,
+  
+} = movieApi;

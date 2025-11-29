@@ -1,28 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Pencil,
-  Trash2,
   Plus,
   Search,
   MoreHorizontal,
   Loader2,
+  Trash2,
 } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/app/hooks";
+import type { Genre } from "@/types/genre";
+import {
+  useSearchGenresQuery,
+  useCreateGenreMutation,
+  useUpdateGenreMutation,
+  useDeleteGenreMutation,
+} from "@/features/genre/genreApi";
 import { useDebounce } from "@/hooks/useDebounce";
-import {
-  createGenreAsync,
-  fetchGenresAsync,
-  searchTmdbGenresAsync,
-  updateGenreAsync,
-} from "@/features/genre/genreThunks";
-import {
-  clearGenreList,
-  clearTmdbResults,
-  resetCreateStatus,
-  resetUpdateStatus,
-} from "@/features/genre/genreSlice"; // (Nếu bạn có action này)
-import type { GetGenresParams } from "@/types/genre"; // (Nếu bạn tách file types)
-import type { GenreListItem } from "@/types/genre";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,163 +50,99 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"; // Giả sử bạn đã fix lỗi export ButtonProps
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 export default function GenreList() {
-  const dispatch = useAppDispatch();
-
-  // 1. Lấy State từ Redux
-  const {
-    list,
-    status,
-    tmdbResults,
-    tmdbStatus,
-    listTotalPages,
-    createStatus,
-    updateStatus,
-  } = useAppSelector((state) => state.genre);
-  const isLoading = status === "loading";
-
-  const isSaving = createStatus === "loading" || updateStatus === "loading";
-
-  // 2. State Local
+  // UI state
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const PAGE_SIZE = 10;
 
-  const debouncedQuery = useDebounce(query, 500);
+  // Debounce search and query API
+  const debouncedQuery = useDebounce(query, 400);
+  const { data, isFetching, isError, refetch } = useSearchGenresQuery({
+    query: debouncedQuery || undefined,
+    page: currentPage + 1,
+    size: PAGE_SIZE,
+  });
+  const [createGenre] = useCreateGenreMutation();
+  const [updateGenre] = useUpdateGenreMutation();
+  const [deleteGenre, { isLoading: deletingGenre }] = useDeleteGenreMutation();
+  const totalPages = data?.totalPages ?? 0;
+  const paged: Genre[] = data?.content ?? [];
 
-  // 3. useEffect Gọi API
-  useEffect(() => {
-    const params: GetGenresParams = {
-      query: debouncedQuery || undefined,
-      page: currentPage,
-      size: 10, // Số lượng mỗi trang
-    };
-
-    // (Tùy chọn: Reset list khi query đổi để tránh flash nội dung cũ)
-    // if (currentPage === 0) dispatch(clearGenreList());
-
-    dispatch(fetchGenresAsync(params));
-  }, [debouncedQuery, currentPage, dispatch]);
-
-  // 4. Hàm xử lý Filter/Page
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
-    setCurrentPage(0); // Reset về trang 0 khi tìm kiếm
   };
-
   const handleNext = () => {
-    if (currentPage < listTotalPages - 1) setCurrentPage((p) => p + 1);
+    if (!isFetching && currentPage < totalPages - 1)
+      setCurrentPage((p) => p + 1);
   };
-
   const handlePrev = () => {
-    if (currentPage > 0) setCurrentPage((p) => p - 1);
+    if (!isFetching && currentPage > 0) setCurrentPage((p) => p - 1);
   };
 
-  /* ─── Dialog State (Giữ nguyên logic UI, chưa kết nối API Add/Edit) ─── */
+  /* ─── Dialog State ─── */
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   const [currentId, setCurrentId] = useState<number | null>(null);
-
-  // (MỚI) Form data có thêm tmdbId
-  const [formData, setFormData] = useState({
-    name: "",
-    tmdbId: null as number | null,
-  });
-
-  // (MỚI) State tìm kiếm trong Modal
-  const [modalSearch, setModalSearch] = useState("");
-  const debouncedModalSearch = useDebounce(modalSearch, 300);
-
-  // (MỚI) useEffect để tìm kiếm TMDb khi gõ trong Modal
-  useEffect(() => {
-    if (isOpen && debouncedModalSearch) {
-      dispatch(searchTmdbGenresAsync(debouncedModalSearch));
-    } else {
-      dispatch(clearTmdbResults());
-    }
-  }, [debouncedModalSearch, isOpen, dispatch]);
+  const [formData, setFormData] = useState({ name: "" });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const handleAdd = () => {
     setIsEditing(false);
-    setFormData({ name: "", tmdbId: null });
-    setModalSearch(""); // Reset search
+    setFormData({ name: "" });
     setIsOpen(true);
   };
 
-  const handleEdit = (genre: GenreListItem) => {
+  const handleEdit = (genre: { id: number; name: string }) => {
     setIsEditing(true);
     setCurrentId(genre.id);
-
-    // 1. Đổ dữ liệu vào state
-    setFormData({
-      name: genre.name,
-      tmdbId: genre.tmdbId || null, // Lấy từ list
-    });
-    // 2. Set modalSearch để hiển thị trong ô Input
-    setModalSearch(genre.name);
-
+    setFormData({ name: genre.name });
     setIsOpen(true);
   };
-  const pickTmdbGenre = (g: { id: number; name: string }) => {
-    setFormData({ name: g.name, tmdbId: g.id });
-    setModalSearch(g.name); // Hiển thị tên đã chọn vào ô input
-    dispatch(clearTmdbResults()); // Ẩn gợi ý
+  const handleDelete = (id: number) => {
+    setDeleteId(id);
+    setConfirmOpen(true);
   };
-
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await deleteGenre(deleteId).unwrap();
+      toast.success("Genre deleted!");
+      setConfirmOpen(false);
+      setDeleteId(null);
+      await refetch();
+    } catch {
+      toast.error("Failed to delete genre");
+    }
+  };
   const handleSave = async () => {
-    if (!formData.name) return;
-
-    let resultAction;
-
-    if (isEditing && currentId) {
-      // --- LOGIC UPDATE ---
-      resultAction = await dispatch(
-        updateGenreAsync({
+    if (!formData.name.trim()) return;
+    try {
+      setIsSaving(true);
+      if (isEditing && currentId) {
+        await updateGenre({
           id: currentId,
-          data: {
-            name: formData.name,
-            tmdbId: formData.tmdbId,
-          },
-        })
-      );
-    } else {
-      // --- LOGIC CREATE ---
-      resultAction = await dispatch(
-        createGenreAsync({
-          name: formData.name,
-          tmdbId: formData.tmdbId,
-        })
-      );
-    }
-
-    // Xử lý kết quả chung
-    if (
-      createGenreAsync.fulfilled.match(resultAction) ||
-      updateGenreAsync.fulfilled.match(resultAction)
-    ) {
-      toast.success(isEditing ? "Genre updated!" : "Genre created!");
-      setIsOpen(false);
-
-      // Reset form
-      setFormData({ name: "", tmdbId: null });
-      setModalSearch("");
-
-      // Nếu là Create thì nên fetch lại để thấy item mới (hoặc sort lại)
-      // Nếu là Update thì slice đã tự update UI rồi, nhưng fetch lại cũng an toàn
-      if (!isEditing) {
+          body: { name: formData.name },
+        }).unwrap();
+        toast.success("Genre updated!");
+      } else {
+        await createGenre({ name: formData.name }).unwrap();
+        toast.success("Genre created!");
         setCurrentPage(0);
-        dispatch(
-          fetchGenresAsync({ query: debouncedQuery, page: 0, size: 10 })
-        );
       }
-    } else {
-      toast.error((resultAction.payload as string) || "Failed to save genre");
+      setIsOpen(false);
+      setFormData({ name: "" });
+      await refetch();
+    } catch {
+      toast.error("Failed to save genre");
+    } finally {
+      setIsSaving(false);
     }
-
-    // Reset status
-    dispatch(resetCreateStatus());
-    dispatch(resetUpdateStatus());
   };
 
   // --- JSX ---
@@ -247,31 +175,31 @@ export default function GenreList() {
         <Table>
           <TableHeader className="bg-zinc-950">
             <TableRow className="hover:bg-zinc-900">
-              <TableHead className="w-[80px]">ID</TableHead>
+              <TableHead className="w-20">ID</TableHead>
               <TableHead>Name</TableHead>
               {/* <TableHead>Slug</TableHead> (Tạm ẩn nếu chưa có data) */}
               <TableHead className="text-right">Movies</TableHead>
-              <TableHead className="w-[80px]"></TableHead>
+              <TableHead className="w-20"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {isFetching ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
                   <Loader2 className="mx-auto size-6 animate-spin text-zinc-500" />
                 </TableCell>
               </TableRow>
-            ) : list.length === 0 ? (
+            ) : paged.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={5}
                   className="h-24 text-center text-zinc-500"
                 >
-                  No genre found.
+                  {isError ? "Failed to load genres." : "No genre found."}
                 </TableCell>
               </TableRow>
             ) : (
-              list.map((g) => (
+              paged.map((g) => (
                 <TableRow
                   key={g.id}
                   className="hover:bg-zinc-800/50 border-zinc-800"
@@ -289,7 +217,7 @@ export default function GenreList() {
                   </TableCell>
                   {/* <TableCell className="text-zinc-400 italic">slug-here</TableCell> */}
                   <TableCell className="text-right text-zinc-300">
-                    {g.movieCount} {/* Dữ liệu thật từ Backend */}
+                    {g.movieCount || "0"}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -307,10 +235,16 @@ export default function GenreList() {
                         className="bg-zinc-900 border-zinc-700 text-white"
                       >
                         <DropdownMenuItem
-                          onClick={() => handleEdit(g)}
+                          onClick={() => handleEdit({ id: g.id, name: g.name })}
                           className="cursor-pointer hover:bg-zinc-800 focus:bg-zinc-800"
                         >
                           <Pencil className="mr-2 h-4 w-4" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(g.id)}
+                          className="text-red-500 cursor-pointer hover:bg-red-900/20 focus:bg-red-900/20 hover:text-red-400 focus:text-red-400"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -330,7 +264,7 @@ export default function GenreList() {
               <PaginationPrevious
                 onClick={handlePrev}
                 className={
-                  isLoading || currentPage === 0
+                  isFetching || currentPage === 0
                     ? "pointer-events-none opacity-50"
                     : "cursor-pointer"
                 }
@@ -338,14 +272,14 @@ export default function GenreList() {
             </PaginationItem>
             <PaginationItem>
               <span className="px-4 text-sm text-zinc-400">
-                Page {currentPage + 1} of {listTotalPages || 1}
+                Page {currentPage + 1} of {totalPages}
               </span>
             </PaginationItem>
             <PaginationItem>
               <PaginationNext
                 onClick={handleNext}
                 className={
-                  isLoading || currentPage >= listTotalPages - 1
+                  isFetching || currentPage >= totalPages - 1
                     ? "pointer-events-none opacity-50"
                     : "cursor-pointer"
                 }
@@ -363,9 +297,7 @@ export default function GenreList() {
               {isEditing ? "Edit Genre" : "Add New Genre"}
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
-              {isEditing
-                ? "Update genre details."
-                : "Search and select a genre from TMDB."}
+              {isEditing ? "Update genre details." : "Enter the genre name."}
             </DialogDescription>
           </DialogHeader>
 
@@ -378,88 +310,11 @@ export default function GenreList() {
                 <Input
                   id="name"
                   className="bg-zinc-950 border-zinc-700 focus-visible:ring-teal-600"
-                  // Nếu đang Add: hiển thị modalSearch. Nếu Edit: hiển thị formData.name
-                  value={modalSearch}
-                  onChange={(e) => {
-                    const newVal = e.target.value;
-                    setModalSearch(newVal);
-
-                    // 4. Khi người dùng gõ (kể cả đang Edit),
-                    // ta reset về Custom (tmdbId: null) và cập nhật name
-                    setFormData((prev) => ({
-                      ...prev,
-                      name: newVal,
-                      tmdbId: null,
-                    }));
-                  }}
-                  placeholder="Type to search TMDB or enter custom name..."
+                  value={formData.name}
+                  onChange={(e) => setFormData({ name: e.target.value })}
+                  placeholder="Enter genre name..."
                   autoComplete="off"
                 />
-
-                {/* Dropdown Gợi ý & Custom Option */}
-
-                {modalSearch && tmdbResults.length > 0 && (
-                  <ul className="absolute z-50 w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {/* 1. Option tạo Custom Genre (Luôn hiện đầu tiên) */}
-                    <li
-                      className="px-3 py-2 hover:bg-teal-900/30 cursor-pointer text-sm flex flex-col border-b border-zinc-700/50"
-                      onClick={() => {
-                        // A. Lưu tên đang gõ vào form, set ID là null
-                        setFormData({ name: modalSearch, tmdbId: null });
-
-                        // B. Xóa kết quả tìm kiếm -> Điều này làm ẩn <ul> ngay lập tức
-                        dispatch(clearTmdbResults());
-                      }}
-                    >
-                      <span className="font-medium text-teal-400">
-                        Create "{modalSearch}"
-                      </span>
-                      <span className="text-xs text-zinc-500">
-                        Custom Genre (No TMDB ID)
-                      </span>
-                    </li>
-
-                    {/* 2. Các Option từ TMDB */}
-                    {tmdbResults.map((g) => (
-                      <li
-                        key={g.id}
-                        onClick={() => pickTmdbGenre(g)}
-                        className="px-3 py-2 hover:bg-zinc-700 cursor-pointer text-sm flex justify-between items-center"
-                      >
-                        <span>{g.name}</span>
-                        <span className="text-xs bg-zinc-900 px-1.5 py-0.5 rounded text-zinc-500">
-                          TMDB
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {/* Loading Indicator */}
-                {tmdbStatus === "loading" && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Loader2 className="size-4 animate-spin text-zinc-500" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Hiển thị trạng thái ID để người dùng biết đang chọn mode nào */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right text-zinc-300">Source</Label>
-              <div className="col-span-3">
-                {formData.tmdbId ? (
-                  <Badge className="bg-teal-600 hover:bg-teal-700">
-                    Linked to TMDB (ID: {formData.tmdbId})
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant="outline"
-                    className="text-zinc-400 border-zinc-600"
-                  >
-                    Custom / Manual Entry
-                  </Badge>
-                )}
               </div>
             </div>
           </div>
@@ -471,8 +326,7 @@ export default function GenreList() {
             <Button
               onClick={handleSave}
               className="bg-teal-600 hover:bg-teal-700"
-              // Vô hiệu hóa nút Save nếu ô input trống
-              disabled={isEditing ? !formData.name : !modalSearch}
+              disabled={isSaving || !formData.name.trim()}
             >
               {isSaving ? (
                 <Loader2 className="size-4 animate-spin text-zinc-500" />
@@ -483,6 +337,19 @@ export default function GenreList() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        title="Xóa thể loại?"
+        description="Bạn có chắc muốn xóa thể loại này? Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        cancelText="Hủy"
+        variant="destructive"
+        isLoading={deletingGenre}
+      />
     </div>
   );
 }

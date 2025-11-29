@@ -1,5 +1,20 @@
+export enum PersonJob {
+  ACTOR = "ACTOR",
+  DIRECTOR = "DIRECTOR",
+}
+
 export interface Person {
-  id: number;
-  name: string;
-  img: string; // URL ảnh (từ TMDb hoặc ui-avatars)
+  id: string; // UUID
+  fullName: string;
+  job: PersonJob;
+  profilePath?: string;
+  movieCount?: number;
+}
+
+export interface PersonSearchParams {
+  query?: string;
+  job?: PersonJob;
+  page?: number;
+  size?: number;
+  sort?: string;
 }

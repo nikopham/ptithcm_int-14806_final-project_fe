@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import type { ResetPasswordRequest } from "@/types/auth";
@@ -25,6 +24,7 @@ const validatePassword = (password: string) => {
     return "Must contain one lowercase letter.";
   if (!/(?=.*[A-Z])/.test(password))
     return "Must contain one uppercase letter.";
+  if (!/(?=.*\d)/.test(password)) return "Must contain one number.";
   if (!/(?=.*[^a-zA-Z0-9])/.test(password))
     return "Must contain one special character.";
   if (/\s/.test(password)) return "Password cannot contain spaces.";
@@ -51,6 +51,7 @@ export function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [repassword, setRepassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showRepassword, setShowRepassword] = useState(false);
   const [errors, setErrors] = useState({ password: "", repassword: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -67,12 +68,15 @@ export function ResetPasswordPage() {
         await authApi.verifyResetToken(token);
         // Token hợp lệ, hiển thị form
         setStatus("form");
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Token không hợp lệ
         setStatus("invalid");
-        setMessage(
-          error.response?.data?.message || "Invalid or expired token."
-        );
+        let msg = "Invalid or expired token.";
+        if (typeof error === "object" && error !== null) {
+          const e = error as { response?: { data?: { message?: string } } };
+          msg = e.response?.data?.message || msg;
+        }
+        setMessage(msg);
       }
     };
 
@@ -107,9 +111,14 @@ export function ResetPasswordPage() {
       // Thành công!
       setStatus("success");
       setMessage(result.message || "Password has been reset successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Lỗi (ví dụ: mismatch, token hết hạn lần 2)
-      setMessage(error.response?.data?.message || "An error occurred.");
+      let msg = "An error occurred.";
+      if (typeof error === "object" && error !== null) {
+        const e = error as { response?: { data?: { message?: string } } };
+        msg = e.response?.data?.message || msg;
+      }
+      setMessage(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -189,9 +198,9 @@ export function ResetPasswordPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
                 <Input
                   id="repassword"
-                  type="password"
+                  type={showRepassword ? "text" : "password"}
                   placeholder="Repeat new password"
-                  className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                  className="pl-10 pr-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
                   value={repassword}
                   onChange={(e) => {
                     setRepassword(e.target.value);
@@ -199,6 +208,17 @@ export function ResetPasswordPage() {
                       setErrors((p) => ({ ...p, repassword: "" }));
                   }}
                 />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300"
+                  onClick={() => setShowRepassword(!showRepassword)}
+                >
+                  {showRepassword ? (
+                    <EyeOff className="size-4" />
+                  ) : (
+                    <Eye className="size-4" />
+                  )}
+                </button>
               </div>
               {errors.repassword && (
                 <p className="text-xs text-red-500">{errors.repassword}</p>

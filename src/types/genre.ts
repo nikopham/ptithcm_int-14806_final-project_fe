@@ -1,35 +1,16 @@
-// src/types/genre.ts
-
-import type { ServiceResult } from "./common";
-import type { PagedResponse } from "./movie"; // Tái sử dụng type PagedResponse từ movie
-
-// 1. Item trong danh sách (Khớp với GenreItemDto.java)
-export interface GenreListItem {
+export interface Genre {
   id: number;
   name: string;
-  tmdbId: number | null;
-  movieCount: number; // Số lượng phim
+  movieCount: number;
 }
 
-// 2. Tham số gửi lên API
-export interface GetGenresParams {
+export interface GenreSearchParams {
   query?: string;
-  page: number;
-  size: number;
+  page?: number;
+  size?: number;
+  sort?: string;
 }
 
-// (MỚI) Genre lấy từ API TMDB
-export interface TmdbGenre {
-  id: number;   // tmdb_id
+export interface GenreRequest {
   name: string;
 }
-
-// (MỚI) Payload để tạo mới Genre
-export interface CreateGenreRequest {
-  name: string;
-  tmdbId: number | null; // Quan trọng
-  // slug: string; (Nếu backend tự generate thì không cần gửi)
-}
-
-// 3. Kết quả trả về (ServiceResult bọc PagedResponse)
-export type GenreListResult = ServiceResult<PagedResponse<GenreListItem>>;

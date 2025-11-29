@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import clsx from "clsx";
 import { Link } from "react-router-dom";
+import { useGetFeaturedGenresQuery } from "@/features/genre/genreApi";
+import type { GenreWithMovies } from "@/types/home";
 
 /* ---------- demo data (giữ nguyên / thay API) --------------------- */
 interface Category {
@@ -163,22 +165,65 @@ const mockCategories: Category[] = [
   },
 ];
 
+// Fallback poster pool from mock data
+const FALLBACK_POSTERS_POOL: string[] = mockCategories.flatMap(
+  (c) => c.posters
+);
+
+function fillPosters(
+  preferred: Array<string | undefined | null>,
+  count: number
+): string[] {
+  const result: string[] = [];
+  let poolIndex = 0;
+  for (let i = 0; i < count; i++) {
+    const p = preferred[i];
+    if (typeof p === "string" && p.trim() !== "") {
+      result.push(p);
+    } else {
+      const fallback =
+        FALLBACK_POSTERS_POOL[poolIndex % FALLBACK_POSTERS_POOL.length];
+      result.push(fallback);
+      poolIndex++;
+    }
+  }
+  return result;
+}
+
 /* ---------- component -------------------------------------------- */
 export const CategoryCarousel = ({
   categories = mockCategories,
 }: {
   categories?: Category[];
 }) => {
+  const { data: featured, isLoading, error } = useGetFeaturedGenresQuery();
+
+  const apiCategories: Category[] = useMemo(() => {
+    if (!featured || featured.length === 0) return [];
+    return featured.map((g: GenreWithMovies) => ({
+      id: String(g.genreId),
+      name: g.genreName,
+      posters: fillPosters(
+        (g.movies || []).map((m) => m.posterUrl || ""),
+        4
+      ),
+    }));
+  }, [featured]);
+
+  const categoriesData = apiCategories.length > 0 ? apiCategories : categories;
   /* paging state */
   const PER_PAGE = 5;
-  const totalPages = Math.ceil(categories.length / PER_PAGE);
+  const totalPages = Math.ceil(categoriesData.length / PER_PAGE);
   const [page, setPage] = useState(0);
 
   const next = () => setPage((p) => Math.min(p + 1, totalPages - 1));
   const prev = () => setPage((p) => Math.max(p - 1, 0));
 
   /* slice categories theo trang */
-  const slice = categories.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
+  const slice = categoriesData.slice(
+    page * PER_PAGE,
+    page * PER_PAGE + PER_PAGE
+  );
 
   return (
     <section className="mx-auto max-w-7xl px-4 pb-20 mt-20">
@@ -235,11 +280,17 @@ export const CategoryCarousel = ({
       </div>
 
       {/* card grid --------------------------------------------------- */}
+      {isLoading && (
+        <div className="text-sm text-zinc-400">Loading categories...</div>
+      )}
+      {!!error && !isLoading && apiCategories.length === 0 && (
+        <div className="text-sm text-red-400">Failed to load categories.</div>
+      )}
       <div className="grid gap-6 md:grid-cols-5 sm:grid-cols-2">
         {slice.map((cat) => (
           <Link
             key={cat.id}
-            to={`/movies?genre=${cat.id}`}
+            to={`/filter?genre=${cat.id}`}
             className="rounded-xl bg-zinc-800 p-4 transition hover:-translate-y-1 hover:bg-zinc-700"
           >
             {/* poster 2×2 */}

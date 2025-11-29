@@ -1,14 +1,6 @@
-import { useState, useMemo } from "react";
-import { format } from "date-fns"; // Tùy chọn: dùng để format ngày tháng đẹp hơn
-import {
-  Eye,
-  Search,
-  Star,
-  MessageSquareQuote,
-  Calendar,
-  Film,
-  User as UserIcon,
-} from "lucide-react";
+import { useState } from "react";
+import { format } from "date-fns";
+import { Eye, Search, Star, MessageSquareQuote, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,104 +21,28 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-/* ─── Type Definition ─── */
-type Review = {
-  id: string;
-  rating: number; // 1 - 5
-  title: string;
-  body: string;
-  created_at: string;
-  // Các trường Joined từ User và Movie
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    avatar?: string;
-  };
-  movie: {
-    id: string;
-    title: string;
-    poster: string;
-  };
-};
-
-/* ─── Mock Data ─── */
-const mockReviews: Review[] = [
-  {
-    id: "rv-1",
-    rating: 5,
-    title: "Absolute Masterpiece!",
-    body: "I was on the edge of my seat the entire time. Christopher Nolan does it again. The visual effects were stunning and the sound design was immersive. Highly recommend watching this in IMAX if you can.",
-    created_at: "2023-08-15T10:30:00Z",
-    user: {
-      id: "u-1",
-      name: "John Doe",
-      email: "john@example.com",
-      avatar: "https://i.pravatar.cc/150?img=33",
-    },
-    movie: {
-      id: "m-1",
-      title: "Oppenheimer",
-      poster: "https://image.tmdb.org/t/p/w92/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
-    },
-  },
-  {
-    id: "rv-2",
-    rating: 3,
-    title: "Good but long",
-    body: "The acting was great, but I felt the movie dragged on a bit in the middle. Could have been 30 minutes shorter.",
-    created_at: "2023-09-01T14:20:00Z",
-    user: {
-      id: "u-2",
-      name: "Sarah Smith",
-      email: "sarah@example.com",
-      avatar: "https://i.pravatar.cc/150?img=5",
-    },
-    movie: {
-      id: "m-1",
-      title: "Oppenheimer",
-      poster: "https://image.tmdb.org/t/p/w92/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
-    },
-  },
-  {
-    id: "rv-3",
-    rating: 4,
-    title: "Fun ride",
-    body: "Really enjoyed the nostalgia. The soundtrack is amazing!",
-    created_at: "2023-07-20T09:00:00Z",
-    user: {
-      id: "u-3",
-      name: "Mike Ross",
-      email: "mike@example.com",
-      avatar: undefined, // No avatar
-    },
-    movie: {
-      id: "m-2",
-      title: "Guardians of the Galaxy Vol. 3",
-      poster: "https://image.tmdb.org/t/p/w92/r2J02Z2OpNTctfOSN1Ydgii51I3.jpg",
-    },
-  },
-];
+import { useSearchReviewsQuery } from "@/features/review/reviewApi";
+import type { Review } from "@/types/review";
 
 export default function RatingList() {
-  const [reviews, setReviews] = useState<Review[]>(mockReviews);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const size = 10;
+
+  const { data, isLoading, isFetching, error } = useSearchReviewsQuery({
+    query: query || undefined,
+    page,
+    size,
+  });
+  const reviews: Review[] = data?.content ?? [];
 
   /* Dialog State */
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  /* Filter Logic: Search by User Name or Movie Title */
-  const filteredData = useMemo(() => {
-    const lowerQ = query.toLowerCase();
-    return reviews.filter(
-      (r) =>
-        r.movie.title.toLowerCase().includes(lowerQ) ||
-        r.user.name.toLowerCase().includes(lowerQ) ||
-        r.title.toLowerCase().includes(lowerQ)
-    );
-  }, [reviews, query]);
+  const totalPages = data?.totalPages ?? 0;
+  const totalElements = data?.totalElements ?? 0;
+  const currentPage = page;
 
   /* Helper: Render Stars */
   const renderStars = (rating: number, size = 4) => {
@@ -152,6 +68,16 @@ export default function RatingList() {
     setIsDialogOpen(true);
   };
 
+  /* Helper: Username initials */
+  const getInitials = (name?: string) =>
+    (name || "?")
+      .trim()
+      .split(" ")
+      .map((p) => p.charAt(0))
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+
   return (
     <div className="space-y-6 p-6">
       {/* ─── Header ─── */}
@@ -165,7 +91,7 @@ export default function RatingList() {
         {/* Stats Summary (Optional) */}
         <div className="flex gap-4">
           <div className="text-right">
-            <p className="text-2xl font-bold text-white">{reviews.length}</p>
+            <p className="text-2xl font-bold text-white">{totalElements}</p>
             <p className="text-xs text-zinc-500">Total Reviews</p>
           </div>
         </div>
@@ -178,7 +104,10 @@ export default function RatingList() {
           placeholder="Search movie, user or title..."
           className="pl-9 bg-zinc-900 border-zinc-700"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setPage(1);
+          }}
         />
       </div>
 
@@ -198,7 +127,7 @@ export default function RatingList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.map((r) => (
+            {reviews.map((r) => (
               <TableRow
                 key={r.id}
                 className="hover:bg-zinc-800/50 border-zinc-800"
@@ -207,12 +136,12 @@ export default function RatingList() {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <img
-                      src={r.movie.poster}
-                      alt={r.movie.title}
+                      src={r.moviePosterUrl || ""}
+                      alt={r.movieTitle}
                       className="h-12 w-8 rounded bg-zinc-800 object-cover"
                     />
                     <span className="font-medium text-white line-clamp-1">
-                      {r.movie.title}
+                      {r.movieTitle}
                     </span>
                   </div>
                 </TableCell>
@@ -221,14 +150,14 @@ export default function RatingList() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={r.user.avatar} />
+                      <AvatarImage src={r.userAvatar} />
                       <AvatarFallback className="text-[10px] bg-teal-800 text-teal-200">
-                        {r.user.name.substring(0, 2).toUpperCase()}
+                        {getInitials(r.username)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
                       <span className="text-sm text-zinc-200">
-                        {r.user.name}
+                        {r.username}
                       </span>
                     </div>
                   </div>
@@ -251,7 +180,7 @@ export default function RatingList() {
 
                 {/* Date */}
                 <TableCell className="hidden md:table-cell text-right text-zinc-400 text-xs">
-                  {new Date(r.created_at).toLocaleDateString("en-GB")}
+                  {new Date(r.createdAt).toLocaleDateString("en-GB")}
                 </TableCell>
 
                 {/* Actions */}
@@ -266,7 +195,17 @@ export default function RatingList() {
                 </TableCell>
               </TableRow>
             ))}
-            {filteredData.length === 0 && (
+            {(isLoading || isFetching) && (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-zinc-500"
+                >
+                  Loading reviews...
+                </TableCell>
+              </TableRow>
+            )}
+            {!isLoading && reviews.length === 0 && (
               <TableRow>
                 <TableCell
                   colSpan={6}
@@ -276,9 +215,46 @@ export default function RatingList() {
                 </TableCell>
               </TableRow>
             )}
+            {!!error && (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-red-400"
+                >
+                  Failed to load reviews.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
+
+      {/* ─── Pagination ─── */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between gap-4">
+          <div className="text-xs text-zinc-500">
+            Page {currentPage} of {totalPages}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="border-zinc-700 text-zinc-300"
+              disabled={currentPage <= 1 || isFetching}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Prev
+            </Button>
+            <Button
+              variant="outline"
+              className="border-zinc-700 text-zinc-300"
+              disabled={currentPage >= totalPages || isFetching}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* ─── Detail Dialog ─── */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -300,7 +276,7 @@ export default function RatingList() {
                 <div className="flex flex-col gap-4 rounded-lg border border-zinc-800 bg-zinc-950 p-4 sm:flex-row">
                   {/* Movie Poster */}
                   <img
-                    src={selectedReview.movie.poster}
+                    src={selectedReview.moviePosterUrl || ""}
                     alt="poster"
                     className="h-32 w-24 shrink-0 rounded object-cover"
                   />
@@ -308,7 +284,7 @@ export default function RatingList() {
                   <div className="flex flex-1 flex-col justify-between">
                     <div>
                       <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        {selectedReview.movie.title}
+                        {selectedReview.movieTitle}
                       </h3>
                       <div className="mt-1 flex items-center gap-2 text-sm text-zinc-400">
                         <Film className="size-3" /> Movie
@@ -317,17 +293,14 @@ export default function RatingList() {
 
                     <div className="mt-4 flex items-center gap-3 border-t border-zinc-800 pt-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={selectedReview.user.avatar} />
+                        <AvatarImage src={selectedReview.userAvatar} />
                         <AvatarFallback className="bg-teal-900 text-teal-200">
-                          {selectedReview.user.name.substring(0, 2)}
+                          {getInitials(selectedReview.username)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="text-sm font-medium text-white">
-                          {selectedReview.user.name}
-                        </p>
-                        <p className="text-xs text-zinc-500">
-                          {selectedReview.user.email}
+                          {selectedReview.username}
                         </p>
                       </div>
                     </div>
@@ -339,10 +312,10 @@ export default function RatingList() {
                       variant="outline"
                       className="border-yellow-600/50 bg-yellow-900/20 text-yellow-500 text-lg font-bold px-3 py-1"
                     >
-                      {selectedReview.rating}.0 / 5
+                      {selectedReview.rating} / 5
                     </Badge>
                     <span className="mt-2 text-xs text-zinc-500 text-right">
-                      {format(new Date(selectedReview.created_at), "PPP")}
+                      {format(new Date(selectedReview.createdAt), "PPP")}
                     </span>
                   </div>
                 </div>

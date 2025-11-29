@@ -10,7 +10,10 @@ import type {
 import type { ServiceResult } from "@/types/common";
 
 const login = async (credentials: LoginRequest): Promise<AuthResponse> => {
-  const response = await api.post<AuthResponse>("/api/auth/login", credentials);
+  const response = await api.post<AuthResponse>(
+    "/api/auth/login",
+    credentials,
+  );
   return response;
 };
 
@@ -48,13 +51,12 @@ const resetPassword = async (
   return api.post<ServiceResult>("/api/auth/reset", data);
 };
 
-
 export const authApi = {
   login,
   verify,
   logout,
   register,
-  forgotPassword, 
-  verifyResetToken, 
+  forgotPassword,
+  verifyResetToken,
   resetPassword,
 };

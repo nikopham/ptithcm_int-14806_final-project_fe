@@ -62,7 +62,6 @@ const nav: Item[] = [
     ],
   },
   { label: "Danh sách thanh toán", icon: Wallet, to: "/admin/transactions" },
-  { label: "Cài đặt tài khoản", icon: Settings, to: "/admin/settings" },
 ];
 
 /* ───────────────────────────── helper components */

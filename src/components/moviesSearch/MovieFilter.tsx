@@ -1,7 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import clsx from "clsx";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useGetAllGenresQuery } from "@/features/genre/genreApi";
+import { useGetAllCountriesQuery } from "@/features/country/countryApi";
+import { AgeRating } from "@/types/movie";
 
 /* ▸ tiny helpers -------------------------------------------------- */
 const Section = ({
@@ -43,18 +46,57 @@ const Chip = ({
 export default function MovieFilter({
   open,
   onClose,
+  onApply,
+  initialGenreIds,
 }: {
   open: boolean;
   onClose: () => void;
+  onApply?: (filters: {
+    countryIds?: number[];
+    genreIds?: number[];
+    isSeries?: boolean;
+    ageRating?: AgeRating;
+    sort?: string;
+  }) => void;
+  initialGenreIds?: number[];
 }) {
-  /* local state demo */
-  const [country, setCountry] = useState<string>("all");
-  const [type, setType] = useState<string>("movie");
-  const [rating, setRating] = useState<string>("all");
-  const [sort, setSort] = useState<string>("new");
+  // options
+  const { data: genres } = useGetAllGenresQuery();
+  const { data: countries } = useGetAllCountriesQuery();
 
-  const clearAndClose = () => {
-    /* do search with selected chips here */
+  // local selections
+  const [countryId, setCountryId] = useState<number | "all">("all");
+  const [genreIds, setGenreIds] = useState<number[]>(initialGenreIds || []);
+  const [type, setType] = useState<"movie" | "series">("movie");
+  const [rating, setRating] = useState<"all" | AgeRating>("all");
+  // sort string matches backend values (no UI redesign)
+  const [sort, setSort] = useState<
+    "createdAt,desc" | "viewCount,desc" | "averageRating,desc" | "title,asc"
+  >("createdAt,desc");
+
+  useEffect(() => {
+    setGenreIds(initialGenreIds || []);
+  }, [initialGenreIds]);
+
+  const ageRatingChips = useMemo(
+    () => ["Tất cả", ...Object.values(AgeRating)],
+    []
+  );
+
+  const toggleGenre = (id: number) => {
+    setGenreIds((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
+    );
+  };
+
+  const applyAndClose = () => {
+    onApply?.({
+      countryIds: countryId === "all" ? undefined : [countryId as number],
+      genreIds: genreIds.length ? genreIds : undefined,
+      isSeries: type === "series" ? true : type === "movie" ? false : undefined,
+      ageRating: rating === "all" ? undefined : rating,
+      sort,
+    });
     onClose();
   };
 
@@ -82,15 +124,40 @@ export default function MovieFilter({
 
           {/* sections */}
           <div className="divide-y divide-zinc-800 px-4">
+            {/* Thể loại (đa chọn) */}
+            <Section label="Thể loại:">
+              <Chip
+                active={genreIds.length === 0}
+                onClick={() => setGenreIds([])}
+              >
+                Tất cả
+              </Chip>
+              {(genres || []).map((g) => (
+                <Chip
+                  key={g.id}
+                  active={genreIds.includes(g.id)}
+                  onClick={() => toggleGenre(g.id)}
+                >
+                  {g.name}
+                </Chip>
+              ))}
+            </Section>
+
             {/* Quốc gia */}
             <Section label="Quốc gia:">
-              {["Tất cả", "Việt Nam", "Anh", "Mỹ", "Nhật"].map((c) => (
+              <Chip
+                active={countryId === "all"}
+                onClick={() => setCountryId("all")}
+              >
+                Tất cả
+              </Chip>
+              {(countries || []).map((c) => (
                 <Chip
-                  key={c}
-                  active={country === c}
-                  onClick={() => setCountry(c)}
+                  key={c.id}
+                  active={countryId === c.id}
+                  onClick={() => setCountryId(c.id)}
                 >
-                  {c}
+                  {c.name}
                 </Chip>
               ))}
             </Section>
@@ -104,7 +171,7 @@ export default function MovieFilter({
                 <Chip
                   key={t.id}
                   active={type === t.id}
-                  onClick={() => setType(t.id)}
+                  onClick={() => setType(t.id as "movie" | "series")}
                 >
                   {t.label}
                 </Chip>
@@ -113,11 +180,15 @@ export default function MovieFilter({
 
             {/* Xếp hạng độ tuổi */}
             <Section label="Xếp hạng:">
-              {["Tất cả", "P (Mọi lứa tuổi)", "T18 (18+)"].map((r) => (
+              {ageRatingChips.map((r) => (
                 <Chip
                   key={r}
-                  active={rating === r}
-                  onClick={() => setRating(r)}
+                  active={
+                    rating === (r === "Tất cả" ? "all" : (r as AgeRating))
+                  }
+                  onClick={() =>
+                    setRating(r === "Tất cả" ? "all" : (r as AgeRating))
+                  }
                 >
                   {r}
                 </Chip>
@@ -127,9 +198,13 @@ export default function MovieFilter({
             {/* Sắp xếp */}
             <Section label="Sắp xếp:">
               {[
-                { id: "new", label: "Mới nhất" },
-                { id: "imdb", label: "Điểm IMDb" },
-                { id: "view", label: "Lượt xem" },
+                { id: "createdAt,desc" as const, label: "Mới nhất" },
+                { id: "viewCount,desc" as const, label: "Lượt xem ↓" },
+                {
+                  id: "averageRating,desc" as const,
+                  label: "Điểm trung bình ↓",
+                },
+                { id: "title,asc" as const, label: "Tên (A-Z)" },
               ].map((s) => (
                 <Chip
                   key={s.id}
@@ -150,7 +225,7 @@ export default function MovieFilter({
                 Đóng
               </button>
               <button
-                onClick={clearAndClose}
+                onClick={applyAndClose}
                 className="rounded bg-red-500 px-4 py-1.5 text-sm font-medium text-black hover:bg-red-600"
               >
                 Lọc kết quả →
