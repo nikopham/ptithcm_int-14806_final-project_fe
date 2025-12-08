@@ -7,6 +7,12 @@ import {
   VolumeX,
   ChevronLeft,
   ChevronRight,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Mail,
+  Copy,
+  Loader2,
 } from "lucide-react";
 // import { Link } from "react-router-dom";
 import { useToggleLikeMovieMutation } from "@/features/movie/movieApi";
@@ -15,9 +21,23 @@ import type { RootState } from "@/app/store";
 import { AuthDialog } from "../auth/AuthDialog";
 import clsx from "clsx";
 import { toast } from "sonner";
-import videojs from "video.js";
-import "video.js/dist/video-js.css";
-import { useRef } from "react";
+// Replaced Cloudflare Stream with custom HLS + Artplayer component
+import { VideoPlayer } from "@/components/player/VideoPlayer";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+interface EpisodeInfo {
+  episodeTitle: string;
+  episodeNumber: number;
+  seasonNumber: number;
+}
 
 interface Props {
   title: string;
@@ -26,6 +46,9 @@ interface Props {
   id: string; // movie / show slug or TMDB id
   isLiked?: boolean; // indicates current like state
   streamUrl?: string; // Cloudflare Stream HLS/DASH URL
+  episodeId?: string; // episode ID for TV series
+  episodeInfo?: EpisodeInfo | null; // episode information for display
+  onPlayMain?: () => void; // callback when main movie is played
 }
 
 export const MovieDetailHero = ({
@@ -35,123 +58,313 @@ export const MovieDetailHero = ({
   id,
   isLiked = false,
   streamUrl,
+  episodeId,
+  episodeInfo,
+  onPlayMain,
 }: Props) => {
   const [idx, setIdx] = useState(0);
-  // const [mute, setMute] = useState(true);
   const [liked, setLiked] = useState<boolean>(isLiked);
   const [authOpen, setAuthOpen] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
+  const [theaterMode, setTheaterMode] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shortUrl, setShortUrl] = useState<string>("");
+  const [isShortening, setIsShortening] = useState(false);
+
+  // Auto-show player when episode is selected
+  useEffect(() => {
+    if (episodeId && streamUrl) {
+      setShowPlayer(true);
+    }
+  }, [episodeId, streamUrl]);
+
   const isAuth = useSelector((s: RootState) => s.auth.isAuth);
   const [toggleLike, { isLoading: toggling }] = useToggleLikeMovieMutation();
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const playerRef = useRef<videojs.Player | null>(null);
-  console.log(streamUrl);
   
   useEffect(() => {
     setLiked(isLiked);
   }, [isLiked]);
 
-  useEffect(() => {
-    if (!showPlayer) return;
-    if (!videoRef.current) return;
-
-    // Initialize video.js player when showing player
-    if (!playerRef.current) {
-      playerRef.current = videojs(videoRef.current, {
-        controls: true,
-        preload: "auto",
-        autoplay: true,
-        fluid: true,
-        responsive: true,
-        controlBar: {
-          volumePanel: { inline: false },
-        },
-      });
-    }
-
-    // Set source when available
-    if (playerRef.current && streamUrl) {
-      playerRef.current.src({
-        src: streamUrl,
-        type: "application/x-mpegURL", // HLS
-      });
-    }
-
-    return () => {
-      // do not dispose on toggle; only when component unmounts
-    };
-  }, [showPlayer, streamUrl]);
-
-  useEffect(() => {
-    return () => {
-      if (playerRef.current) {
-        playerRef.current.dispose();
-        playerRef.current = null;
+  const isHLSUrl = Boolean(streamUrl && streamUrl.includes(".m3u8"));
+  const cloudflareUIDFromManifest = (() => {
+    if (!streamUrl) return "";
+    try {
+      const u = new URL(streamUrl);
+      const parts = u.pathname.split("/").filter(Boolean);
+      const idx = parts.indexOf("manifest");
+      if (idx > 0) {
+        return parts[idx - 1] || "";
       }
-    };
-  }, []);
+      // if format like /<uid>/manifest/video.m3u8
+      if (parts.length >= 1) return parts[0];
+      return "";
+    } catch {
+      return "";
+    }
+  })();
+
+  // Sử dụng Cloudflare Stream React, không cần HLS/video element tùy chỉnh
 
   const total = backdrops.length;
   const next = () => setIdx((i) => (i + 1) % total);
   const prev = () => setIdx((i) => (i - 1 + total) % total);
-
   const img = backdrops[idx];
 
+  // Get current page URL for sharing
+  const currentPageUrl = typeof window !== "undefined" ? window.location.href : "";
+
+  // Shorten URL using is.gd (free service, no API key needed)
+  const shortenUrl = async (longUrl: string): Promise<string> => {
+    try {
+      const response = await fetch(
+        `https://is.gd/create.php?format=json&url=${encodeURIComponent(longUrl)}`
+      );
+      const data = await response.json();
+      if (data.shorturl) {
+        return data.shorturl;
+      }
+      throw new Error("Failed to shorten URL");
+    } catch (error) {
+      console.error("Error shortening URL:", error);
+      // Fallback to original URL if shortening fails
+      return longUrl;
+    }
+  };
+
+  // Shorten URL when share dialog opens
+  useEffect(() => {
+    if (shareOpen && currentPageUrl && !shortUrl && !isShortening) {
+      setIsShortening(true);
+      shortenUrl(currentPageUrl)
+        .then((url) => {
+          setShortUrl(url);
+          setIsShortening(false);
+        })
+        .catch(() => {
+          setShortUrl(currentPageUrl);
+          setIsShortening(false);
+        });
+    }
+  }, [shareOpen, currentPageUrl, shortUrl, isShortening]);
+
+  // Reset short URL when dialog closes
+  useEffect(() => {
+    if (!shareOpen) {
+      setShortUrl("");
+      setIsShortening(false);
+    }
+  }, [shareOpen]);
+
+  // Share handlers
+  const handleShare = (platform: string) => {
+    const urlToShare = shortUrl || currentPageUrl;
+    const encodedUrl = encodeURIComponent(urlToShare);
+    const encodedTitle = encodeURIComponent(title);
+    
+    const shareUrls: Record<string, string> = {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      email: `mailto:?subject=${encodedTitle}&body=${encodedUrl}`,
+    };
+
+    const url = shareUrls[platform];
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const handleCopyLink = async () => {
+    const urlToCopy = shortUrl || currentPageUrl;
+    try {
+      await navigator.clipboard.writeText(urlToCopy);
+      toast.success("Link copied to clipboard!");
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
   return (
-    <div className="relative mx-auto max-w-7xl overflow-hidden rounded-xl">
-      {/* === area giữ tỉ lệ 16:9 === */}
-      <div className="relative aspect-video w-full">
-        {!showPlayer ? (
-          <>
-            <img
-              src={img}
-              alt={title}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black/60" />
-          </>
-        ) : (
-          <div className="absolute inset-0">
-            <video
-              ref={videoRef}
-              className="video-js vjs-big-play-centered w-full h-full"
-              playsInline
-            />
+    <>
+      {/* Theater mode overlay - covers entire viewport */}
+      {theaterMode && showPlayer && (
+        <div className="fixed inset-0 bg-black z-40 pointer-events-none" />
+      )}
+      
+      <div className={clsx(
+        "relative mx-auto max-w-7xl overflow-hidden rounded-xl",
+        theaterMode && showPlayer && "relative z-50"
+      )}>
+        {/* Player title - shown above player when playing */}
+        {showPlayer && (
+          <div className="mb-3 px-2">
+            <h2 className="text-lg font-semibold text-white md:text-xl">
+              {episodeInfo
+                ? `${title}: Episode ${episodeInfo.episodeNumber} Season ${episodeInfo.seasonNumber}`
+                : title}
+            </h2>
+            {episodeInfo && (
+              <p className="mt-1 text-sm text-zinc-400">{episodeInfo.episodeTitle}</p>
+            )}
           </div>
         )}
-
-        {/* content center */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
-          <h1 className="mb-4 text-3xl font-extrabold text-white md:text-4xl">
-            {title}
-          </h1>
-          <p className="mx-auto mb-8 max-w-3xl text-sm leading-relaxed text-zinc-300">
-            {overview}
-          </p>
-
-          {/* action row */}
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <button
-              className="inline-flex h-11 items-center gap-2 rounded-md bg-red-600 px-6 text-sm font-medium text-white transition hover:bg-red-700"
-              onClick={() => {
-                if (!isAuth) {
-                  setAuthOpen(true);
-                  return;
-                }
-                if (!streamUrl) {
-                  toast.error("No stream URL available");
-                  return;
-                }
-                setShowPlayer(true);
-              }}
+        
+        {/* === area giữ tỉ lệ 16:9 === */}
+        <div className="relative aspect-video w-full">
+          {!showPlayer ? (
+            <>
+              <img
+                src={img}
+                alt={title}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/60" />
+            </>
+          ) : (
+            <div
+              className={
+                theaterMode ? "absolute inset-0 bg-black" : "absolute inset-0"
+              }
             >
-              <Play className="size-4 -translate-x-0.5" />
-              Play Now
-            </button>
+              {isHLSUrl ? (
+                streamUrl ? (
+                  <VideoPlayer
+                    src={streamUrl}
+                    poster={img}
+                    movieId={id}
+                    episodeId={episodeId}
+                    className="w-full h-full"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-sm text-zinc-300">
+                    Invalid HLS manifest URL
+                  </div>
+                )
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-zinc-300">
+                  Unsupported stream source
+                </div>
+              )}
+            </div>
+          )}
 
+          {/* content center */}
+          {!showPlayer && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
+              <h1 className="mb-4 text-3xl font-extrabold text-white md:text-4xl">
+                {title}
+              </h1>
+              <p className="mx-auto mb-8 max-w-3xl text-sm leading-relaxed text-zinc-300">
+                {overview}
+              </p>
+
+              {/* action row */}
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                <button
+                  className="inline-flex h-11 items-center gap-2 rounded-md bg-red-600 px-6 text-sm font-medium text-white transition hover:bg-red-700"
+                  onClick={() => {
+                    if (!isAuth) {
+                      setAuthOpen(true);
+                      return;
+                    }
+                    if (!streamUrl) {
+                      toast.error("No stream URL available");
+                      return;
+                    }
+                    // Reset episode state when playing main movie
+                    if (onPlayMain) {
+                      onPlayMain();
+                    }
+                    setShowPlayer(true);
+                    // Auto scroll to top when playing main movie
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                >
+                  <Play className="size-4 -translate-x-0.5" />
+                  Play Now
+                </button>
+
+                <button
+                  className={clsx(
+                    "grid h-11 w-11 place-items-center rounded-md border text-white transition",
+                    liked
+                      ? "bg-red-600 border-red-600 hover:bg-red-700"
+                      : "border-zinc-600 bg-zinc-800 hover:bg-zinc-700"
+                  )}
+                  title={liked ? "Unlike" : "Like"}
+                  aria-label={liked ? "Unlike movie" : "Like movie"}
+                  disabled={toggling}
+                  onClick={async () => {
+                    if (!isAuth) {
+                      setAuthOpen(true);
+                      return;
+                    }
+                    try {
+                      await toggleLike(id).unwrap();
+                      setLiked((v) => {
+                        const next = !v;
+                        toast.success(
+                          next ? "Added to Likes" : "Removed from Likes"
+                        );
+                        return next;
+                      });
+                    } catch {
+                      // silently fail or add toast if available
+                    }
+                  }}
+                >
+                  <ThumbsUp
+                    className={clsx(
+                      "size-4",
+                      liked ? "text-white" : "text-white"
+                    )}
+                  />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* nav arrows (only show if >1 image) */}
+          {!showPlayer && total > 1 && (
+            <>
+              <button
+                onClick={prev}
+                className="absolute left-6 top-1/2 -translate-y-1/2 rounded-md bg-zinc-900/70 p-2 text-white transition hover:bg-zinc-900"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+              <button
+                onClick={next}
+                className="absolute right-6 top-1/2 -translate-y-1/2 rounded-md bg-zinc-900/70 p-2 text-white transition hover:bg-zinc-900"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+
+              {/* dot bar */}
+              <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">
+                {backdrops.map((_, i) => (
+                  <span
+                    key={i}
+                    className={clsx(
+                      "h-1 w-8 rounded-full transition",
+                      i === idx ? "bg-red-500" : "bg-zinc-600"
+                    )}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Player controls row (visible when player is active) */}
+        {showPlayer && (
+          <div className={clsx(
+            "mt-4 flex flex-wrap items-center justify-center gap-3",
+            theaterMode && "relative z-50"
+          )}>
             <button
               className={clsx(
-                "grid h-11 w-11 place-items-center rounded-md border text-white transition",
+                "inline-flex h-9 items-center gap-2 rounded-md border px-4 text-xs font-medium text-white transition",
                 liked
                   ? "bg-red-600 border-red-600 hover:bg-red-700"
                   : "border-zinc-600 bg-zinc-800 hover:bg-zinc-700"
@@ -168,60 +381,123 @@ export const MovieDetailHero = ({
                   await toggleLike(id).unwrap();
                   setLiked((v) => {
                     const next = !v;
-                    toast.success(
-                      next ? "Added to Likes" : "Removed from Likes"
-                    );
+                    toast.success(next ? "Added to Likes" : "Removed from Likes");
                     return next;
                   });
                 } catch {
-                  // silently fail or add toast if available
+                  // optionally show error toast
                 }
               }}
             >
-              <ThumbsUp
-                className={clsx("size-4", liked ? "text-white" : "text-white")}
-              />
+              <ThumbsUp className="size-4" />
+              {liked ? "Liked" : "Like"}
+            </button>
+
+            <button
+              className="inline-flex h-9 items-center gap-2 rounded-md border border-zinc-600 bg-zinc-800 px-4 text-xs font-medium text-white transition hover:bg-zinc-700"
+              onClick={() => setTheaterMode((v) => !v)}
+              aria-pressed={theaterMode}
+              title="Toggle Theater Mode"
+            >
+              {theaterMode ? "Exit Theater" : "Theater Mode"}
+            </button>
+
+            <button
+              className="inline-flex h-9 items-center gap-2 rounded-md border border-zinc-600 bg-zinc-800 px-4 text-xs font-medium text-white transition hover:bg-zinc-700"
+              onClick={() => setShareOpen(true)}
+              title="Share"
+            >
+              Share
             </button>
           </div>
-        </div>
-
-        {/* nav arrows (only show if >1 image) */}
-        {!showPlayer && total > 1 && (
-          <>
-            <button
-              onClick={prev}
-              className="absolute left-6 top-1/2 -translate-y-1/2 rounded-md bg-zinc-900/70 p-2 text-white transition hover:bg-zinc-900"
-            >
-              <ChevronLeft className="size-5" />
-            </button>
-            <button
-              onClick={next}
-              className="absolute right-6 top-1/2 -translate-y-1/2 rounded-md bg-zinc-900/70 p-2 text-white transition hover:bg-zinc-900"
-            >
-              <ChevronRight className="size-5" />
-            </button>
-
-            {/* dot bar */}
-            <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">
-              {backdrops.map((_, i) => (
-                <span
-                  key={i}
-                  className={clsx(
-                    "h-1 w-8 rounded-full transition",
-                    i === idx ? "bg-red-500" : "bg-zinc-600"
-                  )}
-                />
-              ))}
-            </div>
-          </>
         )}
+
+        {/* Auth Dialog for like gating */}
+        <AuthDialog
+          isOpen={authOpen}
+          onClose={() => setAuthOpen(false)}
+          defaultTab="login"
+        />
       </div>
-      {/* Auth Dialog for like gating */}
-      <AuthDialog
-        isOpen={authOpen}
-        onClose={() => setAuthOpen(false)}
-        defaultTab="login"
-      />
-    </div>
+      {/* Share dialog */}
+      <AlertDialog open={shareOpen} onOpenChange={setShareOpen}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Share this movie</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              Share with your friends on social media
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {isShortening ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-8">
+              <Loader2 className="size-8 animate-spin text-zinc-400" />
+              <p className="text-sm text-zinc-400">Preparing share link...</p>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-center gap-4 py-4">
+              <button
+                onClick={() => handleShare("facebook")}
+                className="flex flex-col items-center gap-2 rounded-lg bg-[#1877F2] p-4 text-white transition hover:bg-[#166FE5] disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Share on Facebook"
+                aria-label="Share on Facebook"
+                disabled={!shortUrl && !currentPageUrl}
+              >
+                <Facebook className="size-6" />
+                <span className="text-xs font-medium">Facebook</span>
+              </button>
+
+              <button
+                onClick={() => handleShare("twitter")}
+                className="flex flex-col items-center gap-2 rounded-lg bg-[#1DA1F2] p-4 text-white transition hover:bg-[#1A91DA] disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Share on Twitter/X"
+                aria-label="Share on Twitter/X"
+                disabled={!shortUrl && !currentPageUrl}
+              >
+                <Twitter className="size-6" />
+                <span className="text-xs font-medium">Twitter</span>
+              </button>
+
+              <button
+                onClick={() => handleShare("linkedin")}
+                className="flex flex-col items-center gap-2 rounded-lg bg-[#0077B5] p-4 text-white transition hover:bg-[#006399] disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Share on LinkedIn"
+                aria-label="Share on LinkedIn"
+                disabled={!shortUrl && !currentPageUrl}
+              >
+                <Linkedin className="size-6" />
+                <span className="text-xs font-medium">LinkedIn</span>
+              </button>
+
+              <button
+                onClick={() => handleShare("email")}
+                className="flex flex-col items-center gap-2 rounded-lg bg-zinc-700 p-4 text-white transition hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Share via Email"
+                aria-label="Share via Email"
+                disabled={!shortUrl && !currentPageUrl}
+              >
+                <Mail className="size-6" />
+                <span className="text-xs font-medium">Email</span>
+              </button>
+
+              <button
+                onClick={handleCopyLink}
+                className="flex flex-col items-center gap-2 rounded-lg bg-zinc-700 p-4 text-white transition hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Copy link"
+                aria-label="Copy link to clipboard"
+                disabled={!shortUrl && !currentPageUrl}
+              >
+                <Copy className="size-6" />
+                <span className="text-xs font-medium">Copy</span>
+              </button>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-800 text-white hover:bg-zinc-700">
+              Close
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

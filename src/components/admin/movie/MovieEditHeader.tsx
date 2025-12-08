@@ -25,7 +25,7 @@ export function MovieEditHeader({
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <h1 className="text-2xl font-bold text-white">Edit content</h1>
-        <Button
+        {/* <Button
           variant="ghost"
           size="icon"
           onClick={onReset}
@@ -33,7 +33,7 @@ export function MovieEditHeader({
           title="Reset form"
         >
           <RotateCcw className="size-4" />
-        </Button>
+        </Button> */}
       </div>
       <div className="flex gap-2">
         <Select

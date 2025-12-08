@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GenreSelector } from "@/components/admin/common/GenreSelector";
 import { CountrySelector } from "@/components/admin/common/CountrySelector";
 import { PersonSelectDialog } from "@/components/admin/common/PersonSelectDialog";
@@ -77,6 +77,8 @@ interface TvAddFormProps {
   update: <K extends keyof TvFormState>(k: K, v: TvFormState[K]) => void;
   displayGenres?: Genre[];
   displayCountries?: Country[];
+  movieGenre?: Genre[];
+  movieCountry?: Country[];
   formDataStatus?: string;
   loading?: boolean;
   onSubmit?: (form: TvFormState) => void;
@@ -98,6 +100,8 @@ export function TvAddForm({
   update,
   displayGenres,
   displayCountries,
+  movieGenre,
+  movieCountry,
   formDataStatus = "idle",
   loading = false,
   onSubmit,
@@ -109,6 +113,8 @@ export function TvAddForm({
   const [actorSearch, setActorSearch] = useState("");
   const [directorPage, setDirectorPage] = useState(0); // 0-based UI
   const [actorPage, setActorPage] = useState(0);
+  const [posterPreview, setPosterPreview] = useState<string | null>(null);
+  const [backdropPreview, setBackdropPreview] = useState<string | null>(null);
   const PAGE_SIZE = 8;
   const { data: directorData, isFetching: directorFetching } =
     useSearchPeopleQuery(
@@ -125,34 +131,74 @@ export function TvAddForm({
   const [countryModalOpen, setCountryModalOpen] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
   const isLoading = loading;
-  const [seasonSheetOpen, setSeasonSheetOpen] = useState(false);
-  // Prevent memory leaks: revoke object URLs when files change or component unmounts
-  const posterUrlRef = useRef<string | null>(null);
-  const backdropUrlRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (form.poster && typeof form.poster !== "string") {
-      const url = URL.createObjectURL(form.poster);
-      posterUrlRef.current = url;
+  // Map incoming movie genres/countries to the display lists if provided
+  const safeGenres = useMemo(() => displayGenres ?? [], [displayGenres]);
+  const safeCountries = useMemo(
+    () => displayCountries ?? [],
+    [displayCountries]
+  );
+  const selectedGenresForDisplay = useMemo(() => {
+    if (movieGenre && movieGenre.length > 0) {
+      return movieGenre
+        .map((mg) => safeGenres.find((g) => g.id === mg.id))
+        .filter(Boolean) as Genre[];
     }
+    return form.genres || [];
+  }, [movieGenre, safeGenres, form.genres]);
+  const selectedCountriesForDisplay = useMemo(() => {
+    if (movieCountry && movieCountry.length > 0) {
+      return movieCountry
+        .map((mc) => safeCountries.find((c) => c.id === mc.id))
+        .filter(Boolean) as Country[];
+    }
+    return form.countries || [];
+  }, [movieCountry, safeCountries, form.countries]);
+  const releaseYears = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: currentYear - 1900 }, (_, i) =>
+      String(currentYear - i)
+    );
+  }, []);
+  const [seasonSheetOpen, setSeasonSheetOpen] = useState(false);
+
+  // Poster
+  useEffect(() => {
+    if (!form.poster) {
+      setPosterPreview(null);
+      return;
+    }
+
+    // Nếu là string (URL từ backend) thì dùng luôn, không createObjectURL
+    if (typeof form.poster === "string") {
+      setPosterPreview(form.poster);
+      return;
+    }
+
+    const url = URL.createObjectURL(form.poster);
+    setPosterPreview(url);
+
     return () => {
-      if (posterUrlRef.current) {
-        URL.revokeObjectURL(posterUrlRef.current);
-        posterUrlRef.current = null;
-      }
+      URL.revokeObjectURL(url);
     };
   }, [form.poster]);
 
+  // Backdrop
   useEffect(() => {
-    if (form.backdrop && typeof form.backdrop !== "string") {
-      const url = URL.createObjectURL(form.backdrop);
-      backdropUrlRef.current = url;
+    if (!form.backdrop) {
+      setBackdropPreview(null);
+      return;
     }
+
+    if (typeof form.backdrop === "string") {
+      setBackdropPreview(form.backdrop);
+      return;
+    }
+
+    const url = URL.createObjectURL(form.backdrop);
+    setBackdropPreview(url);
+
     return () => {
-      if (backdropUrlRef.current) {
-        URL.revokeObjectURL(backdropUrlRef.current);
-        backdropUrlRef.current = null;
-      }
+      URL.revokeObjectURL(url);
     };
   }, [form.backdrop]);
 
@@ -185,7 +231,7 @@ export function TvAddForm({
               {form.poster ? (
                 <div className="relative h-full w-full group">
                   <img
-                    src={getPreviewUrl(form.poster)}
+                    src={posterPreview ?? undefined}
                     className="h-full w-full object-cover"
                     alt="Poster"
                   />
@@ -216,7 +262,7 @@ export function TvAddForm({
               {form.backdrop ? (
                 <div className="relative h-full w-full group">
                   <img
-                    src={getPreviewUrl(form.backdrop)}
+                    src={backdropPreview ?? undefined}
                     className="h-full w-full object-cover"
                     alt="Backdrop"
                   />
@@ -250,31 +296,42 @@ export function TvAddForm({
           </div>
           <div>
             <Label>Release year</Label>
-            {(() => {
-              const currentYear = new Date().getFullYear();
-              const years = Array.from({ length: currentYear - 1900 }, (_, i) =>
-                String(currentYear - i)
-              );
-              return (
-                <Select
-                  value={form.release}
-                  onValueChange={(val) => update("release", val)}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-72 overflow-y-auto">
-                    {years.map((y) => (
-                      <SelectItem key={y} value={y}>
-                        {y}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              );
-            })()}
+            <Input
+              type="number"
+              inputMode="numeric"
+              placeholder="Enter release year"
+              value={form.release}
+              onChange={(e) => {
+                let val = e.target.value;
+
+                if (val === "") {
+                  update("release", "");
+                  return;
+                }
+
+                if (val.length > 4) {
+                  val = val.slice(0, 4);
+                }
+
+                const num = Number(val);
+                if (!Number.isNaN(num)) {
+                  update("release", val);
+                }
+              }}
+              onBlur={() => {
+                if (!form.release) return;
+
+                const yr = Number(form.release);
+                const min = 1900;
+                const max = new Date().getFullYear();
+
+                if (yr < min) update("release", String(min));
+                if (yr > max) update("release", String(max));
+              }}
+              disabled={isLoading}
+            />
           </div>
+
           <div className="col-span-2">
             <Label>Display Title</Label>
             <Input
@@ -327,8 +384,8 @@ export function TvAddForm({
         </div>
         {/* Countries (reusable) */}
         <CountrySelector
-          available={displayCountries ?? []}
-          selected={form.countries || []}
+          available={safeCountries}
+          selected={selectedCountriesForDisplay}
           onChange={(countries) => update("countries", countries)}
           isOpen={countryModalOpen}
           onOpenChange={(open) => {
@@ -341,8 +398,8 @@ export function TvAddForm({
 
         {/* Genres (reusable) */}
         <GenreSelector
-          available={displayGenres ?? []}
-          selected={form.genres || []}
+          available={safeGenres}
+          selected={selectedGenresForDisplay}
           onChange={(genres) => update("genres", genres)}
           loading={formDataStatus === "loading"}
         />
@@ -590,7 +647,7 @@ export function TvAddForm({
       />
 
       {/* Director Modal */}
-      <Dialog
+      {/* <Dialog
         open={directorModalOpen}
         onOpenChange={(open) => {
           setDirectorModalOpen(open);
@@ -600,13 +657,15 @@ export function TvAddForm({
           }
         }}
       >
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+        <DialogContent
+          className="bg-zinc-900 border-zinc-800 text-white max-w-md"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Search Director</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
-              autoFocus
               placeholder="Enter name..."
               value={directorSearch}
               onChange={(e) => {
@@ -678,10 +737,10 @@ export function TvAddForm({
           </div>
           <DialogFooter></DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
 
       {/* Actor Modal */}
-      <Dialog
+      {/* <Dialog
         open={actorModalOpen}
         onOpenChange={(open) => {
           setActorModalOpen(open);
@@ -691,13 +750,15 @@ export function TvAddForm({
           }
         }}
       >
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+        <DialogContent
+          className="bg-zinc-900 border-zinc-800 text-white max-w-md"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Search Actors</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
-              autoFocus
               placeholder="Enter name..."
               value={actorSearch}
               onChange={(e) => {
@@ -780,10 +841,10 @@ export function TvAddForm({
           </div>
           <DialogFooter></DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
 
       {/* Country Modal */}
-      <Dialog
+      {/* <Dialog
         open={countryModalOpen}
         onOpenChange={(open) => {
           setCountryModalOpen(open);
@@ -792,13 +853,15 @@ export function TvAddForm({
           }
         }}
       >
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+        <DialogContent
+          className="bg-zinc-900 border-zinc-800 text-white max-w-md"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Search Countries</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
-              autoFocus
               placeholder="Enter country name..."
               value={countrySearch}
               onChange={(e) => setCountrySearch(e.target.value)}
@@ -841,7 +904,7 @@ export function TvAddForm({
           </div>
           <DialogFooter></DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </form>
   );
 }
@@ -964,8 +1027,7 @@ function SeasonsSheet({
   const episodeInvalidMap: Record<number, Set<number>> = {};
 
   drafts.forEach((s, si) => {
-    const seasonInvalid =
-       s.seasonNumber < 0 || !s.title?.trim();
+    const seasonInvalid = s.seasonNumber < 0 || !s.title?.trim();
 
     if (seasonInvalid) seasonInvalidSet.add(si);
     s.episodes.forEach((e, ei) => {

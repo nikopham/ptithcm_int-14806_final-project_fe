@@ -21,13 +21,9 @@ import { useState } from "react";
 import clsx from "clsx";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-
-/* demo admin profile */
-const me = {
-  name: "Admin deep try",
-  email: "admin@streamify.dev",
-  avatar: "https://i.pravatar.cc/80?img=51",
-};
+import { useGetMeQuery } from "@/features/user/userApi";
+import defaultAvatar from "@/assets/default-avatar.jpg";
+import { useAppSelector } from "@/app/hooks";
 
 /* ───────────────────────────── sidebar config */
 type Item = {
@@ -51,7 +47,7 @@ const nav: Item[] = [
 
   { label: "Danh sách Rating", icon: ShieldCheck, to: "/admin/ratings" },
   { label: "Danh sách Comment", icon: MessageCircle, to: "/admin/comments" },
-  { label: "Danh sách các gói subscription", icon: Wallet, to: "/admin/plans" },
+  // { label: "Danh sách các gói subscription", icon: Wallet, to: "/admin/plans" },
   {
     label: "Danh sách User",
     icon: Users2,
@@ -61,7 +57,7 @@ const nav: Item[] = [
       { label: "Danh sách Admin", icon: UserCog, to: "/admin/users/admin" },
     ],
   },
-  { label: "Danh sách thanh toán", icon: Wallet, to: "/admin/transactions" },
+  // { label: "Danh sách thanh toán", icon: Wallet, to: "/admin/transactions" },
 ];
 
 /* ───────────────────────────── helper components */
@@ -184,6 +180,11 @@ function SidebarItem({
 export default function AdminLayout() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const isAuth = useAppSelector((s) => s.auth.isAuth);
+  const skipVerify = useAppSelector((s) => s.auth.skipVerify);
+  const { data: me, isLoading: meLoading } = useGetMeQuery(undefined, {
+    skip: !isAuth || skipVerify,
+  });
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] lg:h-[120vh]">
@@ -236,16 +237,16 @@ export default function AdminLayout() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <img
-                src={me.avatar}
-                alt={me.name}
+                src={me?.avatarUrl || defaultAvatar}
+                alt={me?.username || "Admin"}
                 className="h-11 w-11 rounded-full object-cover"
               />
               <div className="truncate">
                 <p className="max-w-[150px] truncate text-sm font-medium text-white">
-                  {me.name}
+                  {meLoading ? "Loading..." : me?.username || "Admin"}
                 </p>
                 <p className="max-w-[150px] truncate text-xs text-zinc-400">
-                  {me.email}
+                  {meLoading ? "..." : me?.email || ""}
                 </p>
               </div>
             </div>

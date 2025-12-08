@@ -5,6 +5,9 @@ import type {
   CommentSearchParams,
   CreateCommentRequest,
   EditCommentRequest,
+  AdminCommentSearchParams,
+  AdminComment,
+  ToggleHiddenResponse,
 } from "@/types/comment";
 
 export const commentApi = createApi({
@@ -84,6 +87,36 @@ export const commentApi = createApi({
       }),
       invalidatesTags: (result, error, arg) => ["Comments"],
     }),
+
+    searchComments: builder.query<PageResponse<AdminComment>, AdminCommentSearchParams>({
+      query: (params) => {
+        // Convert 1-based UI page to 0-based backend page
+        const backendPage = params.page !== undefined && params.page > 0 ? params.page - 1 : 0;
+        return {
+          url: "/api/v1/comments/search",
+          method: "GET",
+          params: {
+            ...params,
+            page: backendPage,
+          },
+        };
+      },
+      transformResponse: (response: ServiceResult<PageResponse<AdminComment>>) => {
+        return response.data;
+      },
+      providesTags: ["Comments"],
+    }),
+
+    toggleCommentHidden: builder.mutation<ToggleHiddenResponse, string>({
+      query: (id) => ({
+        url: `/api/v1/comments/${id}/toggle-hidden`,
+        method: "PATCH",
+      }),
+      transformResponse: (response: ServiceResult<ToggleHiddenResponse>) => {
+        return response.data;
+      },
+      invalidatesTags: ["Comments"],
+    }),
   }),
 });
 
@@ -91,4 +124,6 @@ export const {
   useGetMovieCommentsQuery,
   useCreateCommentMutation,
   useEditCommentMutation,
+  useSearchCommentsQuery,
+  useToggleCommentHiddenMutation,
 } = commentApi;

@@ -12,8 +12,8 @@ export default function Home() {
       <CategoryCarousel />
       <DeviceSection />
       <FaqSection />
-      <PricingSection />
-      <CtaTrialBanner />
+      {/* <PricingSection /> */}
+      {/* <CtaTrialBanner /> */}
     </>
   );
 }

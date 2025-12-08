@@ -56,6 +56,8 @@ interface MovieAddFormProps {
   update: <K extends keyof MovieFormState>(k: K, v: MovieFormState[K]) => void;
   displayGenres?: Genre[];
   displayCountries?: Country[];
+  movieGenre?: Genre[]; // original movie genres from detail
+  movieCountry?: Country[]; // original movie countries from detail
   formDataStatus?: string;
   handleSubmit: (e: React.FormEvent) => void;
   loading?: boolean; // optional external loading state
@@ -68,6 +70,8 @@ export function MovieAddForm({
   update,
   displayGenres,
   displayCountries,
+  movieGenre,
+  movieCountry,
   formDataStatus = "idle",
   handleSubmit,
   loading = false,
@@ -84,6 +88,8 @@ export function MovieAddForm({
   const [actorSearch, setActorSearch] = useState("");
   const [directorPage, setDirectorPage] = useState(0); // 0-based UI
   const [actorPage, setActorPage] = useState(0);
+  const [posterPreview, setPosterPreview] = useState<string | null>(null);
+  const [backdropPreview, setBackdropPreview] = useState<string | null>(null);
   const PAGE_SIZE = 8;
 
   const { data: directorData, isFetching: directorFetching } =
@@ -125,6 +131,20 @@ export function MovieAddForm({
       ? displayCountries
       : countryMock;
 
+  // Map incoming movie genres/countries to the display lists if provided
+  const selectedGenresForDisplay =
+    movieGenre && movieGenre.length > 0
+      ? (movieGenre
+          .map((mg) => safeGenres.find((g) => g.id === mg.id))
+          .filter(Boolean) as Genre[])
+      : form.genres;
+  const selectedCountriesForDisplay =
+    movieCountry && movieCountry.length > 0
+      ? (movieCountry
+          .map((mc) => safeCountries.find((c) => c.id === mc.id))
+          .filter(Boolean) as Country[])
+      : form.countries;
+
   const handleReset = () => {
     if (isLoading) return;
     update("title", "");
@@ -151,38 +171,46 @@ export function MovieAddForm({
     return URL.createObjectURL(fileOrString);
   };
 
-  // Prevent memory leaks: revoke object URLs when files change or component unmounts
-  const posterUrlRef = useRef<string | null>(null);
-  const backdropUrlRef = useRef<string | null>(null);
-
+  // Poster
   useEffect(() => {
-    // Generate and store preview URL for poster
-    if (form.poster && typeof form.poster !== "string") {
-      const url = URL.createObjectURL(form.poster);
-      posterUrlRef.current = url;
+    if (!form.poster) {
+      setPosterPreview(null);
+      return;
     }
+
+    // Nếu là string (URL từ backend) thì dùng luôn, không createObjectURL
+    if (typeof form.poster === "string") {
+      setPosterPreview(form.poster);
+      return;
+    }
+
+    const url = URL.createObjectURL(form.poster);
+    setPosterPreview(url);
+
     return () => {
-      if (posterUrlRef.current) {
-        URL.revokeObjectURL(posterUrlRef.current);
-        posterUrlRef.current = null;
-      }
+      URL.revokeObjectURL(url);
     };
   }, [form.poster]);
 
+  // Backdrop
   useEffect(() => {
-    // Generate and store preview URL for backdrop
-    if (form.backdrop && typeof form.backdrop !== "string") {
-      const url = URL.createObjectURL(form.backdrop);
-      backdropUrlRef.current = url;
+    if (!form.backdrop) {
+      setBackdropPreview(null);
+      return;
     }
+
+    if (typeof form.backdrop === "string") {
+      setBackdropPreview(form.backdrop);
+      return;
+    }
+
+    const url = URL.createObjectURL(form.backdrop);
+    setBackdropPreview(url);
+
     return () => {
-      if (backdropUrlRef.current) {
-        URL.revokeObjectURL(backdropUrlRef.current);
-        backdropUrlRef.current = null;
-      }
+      URL.revokeObjectURL(url);
     };
   }, [form.backdrop]);
-
   return (
     <form className="grid grid-cols-1 gap-8 lg:grid-cols-[300px_1fr]">
       {/* ─── LEFT COLUMN ─── */}
@@ -202,7 +230,7 @@ export function MovieAddForm({
               {form.poster ? (
                 <div className="relative h-full w-full group">
                   <img
-                    src={getPreviewUrl(form.poster)}
+                    src={posterPreview ?? undefined}
                     className="h-full w-full object-cover"
                     alt="Poster"
                   />
@@ -234,7 +262,7 @@ export function MovieAddForm({
               {form.backdrop ? (
                 <div className="relative h-full w-full group">
                   <img
-                    src={getPreviewUrl(form.backdrop)}
+                    src={backdropPreview ?? undefined}
                     className="h-full w-full object-cover"
                     alt="Backdrop"
                   />
@@ -266,30 +294,40 @@ export function MovieAddForm({
           </div>
           <div>
             <Label>Release year</Label>
-            {(() => {
-              const currentYear = new Date().getFullYear();
-              const years = Array.from({ length: currentYear - 1900 }, (_, i) =>
-                String(currentYear - i)
-              );
-              return (
-                <Select
-                  value={form.release}
-                  onValueChange={(val) => update("release", val)}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-72 overflow-y-auto">
-                    {years.map((y) => (
-                      <SelectItem key={y} value={y}>
-                        {y}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              );
-            })()}
+            <Input
+              type="number"
+              inputMode="numeric"
+              placeholder="Enter release year"
+              value={form.release}
+              onChange={(e) => {
+                let val = e.target.value;
+
+                if (val === "") {
+                  update("release", "");
+                  return;
+                }
+
+                if (val.length > 4) {
+                  val = val.slice(0, 4);
+                }
+
+                const num = Number(val);
+                if (!Number.isNaN(num)) {
+                  update("release", val);
+                }
+              }}
+              onBlur={() => {
+                if (!form.release) return;
+
+                const yr = Number(form.release);
+                const min = 1900;
+                const max = new Date().getFullYear();
+
+                if (yr < min) update("release", String(min));
+                if (yr > max) update("release", String(max));
+              }}
+              disabled={isLoading}
+            />
           </div>
 
           {/* Title */}
@@ -378,7 +416,7 @@ export function MovieAddForm({
         {/* Countries (reusable) */}
         <CountrySelector
           available={safeCountries}
-          selected={form.countries}
+          selected={selectedCountriesForDisplay}
           onChange={(countries) => update("countries", countries)}
           isOpen={countryModalOpen}
           onOpenChange={(open) => {
@@ -391,7 +429,7 @@ export function MovieAddForm({
 
         <GenreSelector
           available={safeGenres}
-          selected={form.genres}
+          selected={selectedGenresForDisplay}
           onChange={(genres) => update("genres", genres)}
           loading={formDataStatus === "loading"}
         />
@@ -577,7 +615,7 @@ export function MovieAddForm({
         </div>
       </div>
       {/* Director Modal */}
-      <Dialog
+      {/* <Dialog
         open={directorModalOpen}
         onOpenChange={(open) => {
           setDirectorModalOpen(open);
@@ -662,9 +700,9 @@ export function MovieAddForm({
           </div>
           <DialogFooter></DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
       {/* Actor Modal */}
-      <Dialog
+      {/* <Dialog
         open={actorModalOpen}
         onOpenChange={(open) => {
           setActorModalOpen(open);
@@ -760,10 +798,10 @@ export function MovieAddForm({
           </div>
           <DialogFooter></DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
 
       {/* Country Modal */}
-      <Dialog
+      {/* <Dialog
         open={countryModalOpen}
         onOpenChange={(open) => {
           setCountryModalOpen(open);
@@ -772,13 +810,15 @@ export function MovieAddForm({
           }
         }}
       >
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+        <DialogContent
+          className="bg-zinc-900 border-zinc-800 text-white max-w-md"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Search Countries</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
-              autoFocus
               placeholder="Enter country name..."
               value={countrySearch}
               onChange={(e) => setCountrySearch(e.target.value)}
@@ -819,7 +859,7 @@ export function MovieAddForm({
           </div>
           <DialogFooter></DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </form>
   );
 }

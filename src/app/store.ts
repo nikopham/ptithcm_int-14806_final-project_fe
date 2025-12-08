@@ -10,6 +10,9 @@ import { reviewApi } from "@/features/review/reviewApi";
 import { userApi } from "@/features/user/userApi";
 import { uploadApi } from "@/features/movie/uploadApi";
 import { commentApi } from "@/features/comment/commentApi";
+import {searchApi} from "@/features/search/searchApi";
+import { commonApi } from "@/features/common/commonApi";
+import { OAuthApi } from "@/features/auth/OAuthApi";
 
 export const store = configureStore({
   reducer: {
@@ -23,7 +26,10 @@ export const store = configureStore({
     [reviewApi.reducerPath]: reviewApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
     [uploadApi.reducerPath]: uploadApi.reducer,
-    [commentApi.reducerPath]: commentApi.reducer
+    [commentApi.reducerPath]: commentApi.reducer,
+    [searchApi.reducerPath]: searchApi.reducer,
+    [commonApi.reducerPath]: commonApi.reducer,
+    [OAuthApi.reducerPath]: OAuthApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -35,7 +41,10 @@ export const store = configureStore({
       .concat(reviewApi.middleware)
       .concat(userApi.middleware)
       .concat(uploadApi.middleware)
-      .concat(commentApi.middleware),
+      .concat(commentApi.middleware)
+      .concat(searchApi.middleware)
+      .concat(commonApi.middleware)
+      .concat(OAuthApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

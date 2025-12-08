@@ -152,12 +152,30 @@ export default function MovieAdd() {
     setSearchType("movie");
   };
 
+  const validateReleaseYear = (year: string | number | null): string | null => {
+    if (!year) return "Release year required";
+
+    const y = Number(year);
+    if (Number.isNaN(y)) return "Release year must be a number";
+
+    const str = String(year);
+    if (str.length !== 4) return "Release year must be 4 digits";
+
+    const min = 1900;
+    const max = new Date().getFullYear();
+
+    if (y < min || y > max) return `Year must be between ${min} and ${max}`;
+
+    return null;
+  };
+
   const validateMovie = (m: MovieLocalForm): Record<string, string> => {
     const errors: Record<string, string> = {};
     if (!m.title) errors.title = "Title required";
     if (!m.originalTitle) errors.originalTitle = "Original title required";
     if (!m.description) errors.description = "Description required";
-    if (!m.release) errors.release = "Release year required";
+    const releaseErr = validateReleaseYear(m.release);
+    if (releaseErr) errors.release = releaseErr;
     if (m.countries.length === 0)
       errors.countries = "Select at least one country";
     if (m.genres.length === 0) errors.genres = "Select at least one genre";
@@ -173,7 +191,8 @@ export default function MovieAdd() {
     const errors: Record<string, string> = {};
     if (!t.title) errors.title = "Title required";
     if (!t.description) errors.description = "Description required";
-    if (!t.release) errors.release = "Release year required";
+    const releaseErr = validateReleaseYear(t.release);
+    if (releaseErr) errors.release = releaseErr;
     if (!t.countries || t.countries.length === 0)
       errors.countries = "Select at least one country";
     if (t.genres.length === 0) errors.genres = "Select at least one genre";
@@ -273,7 +292,7 @@ export default function MovieAdd() {
         fd.append("posterImage", formData.poster);
       if (formData.backdrop instanceof File)
         fd.append("backdropImage", formData.backdrop);
-     
+
       const created = await createMovie(fd).unwrap();
 
       for (const s of formData.seasonDrafts || []) {

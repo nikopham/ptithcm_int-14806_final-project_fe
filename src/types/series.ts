@@ -39,4 +39,5 @@ export interface EpisodeUpdateRequest {
   durationMin?: number;
   synopsis?: string;
   airDate?: string;
+  videoUrl?: string;
 }

@@ -1,15 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
-import {
-  Eye,
-  Search,
-  MessageSquare,
-  Film,
-  CornerDownRight,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
+import { Eye, Search, Film, CornerDownRight, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,26 +20,41 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch"; // Cần component Switch của Shadcn
+import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useSearchCommentsQuery,
+  useToggleCommentHiddenMutation,
+} from "@/features/comment/commentApi";
+import type { AdminComment } from "@/types/comment";
+import { toast } from "sonner";
+import defaultAvatar from "@/assets/default-avatar.jpg";
 
 /* ─── Type Definition ─── */
 type UserRole = "viewer" | "admin" | "moderator";
 
-type Comment = {
+// Local comment type for display (mapped from API)
+type DisplayComment = {
   id: string;
-  parent_id: string | null; // UUID or null
+  parent_id: string | null;
   body: string;
-  sentiment_score: number; // -1.0 to 1.0
+  sentiment_score: number; // Default to 0 if not provided
   is_hidden: boolean;
   created_at: string;
   user: {
     id: string;
     name: string;
     email: string;
-    role: UserRole; // Để lọc viewer
+    role: UserRole;
     avatar?: string;
   };
   movie: {
@@ -58,126 +64,155 @@ type Comment = {
   };
 };
 
-/* ─── Mock Data ─── */
-const mockComments: Comment[] = [
-  {
-    id: "c-1",
-    parent_id: null,
-    body: "This movie blew my mind! The ending was totally unexpected.",
-    sentiment_score: 0.85, // Rất tích cực
-    is_hidden: false,
-    created_at: "2023-10-01T10:00:00Z",
-    user: {
-      id: "u-1",
-      name: "Alice Viewer",
-      email: "alice@gmail.com",
-      role: "viewer",
-      avatar: "https://i.pravatar.cc/150?img=1",
-    },
-    movie: {
-      id: "m-1",
-      title: "Inception",
-      poster: "https://image.tmdb.org/t/p/w92/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
-    },
-  },
-  {
-    id: "c-2",
-    parent_id: null,
-    body: "Terrible pacing, I fell asleep halfway through.",
-    sentiment_score: -0.65, // Tiêu cực
-    is_hidden: false,
-    created_at: "2023-10-02T14:30:00Z",
-    user: {
-      id: "u-2",
-      name: "Bob Hater",
-      email: "bob@yahoo.com",
-      role: "viewer",
-      avatar: "https://i.pravatar.cc/150?img=2",
-    },
-    movie: {
-      id: "m-1",
-      title: "Inception",
-      poster: "https://image.tmdb.org/t/p/w92/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
-    },
-  },
-  {
-    id: "c-3",
-    parent_id: "c-1", // Reply to comment 1
-    body: "I agree! Nolan is a genius.",
-    sentiment_score: 0.45, // Tích cực nhẹ
-    is_hidden: true, // Đang bị ẩn
-    created_at: "2023-10-01T12:00:00Z",
-    user: {
-      id: "u-3",
-      name: "Charlie Fan",
-      email: "charlie@outlook.com",
-      role: "viewer",
-      avatar: "https://i.pravatar.cc/150?img=3",
-    },
-    movie: {
-      id: "m-1",
-      title: "Inception",
-      poster: "https://image.tmdb.org/t/p/w92/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
-    },
-  },
-  {
-    id: "c-4",
-    parent_id: null,
-    body: "Admin testing comment.",
-    sentiment_score: 0.0,
-    is_hidden: false,
-    created_at: "2023-10-05T09:00:00Z",
-    user: {
-      id: "u-99",
-      name: "Admin User",
-      email: "admin@web.com",
-      role: "admin",
-    }, // Sẽ bị lọc bỏ
-    movie: {
-      id: "m-2",
-      title: "Barbie",
-      poster: "https://image.tmdb.org/t/p/w92/iuFNMS8U5cb6xf8gc2484GyOTmor.jpg",
-    },
-  },
-];
-
 export default function CommentList() {
-  const [comments, setComments] = useState<Comment[]>(mockComments);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [size] = useState(10);
+  const [isHiddenFilter, setIsHiddenFilter] = useState<
+    "all" | "visible" | "hidden"
+  >("all");
 
   /* Dialog State */
-  const [selectedComment, setSelectedComment] = useState<Comment | null>(null);
+  const [selectedComment, setSelectedComment] = useState<DisplayComment | null>(
+    null
+  );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  /* Filter Logic: Only 'viewer' role & Search text */
-  const filteredData = useMemo(() => {
-    const lowerQ = query.toLowerCase();
-    return comments.filter((c) => {
-      const isViewer = c.user.role === "viewer";
-      const matchSearch =
-        c.body.toLowerCase().includes(lowerQ) ||
-        c.user.name.toLowerCase().includes(lowerQ) ||
-        c.movie.title.toLowerCase().includes(lowerQ);
+  // API search params
+  const searchParams = useMemo(() => {
+    // Ensure page is at least 1 (UI uses 1-based pagination)
+    const validPage = page > 0 ? page : 1;
+    // Map filter to API boolean or undefined (omit when 'all')
+    const isHiddenParam =
+      isHiddenFilter === "all"
+        ? undefined
+        : isHiddenFilter === "hidden"
+          ? true
+          : false;
+    return {
+      movieTitle: query || undefined,
+      page: validPage,
+      size,
+      sort: "createdAt,desc",
+      isHidden: isHiddenParam,
+    };
+  }, [query, page, size, isHiddenFilter]);
 
-      return isViewer && matchSearch;
+  const { data, isLoading, isError, refetch } =
+    useSearchCommentsQuery(searchParams);
+  const [toggleHiddenMutation, { isLoading: isToggling }] =
+    useToggleCommentHiddenMutation();
+
+  // Ensure page is always at least 1
+  useEffect(() => {
+    if (page < 1) {
+      setPage(1);
+    }
+  }, [page]);
+
+  // Sync UI page with backend response (backend uses 0-based, UI uses 1-based)
+  useEffect(() => {
+    if (data && data.number !== undefined) {
+      const expectedUIPage = data.number + 1;
+      if (page !== expectedUIPage && expectedUIPage > 0) {
+        console.log(
+          `Syncing page: UI=${page}, Backend=${data.number}, Expected UI=${expectedUIPage}`
+        );
+        // Only sync if there's a significant mismatch (more than 1 page off)
+        if (Math.abs(page - expectedUIPage) > 1) {
+          setPage(expectedUIPage);
+        }
+      }
+    }
+  }, [data, page]);
+
+  // Debug: Log search params and response
+  console.log("Search params:", searchParams);
+  console.log("Current page (UI):", page);
+  console.log("API Response:", data);
+  console.log("Is Loading:", isLoading);
+  console.log("Is Error:", isError);
+
+  // Map API response to display format
+  const comments: DisplayComment[] = useMemo(() => {
+    // Handle case where data might not be loaded yet or is undefined
+    if (!data) {
+      console.log("No data object found");
+      return [];
+    }
+
+    // Handle case where content array doesn't exist or is not an array
+    if (!Array.isArray(data.content)) {
+      console.log("data.content is not an array. Data:", data);
+      return [];
+    }
+
+    // Debug: Log the data to see what we're getting
+    console.log("API Response - Total items:", data.content.length);
+    console.log("API Response - Page info:", {
+      number: data.number,
+      totalPages: data.totalPages,
+      totalElements: data.totalElements,
+      empty: data.empty,
+      first: data.first,
+      last: data.last,
     });
-  }, [comments, query]);
+
+    if (data.content.length === 0) {
+      console.log("Content array is empty");
+      return [];
+    }
+
+    console.log("API Response - First comment:", data.content[0]);
+    console.log("First comment userRole:", data.content[0]?.userRole);
+    console.log(
+      "All userRoles:",
+      data.content.map((c) => c.userRole)
+    );
+
+    // Do not filter by role; show all comments
+    console.log("Showing all comments. Count:", data.content.length);
+
+    return data.content.map((c: AdminComment) => ({
+      id: c.id,
+      parent_id: c.parentId,
+      body: c.body,
+      sentiment_score: c.sentimentScore ?? 0, // Default to 0 if not provided
+      is_hidden: c.hidden,
+      created_at: c.createdAt,
+      user: {
+        id: c.userId,
+        name: c.username,
+        email: "", // API doesn't provide email
+        role:
+          ((c.userRole?.toLowerCase() === "user"
+            ? "viewer"
+            : c.userRole?.toLowerCase()) as UserRole) || "viewer",
+        avatar: c.userAvatar,
+      },
+      movie: {
+        id: c.movie?.id || "",
+        title: c.movie?.title || "Unknown Movie",
+        poster: c.movie?.posterUrl || "",
+      },
+    }));
+  }, [data]);
 
   /* Logic Update Status (Toggle Hidden) */
-  const toggleHidden = (commentId: string) => {
-    setComments((prev) =>
-      prev.map((c) => {
-        if (c.id === commentId) {
-          const newStatus = !c.is_hidden;
-          // Nếu đang mở dialog của chính comment này, cập nhật luôn state dialog
-          if (selectedComment?.id === commentId) {
-            setSelectedComment({ ...c, is_hidden: newStatus });
-          }
-          return { ...c, is_hidden: newStatus };
-        }
-        return c;
-      })
-    );
+  const toggleHidden = async (commentId: string) => {
+    try {
+      const result = await toggleHiddenMutation(commentId).unwrap();
+      // Update local state
+      if (selectedComment?.id === commentId) {
+        setSelectedComment({ ...selectedComment, is_hidden: result.hidden });
+      }
+      // Refetch to get updated data
+      await refetch();
+      toast.success(result.hidden ? "Comment hidden" : "Comment visible");
+    } catch (error) {
+      toast.error("Failed to toggle comment visibility");
+      console.error("Toggle hidden error:", error);
+    }
   };
 
   /* Helper: Sentiment Badge */
@@ -204,7 +239,7 @@ export default function CommentList() {
   };
 
   /* Helper: Handle View Detail */
-  const handleView = (comment: Comment) => {
+  const handleView = (comment: DisplayComment) => {
     setSelectedComment(comment);
     setIsDialogOpen(true);
   };
@@ -221,128 +256,192 @@ export default function CommentList() {
         </div>
         <div className="flex items-center gap-2 text-sm text-zinc-500">
           <AlertCircle className="size-4" />
-          <span>Only showing "Viewer" role</span>
+          <span>Showing all comments (including hidden)</span>
+          {data && (
+            <span className="ml-2 text-xs">
+              (Total: {data.totalElements || 0}, Showing: {comments.length})
+            </span>
+          )}
         </div>
       </div>
 
-      {/* ─── Search ─── */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
-        <Input
-          placeholder="Search content, user or movie..."
-          className="pl-9 bg-zinc-900 border-zinc-700"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+      {/* ─── Search & Filters ─── */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <div className="relative max-w-sm w-full sm:w-auto">
+          <Label className="mb-1 block text-xs text-zinc-500">Search</Label>
+          
+          <Input
+            placeholder="Search content, user or movie..."
+            className="pl-9 bg-zinc-900 border-zinc-700"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+        <div className="w-full sm:w-48">
+          <Label className="mb-1 block text-xs text-zinc-500">Visibility</Label>
+          <Select
+            value={isHiddenFilter}
+            onValueChange={(v) => setIsHiddenFilter(v as any)}
+          >
+            <SelectTrigger className="bg-zinc-900 border-zinc-700">
+              <SelectValue placeholder="Visibility" />
+            </SelectTrigger>
+            <SelectContent className="bg-zinc-900 border-zinc-700">
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="visible">Visible</SelectItem>
+              <SelectItem value="hidden">Hidden</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* ─── Table ─── */}
       <div className="rounded-lg border border-zinc-700/50 bg-zinc-900 overflow-hidden">
-        <Table>
-          <TableHeader className="bg-zinc-950">
-            <TableRow className="hover:bg-zinc-900">
-              <TableHead className="w-[60px]">Status</TableHead>
-              <TableHead className="w-[250px]">User</TableHead>
-              <TableHead>Comment</TableHead>
-              <TableHead className="w-[180px]">Sentiment</TableHead>
-              <TableHead className="hidden md:table-cell text-right">
-                Created
-              </TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredData.map((c) => (
-              <TableRow
-                key={c.id}
-                className="hover:bg-zinc-800/50 border-zinc-800"
-              >
-                {/* Status Switch (Quick Update) */}
-                <TableCell>
-                  <Switch
-                    checked={!c.is_hidden}
-                    onCheckedChange={() => toggleHidden(c.id)}
-                    className="data-[state=checked]:bg-teal-600"
-                  />
-                </TableCell>
-
-                {/* User Info */}
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={c.user.avatar} />
-                      <AvatarFallback className="bg-zinc-800 text-zinc-400">
-                        {c.user.name.substring(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white">
-                        {c.user.name}
-                      </span>
-                      <span className="text-xs text-zinc-500">
-                        {c.user.email}
-                      </span>
-                    </div>
-                  </div>
-                </TableCell>
-
-                {/* Comment Body & Movie Context */}
-                <TableCell>
-                  <div className="flex flex-col gap-1 max-w-[400px]">
-                    <div className="flex items-center gap-2">
-                      {c.parent_id && (
-                        <Badge
-                          variant="secondary"
-                          className="h-5 px-1 text-[10px] bg-zinc-800 text-zinc-400"
-                        >
-                          <CornerDownRight className="mr-1 size-3" /> Reply
-                        </Badge>
-                      )}
-                      <span className="text-xs font-semibold text-teal-400 flex items-center gap-1">
-                        <Film className="size-3" /> {c.movie.title}
-                      </span>
-                    </div>
-                    <p
-                      className={`text-sm line-clamp-2 ${c.is_hidden ? "text-zinc-600 italic line-through" : "text-zinc-300"}`}
-                    >
-                      {c.body}
-                    </p>
-                  </div>
-                </TableCell>
-
-                {/* Sentiment */}
-                <TableCell>{getSentimentBadge(c.sentiment_score)}</TableCell>
-
-                {/* Date */}
-                <TableCell className="hidden md:table-cell text-right text-zinc-400 text-xs">
-                  {format(new Date(c.created_at), "MMM dd, yyyy")}
-                </TableCell>
-
-                {/* Actions */}
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    className="h-8 w-8 p-0 text-zinc-400 hover:text-white"
-                    onClick={() => handleView(c)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </TableCell>
+        {isLoading && (
+          <div className="p-8 text-center text-zinc-400">
+            Loading comments...
+          </div>
+        )}
+        {isError && (
+          <div className="p-8 text-center text-red-400">
+            Failed to load comments.
+          </div>
+        )}
+        {!isLoading && !isError && (
+          <Table>
+            <TableHeader className="bg-zinc-950">
+              <TableRow className="hover:bg-zinc-900">
+                <TableHead className="w-[60px]">Status</TableHead>
+                <TableHead className="w-[250px]">User</TableHead>
+                <TableHead>Comment</TableHead>
+                <TableHead className="w-[180px]">Sentiment</TableHead>
+                <TableHead className="hidden md:table-cell text-right">
+                  Created
+                </TableHead>
+                <TableHead className="w-[50px]"></TableHead>
               </TableRow>
-            ))}
-            {filteredData.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-24 text-center text-zinc-500"
+            </TableHeader>
+            <TableBody>
+              {comments.map((c) => (
+                <TableRow
+                  key={c.id}
+                  className="hover:bg-zinc-800/50 border-zinc-800"
                 >
-                  No comments found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                  {/* Status Switch (Quick Update) */}
+                  <TableCell>
+                    <Switch
+                      checked={!c.is_hidden}
+                      onCheckedChange={() => toggleHidden(c.id)}
+                      disabled={isToggling}
+                      className="data-[state=checked]:bg-teal-600"
+                    />
+                  </TableCell>
+
+                  {/* User Info */}
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={c.user.avatar || defaultAvatar} />
+                        <AvatarFallback className="bg-zinc-800 text-zinc-400">
+                          {c.user.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-white">
+                          {c.user.name}
+                        </span>
+                        {c.user.email && (
+                          <span className="text-xs text-zinc-500">
+                            {c.user.email}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  {/* Comment Body & Movie Context */}
+                  <TableCell>
+                    <div className="flex flex-col gap-1 max-w-[400px]">
+                      <div className="flex items-center gap-2">
+                        {c.parent_id && (
+                          <Badge
+                            variant="secondary"
+                            className="h-5 px-1 text-[10px] bg-zinc-800 text-zinc-400"
+                          >
+                            <CornerDownRight className="mr-1 size-3" /> Reply
+                          </Badge>
+                        )}
+                        <span className="text-xs font-semibold text-teal-400 flex items-center gap-1">
+                          <Film className="size-3" /> {c.movie.title}
+                        </span>
+                      </div>
+                      <p className="text-sm line-clamp-2 text-zinc-300">
+                        {c.body}
+                      </p>
+                    </div>
+                  </TableCell>
+
+                  {/* Sentiment */}
+                  <TableCell>{getSentimentBadge(c.sentiment_score)}</TableCell>
+
+                  {/* Date */}
+                  <TableCell className="hidden md:table-cell text-right text-zinc-400 text-xs">
+                    {format(new Date(c.created_at), "MMM dd, yyyy")}
+                  </TableCell>
+
+                  {/* Actions */}
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      className="h-8 w-8 p-0 text-zinc-400 hover:text-white"
+                      onClick={() => handleView(c)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {comments.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-zinc-500"
+                  >
+                    No comments found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
+
+      {/* Pagination */}
+      {!isLoading && !isError && data && data.totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-zinc-400">
+            Page {page} of {data.totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= data.totalPages}
+            onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
+            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+          >
+            Next
+          </Button>
+        </div>
+      )}
 
       {/* ─── Detail Dialog ─── */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -373,10 +472,17 @@ export default function CommentList() {
               <div className="grid gap-6 py-4">
                 {/* User & Movie Info Block */}
                 <div className="flex gap-4 rounded-lg bg-zinc-950/50 border border-zinc-800 p-4">
-                  <img
-                    src={selectedComment.movie.poster}
-                    className="h-24 w-16 rounded object-cover bg-zinc-800"
-                  />
+                  {selectedComment.movie.poster ? (
+                    <img
+                      src={selectedComment.movie.poster}
+                      alt={selectedComment.movie.title}
+                      className="h-24 w-16 rounded object-cover bg-zinc-800"
+                    />
+                  ) : (
+                    <div className="h-24 w-16 rounded bg-zinc-800 flex items-center justify-center">
+                      <Film className="size-6 text-zinc-600" />
+                    </div>
+                  )}
                   <div className="flex-1 space-y-3">
                     <div>
                       <p className="text-xs text-zinc-500">Movie</p>
@@ -388,8 +494,14 @@ export default function CommentList() {
                       <p className="text-xs text-zinc-500">Author</p>
                       <div className="flex items-center gap-2 mt-1">
                         <Avatar className="h-5 w-5">
-                          <AvatarImage src={selectedComment.user.avatar} />
-                          <AvatarFallback>U</AvatarFallback>
+                          <AvatarImage
+                            src={selectedComment.user.avatar || defaultAvatar}
+                          />
+                          <AvatarFallback className="bg-zinc-800 text-zinc-400 text-[10px]">
+                            {selectedComment.user.name
+                              .substring(0, 2)
+                              .toUpperCase()}
+                          </AvatarFallback>
                         </Avatar>
                         <span className="text-sm">
                           {selectedComment.user.name}
@@ -434,6 +546,7 @@ export default function CommentList() {
                     <Switch
                       checked={!selectedComment.is_hidden}
                       onCheckedChange={() => toggleHidden(selectedComment.id)}
+                      disabled={isToggling}
                       className="data-[state=checked]:bg-teal-600"
                     />
                   </div>

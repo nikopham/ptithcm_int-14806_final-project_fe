@@ -2,9 +2,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
-import { useGetAllGenresQuery } from "@/features/genre/genreApi";
-import { useGetAllCountriesQuery } from "@/features/country/countryApi";
+import {
+  useGetPublishedGenresQuery,
+  useGetPublishedCountriesQuery,
+  useGetReleaseYearsQuery,
+} from "@/features/common/commonApi";
 import { AgeRating } from "@/types/movie";
+import { useSearchParams } from "react-router-dom";
 
 /* ▸ tiny helpers -------------------------------------------------- */
 const Section = ({
@@ -47,6 +51,7 @@ export default function MovieFilter({
   open,
   onClose,
   onApply,
+  initialReleaseYear,
   initialGenreIds,
 }: {
   open: boolean;
@@ -56,19 +61,23 @@ export default function MovieFilter({
     genreIds?: number[];
     isSeries?: boolean;
     ageRating?: AgeRating;
+    releaseYear?: number;
     sort?: string;
   }) => void;
   initialGenreIds?: number[];
 }) {
   // options
-  const { data: genres } = useGetAllGenresQuery();
-  const { data: countries } = useGetAllCountriesQuery();
+  const { data: genres } = useGetPublishedGenresQuery();
+  const { data: countries } = useGetPublishedCountriesQuery();
+  const { data: years } = useGetReleaseYearsQuery();
 
   // local selections
   const [countryId, setCountryId] = useState<number | "all">("all");
   const [genreIds, setGenreIds] = useState<number[]>(initialGenreIds || []);
   const [type, setType] = useState<"movie" | "series">("movie");
   const [rating, setRating] = useState<"all" | AgeRating>("all");
+  const [year, setYear] = useState<number | "all">("all");
+  const [yearInput, setYearInput] = useState<string>("");
   // sort string matches backend values (no UI redesign)
   const [sort, setSort] = useState<
     "createdAt,desc" | "viewCount,desc" | "averageRating,desc" | "title,asc"
@@ -77,6 +86,10 @@ export default function MovieFilter({
   useEffect(() => {
     setGenreIds(initialGenreIds || []);
   }, [initialGenreIds]);
+
+  useEffect(() => {
+    setYear(initialReleaseYear ?? "all");
+  }, [initialReleaseYear]);
 
   const ageRatingChips = useMemo(
     () => ["Tất cả", ...Object.values(AgeRating)],
@@ -89,12 +102,23 @@ export default function MovieFilter({
     );
   };
 
+  const resetFilters = () => {
+    setCountryId("all");
+    setGenreIds([]);
+    setType("movie");
+    setRating("all");
+    setYear("all");
+    setYearInput("");
+    setSort("createdAt,desc");
+  };
+
   const applyAndClose = () => {
     onApply?.({
       countryIds: countryId === "all" ? undefined : [countryId as number],
       genreIds: genreIds.length ? genreIds : undefined,
       isSeries: type === "series" ? true : type === "movie" ? false : undefined,
       ageRating: rating === "all" ? undefined : rating,
+      releaseYear: year === "all" ? undefined : (year as number),
       sort,
     });
     onClose();
@@ -162,6 +186,54 @@ export default function MovieFilter({
               ))}
             </Section>
 
+            {/* Năm phát hành */}
+            <Section label="Năm phát hành:">
+              <Chip
+                active={year === "all"}
+                onClick={() => {
+                  setYear("all");
+                  setYearInput("");
+                }}
+              >
+                Tất cả
+              </Chip>
+              {(years || [])
+                .slice()
+                .sort((a, b) => b - a)
+                .slice(0, 10)
+                .map((y) => (
+                  <Chip
+                    key={y}
+                    active={year === y}
+                    onClick={() => {
+                      setYear(y);
+                      setYearInput(String(y));
+                    }}
+                  >
+                    {y}
+                  </Chip>
+                ))}
+              <div className="ml-2 inline-flex items-center gap-2">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="Năm..."
+                  className="w-24 rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-200 outline-none ring-1 ring-inset ring-zinc-700 focus:ring-zinc-500"
+                  value={yearInput}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setYearInput(v);
+                    if (v === "") {
+                      setYear("all");
+                    } else {
+                      const n = Number(v);
+                      if (!Number.isNaN(n)) setYear(n);
+                    }
+                  }}
+                />
+              </div>
+            </Section>
+
             {/* Loại phim */}
             <Section label="Loại phim:">
               {[
@@ -218,6 +290,12 @@ export default function MovieFilter({
 
             {/* action bar */}
             <div className="flex items-center justify-end gap-3 py-4">
+              <button
+                onClick={resetFilters}
+                className="rounded border border-zinc-600 px-4 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/40"
+              >
+                Reset
+              </button>
               <button
                 onClick={onClose}
                 className="rounded border border-zinc-600 px-4 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/40"

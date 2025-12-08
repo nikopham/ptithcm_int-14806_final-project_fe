@@ -18,6 +18,7 @@ export default function MovieSearchPage() {
     genreIds?: number[];
     isSeries?: boolean;
     ageRating?: AgeRating;
+    releaseYear?: number;
     sort?: string;
   }>({});
   const [page, setPage] = useState(1); // UI 1-based
@@ -27,6 +28,7 @@ export default function MovieSearchPage() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const genreParam = params.get("genre");
+    const releaseYearParam = params.get("releaseYear");
     if (genreParam) {
       const asNumber = Number(genreParam);
       const genreId = Number.isNaN(asNumber) ? undefined : asNumber;
@@ -37,6 +39,15 @@ export default function MovieSearchPage() {
       }));
       setPage(1);
     }
+    if (releaseYearParam) {
+      const asNumber = Number(releaseYearParam);
+      const releaseYear = Number.isNaN(asNumber) ? undefined : asNumber;
+      setFilters((prev) => ({
+        ...prev,
+        releaseYear: releaseYear,
+      }));
+      setPage(1);
+    } 
   }, [location.search]);
 
   const params = useMemo(
@@ -57,7 +68,10 @@ export default function MovieSearchPage() {
     if (filters.genreIds && filters.genreIds.length > 0) {
       setShowFilter(true);
     }
-  }, [filters.genreIds]);
+    if (filters.releaseYear !== undefined) {
+      setShowFilter(true);
+    }
+  }, [filters.genreIds, filters.releaseYear]);
 
   return (
     <section className="mx-auto max-w-7xl px-4 pb-24 text-white mt-8">
@@ -82,6 +96,7 @@ export default function MovieSearchPage() {
           setPage(1);
           setShowFilter(false);
         }}
+        initialReleaseYear={filters.releaseYear}
         initialGenreIds={filters.genreIds}
       />
 

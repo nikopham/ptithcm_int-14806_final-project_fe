@@ -7,7 +7,7 @@ import { useGetMovieReviewsQuery } from "@/features/movie/movieApi";
 import type { Review } from "@/types/review";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import defaultAvatar from "@/assets/default-avatar.jpg";
 import { Textarea } from "../ui/textarea";
 import {
   Dialog,
@@ -37,69 +37,24 @@ import {
   useEditCommentMutation,
 } from "@/features/comment/commentApi";
 import type { Comment } from "@/types/comment";
-
-/* ──────────────────────────────────────────────────────────
-   Types & demo data – swap with real API
-────────────────────────────────────────────────────────── */
-// All placeholder mock data removed – now powered by API detail
-
-/* ──────────────────────────────────────────────────────────
-   Helpers
-────────────────────────────────────────────────────────── */
-const NavPair = ({
-  page,
-  total,
-  prev,
-  next,
-}: {
-  page: number;
-  total: number;
-  prev: () => void;
-  next: () => void;
-}) => (
-  <div className="flex items-center gap-3">
-    <button
-      onClick={prev}
-      disabled={page === 0}
-      className={clsx(
-        "grid h-8 w-8 place-items-center rounded-md bg-zinc-800 text-white",
-        page === 0 ? "opacity-40" : "hover:bg-zinc-700"
-      )}
-    >
-      <ArrowLeft className="size-4" />
-    </button>
-    {Array.from({ length: total }).map((_, i) => (
-      <span
-        key={i}
-        className={clsx(
-          "h-1 w-5 rounded-full",
-          i === page ? "bg-red-500" : "bg-zinc-600"
-        )}
-      />
-    ))}
-    <button
-      onClick={next}
-      disabled={page === total - 1}
-      className={clsx(
-        "grid h-8 w-8 place-items-center rounded-md bg-zinc-800 text-white",
-        page === total - 1 ? "opacity-40" : "hover:bg-zinc-700"
-      )}
-    >
-      <ArrowRight className="size-4" />
-    </button>
-  </div>
-);
+import { ThreadedComments } from "./ThreadedComments";
+import { NavPair } from "./NavPair";
+import { useGetMeQuery } from "@/features/user/userApi";
+import { Role } from "@/router/role";
+import { Link } from "react-router-dom";
 
 type Props = {
   type: "movie" | "tv";
   seasons?: Season[];
   detail: MovieDetailResponse;
   movieId: string;
+  onEpisodePlay?: (episodeId: string, videoUrl: string) => void;
+  currentEpisodeId?: string;
 };
 /* ──────────────────────────────────────────────────────────
    Main component
 ────────────────────────────────────────────────────────── */
-export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
+export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay, currentEpisodeId }: Props) => {
   // Cast pagination (actors from API)
   const [castPg, setCastPg] = useState(0);
   const CAST_PER = 8;
@@ -127,11 +82,14 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
   // Comments (load more pagination)
   const [cmtPage, setCmtPage] = useState(1); // 1-based for API wrapper
   const CMT_SIZE = 10;
-  const { data: commentsData, isFetching: cmtLoading } =
-    useGetMovieCommentsQuery(
-      { movieId, page: cmtPage, size: CMT_SIZE },
-      { skip: !movieId }
-    );
+  const {
+    data: commentsData,
+    isFetching: cmtLoading,
+    refetch: refetchComments,
+  } = useGetMovieCommentsQuery(
+    { movieId, page: cmtPage, size: CMT_SIZE },
+    { skip: !movieId }
+  );
   const comments: Comment[] = commentsData?.content ?? [];
   const [newComment, setNewComment] = useState("");
   const [createComment, { isLoading: creatingComment }] =
@@ -155,6 +113,8 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
       await createComment({ movieId, body }).unwrap();
       setNewComment("");
       setCmtPage(1);
+      // Immediately refresh comments so the new one appears
+      refetchComments();
     } catch {
       toast.error("Failed to create comment");
     }
@@ -174,6 +134,8 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
       setReplyBodies((m) => ({ ...m, [parentId]: "" }));
       setActiveReplyId(null);
       setCmtPage(1);
+      // Refresh comments list to show the new reply immediately
+      refetchComments();
     } catch {
       toast.error("Failed to create reply");
     }
@@ -187,6 +149,8 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
       setActiveEditId(null);
       setEditBodies((m) => ({ ...m, [id]: "" }));
       setCmtPage(1);
+      // Refresh comments list to show the edited content immediately
+      refetchComments();
     } catch {
       toast.error("Failed to edit comment");
     }
@@ -194,6 +158,14 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
 
   // Auth + Create Review Dialog
   const isAuth = useSelector((s: RootState) => s.auth.isAuth);
+  const skipVerify = useSelector((s: RootState) => s.auth.skipVerify);
+  const currentUserId = useSelector((s: RootState) => s.auth.id);
+  const currentUserRoles: Role[] = useSelector((s: RootState) => s.auth.roles);
+  // If auth id is null, try to fetch from getMe API (when logged in)
+  const { data: me } = useGetMeQuery(undefined, {
+    skip: !isAuth || skipVerify || !!currentUserId,
+  });
+  const effectiveUserId = currentUserId ?? me?.id ?? null;
   const [authOpen, setAuthOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [pendingCreate, setPendingCreate] = useState(false);
@@ -250,7 +222,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
     <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-24 lg:grid-cols-[1fr_280px] mt-8">
       {/* ─────────── LEFT COLUMN ─────────── */}
       <div className="space-y-10">
-        {type === "tv" && seasons && <SeasonsAccordion seasons={seasons} />}
+        {type === "tv" && seasons && <SeasonsAccordion seasons={seasons} onEpisodePlay={onEpisodePlay} currentEpisodeId={currentEpisodeId} />}
         {/* Description */}
         <div className="rounded-lg bg-zinc-900 p-6">
           <h4 className="mb-3 text-sm font-semibold text-zinc-400">
@@ -278,17 +250,21 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
               <span className="text-xs text-zinc-500">No cast data.</span>
             )}
             {sliceCast.map((c) => (
-              <div key={c.id} className="flex flex-col items-center w-20">
+              <Link
+                key={c.id}
+                to={`/movie/people/${c.id}`}
+                className="flex flex-col items-center w-20 hover:opacity-90"
+                title={c.fullName}
+              >
                 <img
                   src={c.profilePath}
                   alt={c.fullName}
-                  title={c.fullName}
                   className="h-20 w-20 rounded-full object-cover"
                 />
                 <span className="mt-1 w-full truncate text-[10px] text-center text-zinc-300">
                   {c.fullName}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -442,7 +418,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
                 isAuth ? "Add a public comment..." : "Login to comment"
               }
               className="bg-zinc-800 border-zinc-700 min-h-[120px] text-sm"
-              disabled={!isAuth || creatingComment}
+              disabled={creatingComment}
             />
             <div className="flex justify-end">
               <Button
@@ -489,6 +465,8 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
               setReplyBodies={setReplyBodies}
               onSubmitReply={handleSubmitReply}
               isAuth={isAuth}
+              currentUserId={effectiveUserId}
+              currentUserRoles={currentUserRoles}
               requestAuth={() => {
                 setPendingCreate(true);
                 setAuthOpen(true);
@@ -508,56 +486,82 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Create Review</DialogTitle>
+              <DialogTitle className="text-white">
+                {detail.title || "Create Review"}
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                <label className="text-sm text-zinc-300">Rating (1-5)</label>
-                <div className="sm:col-span-2">
-                  <Input
-                    type="number"
-                    min={1}
-                    max={5}
-                    step={1}
-                    value={crRating}
-                    onChange={(e) => setCrRating(Number(e.target.value))}
-                    className="bg-zinc-800 border-zinc-700"
-                  />
-                </div>
+            <div className="space-y-5">
+              <div className="flex items-center gap-2 text-sm text-zinc-300">
+                <span className="i-lucide-crown" />
+                <span>{detail.averageRating?.toFixed(1) ?? "0.0"}</span>
+                <span className="text-zinc-500">
+                  / {detail.reviewCount ?? 0} lượt đánh giá
+                </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                <label className="text-sm text-zinc-300">Title</label>
-                <div className="sm:col-span-2">
-                  <Input
-                    value={crTitle}
-                    onChange={(e) => setCrTitle(e.target.value)}
-                    placeholder="Optional title"
-                    className="bg-zinc-800 border-zinc-700"
-                  />
-                </div>
+
+              {/* Emoticon rating options */}
+              <div className="grid grid-cols-5 gap-3">
+                {[
+                  { value: 5, label: "Tuyệt vời", emoji: "😍" },
+                  { value: 4, label: "Phim hay", emoji: "😊" },
+                  { value: 3, label: "Khá ổn", emoji: "🙂" },
+                  { value: 2, label: "Phim chán", emoji: "🙁" },
+                  { value: 1, label: "Dở tệ", emoji: "😱" },
+                ].map((opt) => {
+                  const active = crRating === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={clsx(
+                        "flex flex-col items-center gap-2 rounded-lg px-3 py-3 border transition",
+                        active
+                          ? "border-teal-500 bg-teal-500/10"
+                          : "border-zinc-700 bg-zinc-800/60 hover:bg-zinc-800"
+                      )}
+                      aria-label={`Chọn ${opt.label}`}
+                      onClick={() => setCrRating(opt.value)}
+                    >
+                      <div
+                        className={clsx(
+                          "grid h-14 w-14 place-items-center rounded-full text-2xl",
+                          active ? "bg-teal-500/20" : "bg-zinc-700/40"
+                        )}
+                      >
+                        {opt.emoji}
+                      </div>
+                      <span className="text-[12px] text-zinc-200">
+                        {opt.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                <label className="text-sm text-zinc-300 mt-2">Review</label>
-                <div className="sm:col-span-2">
-                  <Textarea
-                    value={crBody}
-                    onChange={(e) => setCrBody(e.target.value)}
-                    placeholder="Share your thoughts..."
-                    className="bg-zinc-800 border-zinc-700 min-h-[120px]"
-                  />
-                </div>
+
+              {/* Review textarea */}
+              <div>
+                <Textarea
+                  value={crBody}
+                  onChange={(e) => setCrBody(e.target.value)}
+                  placeholder="Viết nhận xét về phim (tuỳ chọn)"
+                  className="bg-zinc-800 border-zinc-700 min-h-[120px]"
+                />
               </div>
             </div>
             <DialogFooter>
+              <Button
+                className="bg-teal-600 hover:bg-teal-700 text-black"
+                onClick={() => setConfirmOpen(true)}
+                disabled={creating}
+              >
+                {creating ? "Gửi..." : "Gửi đánh giá"}
+              </Button>
               <Button
                 variant="secondary"
                 onClick={() => setCreateOpen(false)}
                 disabled={creating}
               >
-                Cancel
-              </Button>
-              <Button onClick={() => setConfirmOpen(true)} disabled={creating}>
-                {creating ? "Submitting..." : "Submit"}
+                Đóng
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -619,7 +623,12 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
           <h4 className="flex items-center gap-1 text-sm font-semibold text-zinc-400">
             <span className="i-lucide-calendar" /> Released Year
           </h4>
-          <p className="mt-2 font-medium text-white">{detail.releaseYear}</p>
+          <Link
+            to={`/filter?releaseYear=${detail.releaseYear}`}
+            className="mt-2 font-medium text-white"
+          >
+            {detail.releaseYear}
+          </Link>
         </div>
 
         {/* Basic Stats */}
@@ -654,12 +663,13 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
           <h4 className="mb-2 text-sm font-semibold text-zinc-400">Genres</h4>
           <div className="flex flex-wrap gap-2">
             {detail.genres.map((g) => (
-              <span
+              <Link
+                to={`/filter?genre=${g.id}`}
                 key={g.id}
-                className="rounded bg-zinc-800 px-3 py-0.5 text-xs text-white"
+                className="rounded bg-zinc-800 px-3 py-0.5 text-xs text-white cursor-pointer hover:opacity-90"
               >
                 {g.name}
-              </span>
+              </Link>
             ))}
             {detail.genres.length === 0 && (
               <span className="text-[11px] text-zinc-500">No genres</span>
@@ -672,12 +682,13 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
           <h4 className="mb-2 text-sm font-semibold text-zinc-400">Director</h4>
           {detail.directors && detail.directors.length > 0 ? (
             detail.directors.slice(0, 1).map((d) => (
-              <div
+              <Link
                 key={d.id}
-                className="flex items-center gap-3 rounded bg-zinc-800 p-3"
+                to={`/movie/people/${d.id}`}
+                className="flex items-center gap-3 rounded bg-zinc-800 p-3 cursor-pointer hover:opacity-90"
               >
                 <img
-                  src={d.profilePath}
+                  src={d.profilePath || defaultAvatar}
                   alt={d.fullName}
                   className="h-10 w-10 rounded-md object-cover"
                 />
@@ -685,343 +696,13 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId }: Props) => {
                   <p className="text-sm font-medium text-white">{d.fullName}</p>
                   <span className="text-[11px] text-zinc-400">Director</span>
                 </div>
-              </div>
+              </Link>
             ))
           ) : (
             <span className="text-xs text-zinc-500">No director data</span>
           )}
         </div>
       </aside>
-    </div>
-  );
-};
-
-/* ──────────────────────────────────────────────────────────
-   Threaded Comments Component
-   (Parent comments with inline nested replies)
-────────────────────────────────────────────────────────── */
-const ThreadedComments = ({
-  comments,
-  hasMore,
-  loading,
-  onLoadMore,
-  activeReplyId,
-  setActiveReplyId,
-  replyBodies,
-  setReplyBodies,
-  onSubmitReply,
-  isAuth,
-  requestAuth,
-  submittingReply,
-  activeEditId,
-  setActiveEditId,
-  editBodies,
-  setEditBodies,
-  onSubmitEdit,
-  editingComment,
-}: {
-  comments: Comment[];
-  hasMore: boolean;
-  loading: boolean;
-  onLoadMore: () => void;
-  activeReplyId: string | null;
-  setActiveReplyId: (id: string | null) => void;
-  replyBodies: Record<string, string>;
-  setReplyBodies: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  onSubmitReply: (parentId: string) => void;
-  isAuth: boolean;
-  requestAuth: () => void;
-  submittingReply: boolean;
-  activeEditId: string | null;
-  setActiveEditId: (id: string | null) => void;
-  editBodies: Record<string, string>;
-  setEditBodies: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  onSubmitEdit: (id: string) => void;
-  editingComment: boolean;
-}) => {
-  const parents = comments.filter((c) => !c.parentId);
-  const repliesMap: Record<string, Comment[]> = {};
-  for (const c of comments) {
-    if (c.parentId) {
-      if (!repliesMap[c.parentId]) repliesMap[c.parentId] = [];
-      repliesMap[c.parentId].push(c);
-    }
-  }
-
-  return (
-    <div className="space-y-4">
-      {parents.map((p) => (
-        <div key={p.id} className="space-y-2">
-          <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4 space-y-4">
-            <div className="mb-2 flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <img
-                  src={
-                    p.userAvatar ||
-                    "https://via.placeholder.com/32x32.png?text=?"
-                  }
-                  alt={p.username}
-                  className="h-8 w-8 rounded-full object-cover"
-                  loading="lazy"
-                />
-                <div>
-                  <p className="text-sm font-medium text-white">{p.username}</p>
-                  <p className="text-[10px] text-zinc-400">
-                    {new Date(p.createdAt).toLocaleString()}{" "}
-                    {p.isEdited ? "· edited" : ""}
-                  </p>
-                </div>
-              </div>
-              {typeof p.replyCount === "number" && p.replyCount > 0 && (
-                <span className="text-[10px] text-zinc-400">
-                  {p.replyCount} repl{p.replyCount === 1 ? "y" : "ies"}
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-zinc-300 whitespace-pre-wrap">
-              {p.body}
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 px-2 text-[11px] border-zinc-700"
-                onClick={() => {
-                  if (!isAuth) {
-                    requestAuth();
-                    return;
-                  }
-                  setActiveReplyId(activeReplyId === p.id ? null : p.id);
-                }}
-              >
-                {activeReplyId === p.id ? "Cancel" : "Reply"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 px-2 text-[11px] border-zinc-700"
-                onClick={() => {
-                  if (!isAuth) {
-                    requestAuth();
-                    return;
-                  }
-                  setActiveEditId(activeEditId === p.id ? null : p.id);
-                  if (!editBodies[p.id])
-                    setEditBodies((m) => ({ ...m, [p.id]: p.body }));
-                }}
-              >
-                {activeEditId === p.id ? "Cancel" : "Edit"}
-              </Button>
-            </div>
-            {activeEditId === p.id && (
-              <div className="space-y-2">
-                <Textarea
-                  value={editBodies[p.id] || ""}
-                  onChange={(e) =>
-                    setEditBodies((m) => ({ ...m, [p.id]: e.target.value }))
-                  }
-                  placeholder="Edit your comment..."
-                  className="bg-zinc-800 border-zinc-700 min-h-20 text-xs"
-                  disabled={editingComment}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 px-2 text-[11px] border-zinc-700"
-                    onClick={() => setActiveEditId(null)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    disabled={!editBodies[p.id]?.trim() || editingComment}
-                    onClick={() => onSubmitEdit(p.id)}
-                  >
-                    {editingComment ? "Saving..." : "Save"}
-                  </Button>
-                </div>
-              </div>
-            )}
-            {activeReplyId === p.id && (
-              <div className="space-y-2">
-                <Textarea
-                  value={replyBodies[p.id] || ""}
-                  onChange={(e) =>
-                    setReplyBodies((m) => ({ ...m, [p.id]: e.target.value }))
-                  }
-                  placeholder="Write a reply..."
-                  className="bg-zinc-800 border-zinc-700 min-h-20 text-xs"
-                  disabled={submittingReply}
-                />
-                <div className="flex justify-end">
-                  <Button
-                    size="sm"
-                    disabled={!replyBodies[p.id]?.trim() || submittingReply}
-                    onClick={() => onSubmitReply(p.id)}
-                  >
-                    {submittingReply ? "Posting..." : "Post Reply"}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-          {repliesMap[p.id] && (
-            <div className="ml-6 space-y-2 border-l border-zinc-800 pl-4">
-              {repliesMap[p.id]
-                .sort(
-                  (a, b) =>
-                    new Date(a.createdAt).getTime() -
-                    new Date(b.createdAt).getTime()
-                )
-                .map((r) => (
-                  <div
-                    key={r.id}
-                    className="rounded-md border border-zinc-800 bg-zinc-950/80 p-3"
-                  >
-                    <div className="mb-1 flex items-start gap-3">
-                      <img
-                        src={
-                          r.userAvatar ||
-                          "https://via.placeholder.com/28x28.png?text=?"
-                        }
-                        alt={r.username}
-                        className="h-7 w-7 rounded-full object-cover"
-                        loading="lazy"
-                      />
-                      <div className="flex-1">
-                        <p className="text-xs font-medium text-white">
-                          {r.username}
-                          <span className="ml-1 text-[10px] text-zinc-400">
-                            {new Date(r.createdAt).toLocaleString()}{" "}
-                            {r.isEdited ? "· edited" : ""}
-                          </span>
-                        </p>
-                        <p className="mt-1 text-xs text-zinc-300 whitespace-pre-wrap">
-                          {r.body}
-                        </p>
-                        <div className="mt-2 flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 px-2 text-[11px] border-zinc-700"
-                            onClick={() => {
-                              if (!isAuth) {
-                                requestAuth();
-                                return;
-                              }
-                              setActiveReplyId(
-                                activeReplyId === r.id ? null : r.id
-                              );
-                            }}
-                          >
-                            {activeReplyId === r.id ? "Cancel" : "Reply"}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 px-2 text-[11px] border-zinc-700"
-                            onClick={() => {
-                              if (!isAuth) {
-                                requestAuth();
-                                return;
-                              }
-                              setActiveEditId(
-                                activeEditId === r.id ? null : r.id
-                              );
-                              if (!editBodies[r.id])
-                                setEditBodies((m) => ({
-                                  ...m,
-                                  [r.id]: r.body,
-                                }));
-                            }}
-                          >
-                            {activeEditId === r.id ? "Cancel" : "Edit"}
-                          </Button>
-                        </div>
-                        {activeReplyId === r.id && (
-                          <div className="mt-2 space-y-2">
-                            <Textarea
-                              value={replyBodies[r.id] || ""}
-                              onChange={(e) =>
-                                setReplyBodies((m) => ({
-                                  ...m,
-                                  [r.id]: e.target.value,
-                                }))
-                              }
-                              placeholder="Write a reply..."
-                              className="bg-zinc-800 border-zinc-700 min-h-20 text-xs"
-                              disabled={submittingReply}
-                            />
-                            <div className="flex justify-end">
-                              <Button
-                                size="sm"
-                                disabled={
-                                  !replyBodies[r.id]?.trim() || submittingReply
-                                }
-                                onClick={() => onSubmitReply(r.id)}
-                              >
-                                {submittingReply ? "Posting..." : "Post Reply"}
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                        {activeEditId === r.id && (
-                          <div className="mt-2 space-y-2">
-                            <Textarea
-                              value={editBodies[r.id] || ""}
-                              onChange={(e) =>
-                                setEditBodies((m) => ({
-                                  ...m,
-                                  [r.id]: e.target.value,
-                                }))
-                              }
-                              placeholder="Edit your reply..."
-                              className="bg-zinc-800 border-zinc-700 min-h-20 text-xs"
-                              disabled={editingComment}
-                            />
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-7 px-2 text-[11px] border-zinc-700"
-                                onClick={() => setActiveEditId(null)}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                size="sm"
-                                disabled={
-                                  !editBodies[r.id]?.trim() || editingComment
-                                }
-                                onClick={() => onSubmitEdit(r.id)}
-                              >
-                                {editingComment ? "Saving..." : "Save"}
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-      ))}
-      {hasMore && (
-        <div className="pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-zinc-700 text-zinc-200"
-            disabled={loading}
-            onClick={onLoadMore}
-          >
-            {loading ? "Loading..." : "Load more"}
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

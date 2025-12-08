@@ -8,18 +8,17 @@ import type {
   ResetPasswordRequest,
 } from "@/types/auth";
 import type { ServiceResult } from "@/types/common";
+import type { UserProfile } from "@/types/user";
 
-const login = async (credentials: LoginRequest): Promise<AuthResponse> => {
-  const response = await api.post<AuthResponse>(
-    "/api/auth/login",
-    credentials,
-  );
+const login = async (credentials: LoginRequest): Promise<ServiceResult<AuthResponse>> => {
+  const response = await api.post<ServiceResult<AuthResponse>>("/api/auth/login", credentials);
   return response;
 };
 
-const verify = async (): Promise<UserProfileResponse> => {
-  // Axios interceptor sẽ tự động đính kèm token
-  const response = await api.get<UserProfileResponse>("/api/users/me");
+const verify = async (): Promise<ServiceResult<UserProfile>> => {
+  // Axios interceptor sẽ tự động đính kèm token từ cookie
+  // /api/users/me trả về ServiceResult<UserProfile> với id, username, email, avatarUrl, roles
+  const response = await api.get<ServiceResult<UserProfile>>("/api/users/me");
   return response;
 };
 
@@ -51,6 +50,10 @@ const resetPassword = async (
   return api.post<ServiceResult>("/api/auth/reset", data);
 };
 
+const loginByGoogle = async (code: string): Promise<any> => {
+  const response = await api.post<any>("/api/auth/google", { code });
+  return response;
+};
 export const authApi = {
   login,
   verify,
@@ -59,4 +62,5 @@ export const authApi = {
   forgotPassword,
   verifyResetToken,
   resetPassword,
+  loginByGoogle,
 };

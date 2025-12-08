@@ -62,13 +62,15 @@ export function PersonSelectDialog({
           }
         }}
       >
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+        <DialogContent
+          className="bg-zinc-900 border-zinc-800 text-white max-w-md"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>{label}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
-              autoFocus
               placeholder="Enter name..."
               value={search}
               onChange={(e) => {

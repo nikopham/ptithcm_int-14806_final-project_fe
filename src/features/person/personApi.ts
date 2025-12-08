@@ -1,6 +1,6 @@
 import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
 import type { PageResponse, ServiceResult } from "@/types/common";
-import type { Person, PersonSearchParams } from "@/types/person";
+import type { Person, PersonDetail, PersonSearchParams } from "@/types/person";
 import { createApi } from "@reduxjs/toolkit/query/react";
 
 export const personApi = createApi({
@@ -52,6 +52,20 @@ export const personApi = createApi({
 
       invalidatesTags: ["People"],
     }),
+
+    getPersonDetail: builder.query<PersonDetail, { id: string; page?: number }>(
+      {
+        query: ({ id, page = 1 }) => ({
+          url: `/api/v1/people/${id}`,
+          method: "GET",
+          params: {
+      
+            page: page - 1,
+          },
+        }),
+        transformResponse: (res: ServiceResult<PersonDetail>) => res.data,
+      }
+    ),
   }),
 });
 
@@ -60,4 +74,5 @@ export const {
   useCreatePersonMutation,
   useUpdatePersonMutation,
   useDeletePersonMutation,
+  useGetPersonDetailQuery,
 } = personApi;

@@ -24,10 +24,54 @@ export default function MovieDetailPage() {
     skip: !movieId,
   });
 
+  // Episode playback state
+  const [episodeStreamUrl, setEpisodeStreamUrl] = useState<string | undefined>(undefined);
+  const [episodeId, setEpisodeId] = useState<string | undefined>(undefined);
+  const [episodeInfo, setEpisodeInfo] = useState<{
+    episodeTitle: string;
+    episodeNumber: number;
+    seasonNumber: number;
+  } | null>(null);
+
+  const handleEpisodePlay = (episodeId: string, videoUrl: string) => {
+    setEpisodeStreamUrl(videoUrl);
+    setEpisodeId(episodeId);
+    // Find episode info from detail.seasons (raw API data)
+    if (detail) {
+      const maybeSeasons = (detail as unknown as { seasons?: unknown }).seasons;
+      const rawSeasons: MovieDetailResponse["seasons"] = Array.isArray(maybeSeasons)
+        ? (maybeSeasons as MovieDetailResponse["seasons"])
+        : [];
+      
+      for (const season of rawSeasons) {
+        const episode = season.episodes?.find((e) => e.id === episodeId);
+        if (episode) {
+          setEpisodeInfo({
+            episodeTitle: episode.title,
+            episodeNumber: episode.episodeNumber,
+            seasonNumber: season.seasonNumber,
+          });
+          break;
+        }
+      }
+    }
+    // Auto scroll to top when episode is played
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handlePlayMain = () => {
+    setEpisodeStreamUrl(undefined);
+    setEpisodeId(undefined);
+    setEpisodeInfo(null);
+  };
+
+  
+  
+
   // Reviews (simple first page fetch; can be paginated later)
   const [revPage] = useState(1);
   const [revSize] = useState(5);
-  const { data: reviewsData } = useGetMovieReviewsQuery(
+  useGetMovieReviewsQuery(
     { movieId, page: revPage, size: revSize },
     { skip: !movieId }
   );
@@ -50,6 +94,7 @@ export default function MovieDetailPage() {
             overview: e.synopsis,
             runtime: `${(e as unknown as { durationMin?: number }).durationMin ?? (e as unknown as { duration?: number }).duration ?? 0} min`,
             still: e.stillPath,
+            videoUrl: (e as unknown as { videoUrl?: string }).videoUrl,
           }))
         : [],
     }));
@@ -73,8 +118,11 @@ export default function MovieDetailPage() {
             id={detail.id}
             title={detail.title}
             overview={detail.description}
-            isLiked={detail.liked}
-            streamUrl={detail.videoUrl}
+            isLiked={(detail as MovieDetailResponse).isLiked}
+            streamUrl={episodeStreamUrl || (detail as unknown as { videoUrl?: string }).videoUrl}
+            episodeId={episodeId}
+            episodeInfo={episodeInfo}
+            onPlayMain={handlePlayMain}
             backdrops={[detail.backdropUrl, detail.posterUrl].filter(Boolean)}
           />
 
@@ -88,6 +136,8 @@ export default function MovieDetailPage() {
             seasons={seasons}
             detail={detail as MovieDetailResponse}
             movieId={movieId}
+            onEpisodePlay={handleEpisodePlay}
+            currentEpisodeId={episodeId}
           />
         </>
       )}

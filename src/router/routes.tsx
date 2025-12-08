@@ -33,6 +33,7 @@ import { VerifyFailPage } from "@/pages/verify/VerifyFailPage";
 import { ResetPasswordPage } from "@/pages/verify/ResetPasswordPage";
 import { ForbiddenPage } from "@/pages/public/ForbiddenPage";
 import { NotFoundPage } from "@/pages/public/NotFoundPage";
+import MoviePeoplePage from "@/pages/public/MoviePeoplePage";
 
 const Home = lazy(() => import("@/pages/public/Home"));
 const Login = lazy(() => import("@/pages/public/Login"));
@@ -47,6 +48,7 @@ export const router = createBrowserRouter([
           { index: true, element: <Home /> },
           { path: "/movies", element: <MoviesPage /> },
           { path: "/movie/detail/:id", element: <MovieDetailPage /> },
+          { path: "/movie/people/:id", element: <MoviePeoplePage /> },
           { path: "/subscriptions", element: <SubscriptionPage /> },
           { path: "/filter", element: <MovieSearchPage /> },
           { path: "login", element: <Login /> },

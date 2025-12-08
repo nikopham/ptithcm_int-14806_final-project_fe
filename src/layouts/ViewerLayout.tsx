@@ -15,15 +15,9 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { motion } from "framer-motion";
 import { useState } from "react";
-
-/* ------------------------------------------------------------------ */
-/*  Demo user – replace with real auth selector                       */
-/* ------------------------------------------------------------------ */
-const user = {
-  name: "harry maguire",
-  email: "toyotagyarisrally1@gmail.com",
-  avatar: "https://i.pravatar.cc/80?img=12",
-};
+import { useGetMeQuery } from "@/features/user/userApi";
+import defaultAvatar from "@/assets/default-avatar.jpg";
+import { useAppSelector } from "@/app/hooks";
 
 /* ------------------------------------------------------------------ */
 /*  Sidebar items                                                     */
@@ -43,6 +37,11 @@ const items = [
 export default function ViewerLayout() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const isAuth = useAppSelector((s) => s.auth.isAuth);
+  const skipVerify = useAppSelector((s) => s.auth.skipVerify);
+  const { data: user, isLoading: userLoading } = useGetMeQuery(undefined, {
+    skip: !isAuth || skipVerify,
+  });
   return (
     <div className="grid grid-rows-[auto_1fr_auto] lg:h-[120vh]">
       <Header
@@ -122,16 +121,16 @@ export default function ViewerLayout() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <img
-                src={user.avatar}
-                alt={user.name}
+                src={user?.avatarUrl || defaultAvatar}
+                alt={user?.username || "User"}
                 className="h-11 w-11 rounded-full object-cover"
               />
               <div className="truncate">
                 <p className="max-w-[150px] truncate text-sm font-medium text-white">
-                  {user.name}
+                  {userLoading ? "Loading..." : user?.username || "User"}
                 </p>
                 <p className="max-w-[150px] truncate text-xs text-zinc-400">
-                  {user.email}
+                  {userLoading ? "..." : user?.email || ""}
                 </p>
               </div>
             </div>

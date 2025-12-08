@@ -5,6 +5,7 @@ import type {
   MovieDetailResponse,
   MovieSearchParams,
   VideoStatusResponse,
+  WatchProgressRequest,
 } from "@/types/movie";
 import type { PageResponse, ServiceResult } from "@/types/common";
 import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
@@ -36,6 +37,22 @@ export const movieApi = createApi({
     searchMoviesLiked: builder.query<PageResponse<Movie>, MovieSearchParams>({
       query: (params) => ({
         url: "/api/v1/movies/search-liked",
+        method: "GET",
+        params: {
+          ...params,
+          page: params.page && params.page > 0 ? params.page - 1 : 0,
+        },
+      }),
+
+      transformResponse: (response: ServiceResult<PageResponse<Movie>>) => {
+        return response.data;
+      },
+      providesTags: ["Movies"],
+    }),
+
+    searchWatchedMovies: builder.query<PageResponse<Movie>, MovieSearchParams>({
+      query: (params) => ({
+        url: "/api/v1/movies/watched",
         method: "GET",
         params: {
           ...params,
@@ -138,7 +155,13 @@ export const movieApi = createApi({
       ],
     }),
 
-    
+    saveProgress: builder.mutation<void, WatchProgressRequest>({
+      query: (body) => ({
+        url: '/api/v1/movies/progress',
+        method: 'POST',
+        data: body,
+      }),
+    }),
   }),
 });
 
@@ -153,5 +176,6 @@ export const {
   useGetMovieDetailQuery,
   useToggleLikeMovieMutation,
   useSearchMoviesLikedQuery,
-  
+  useSearchWatchedMoviesQuery,
+  useSaveProgressMutation
 } = movieApi;

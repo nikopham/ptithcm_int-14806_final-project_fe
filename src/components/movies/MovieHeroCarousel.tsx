@@ -105,11 +105,11 @@ export const MovieHeroCarousel = () => {
           {/* action row */}
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
-              to={`/watch/${slide.id}`}
+              to={`/movie/detail/${slide.id}`}
               className="inline-flex h-11 items-center gap-2 rounded-md bg-red-600 px-6 text-sm font-medium text-white transition hover:bg-red-700"
             >
               <Play className="size-4 -translate-x-0.5" />
-              Play Now
+              Watch Now
             </Link>
 
        

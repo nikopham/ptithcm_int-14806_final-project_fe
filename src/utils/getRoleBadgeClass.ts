@@ -5,13 +5,22 @@ import { GlobalConstant } from "@/constants/GlobalConstant";
 import { Role } from "@/router/role";
 
 export const getRoleName = (role: Role | string): string => {
+  // Kiểm tra cả Role enum và string values
   switch (role) {
+    case Role.SUPER_ADMIN:
+    case GlobalConstant.ROLE_SUPER_ADMIN:
     case GlobalConstant.SUPER_ADMIN:
       return "Super Admin";
+    case Role.MOVIE_ADMIN:
+    case GlobalConstant.ROLE_MOVIE_ADMIN:
     case GlobalConstant.MOVIE_ADMIN:
       return "Movie Admin";
+    case Role.COMMENT_ADMIN:
+    case GlobalConstant.ROLE_COMMENT_ADMIN:
     case GlobalConstant.COMMENT_ADMIN:
       return "Comment Admin";
+    case Role.VIEWER:
+    case GlobalConstant.ROLE_VIEWER:
     case GlobalConstant.VIEWER:
       return "Viewer";
     default:

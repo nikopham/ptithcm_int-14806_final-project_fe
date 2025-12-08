@@ -12,6 +12,8 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGetMovieInfoQuery } from "@/features/movie/movieApi";
 import { useUpdateMovieMutation } from "@/features/movie/movieApi";
+import { useGetAllGenresQuery } from "@/features/genre/genreApi";
+import { useGetAllCountriesQuery } from "@/features/country/countryApi";
 import {
   useAddSeasonMutation,
   useAddEpisodeMutation,
@@ -49,6 +51,23 @@ export default function MovieEdit() {
   const [tvForm, setTvForm] = useState<TvFormState | null>(null);
   const seasonIdByNumberRef = useRef<Map<number, string>>(new Map());
   const episodeIdMapRef = useRef<Map<string, string>>(new Map());
+  // Track original season/episode data for change detection
+  const originalSeasonDataRef = useRef<
+    Map<number, { id: string; title: string }>
+  >(new Map());
+  const originalEpisodeDataRef = useRef<
+    Map<
+      string,
+      {
+        id: string;
+        episodeNumber: number;
+        title: string;
+        durationMin?: number;
+        synopsis?: string;
+        airDate?: string;
+      }
+    >
+  >(new Map());
   const {
     data,
     isLoading: infoLoading,
@@ -64,6 +83,10 @@ export default function MovieEdit() {
   const [addEpisode] = useAddEpisodeMutation();
   const [updateSeason] = useUpdateSeasonMutation();
   const [updateEpisode] = useUpdateEpisodeMutation();
+
+  // Fetch canonical display lists from "get-all" APIs
+  const { data: allGenres } = useGetAllGenresQuery();
+  const { data: allCountries } = useGetAllCountriesQuery();
 
   useEffect(() => {
     if (!data) return;
@@ -109,10 +132,23 @@ export default function MovieEdit() {
       seasonsFromApi.forEach((s) => {
         const sn = s.seasonNumber ?? s.season_number;
         if (sn != null && s.id) seasonIdByNumber.set(sn, String(s.id));
+        if (sn != null && s.id)
+          originalSeasonDataRef.current.set(sn, {
+            id: String(s.id),
+            title: s.title ?? s.name ?? "",
+          });
         (s.episodes || []).forEach((ep) => {
           const en = ep.episodeNumber ?? ep.episode_number;
           if (en != null && ep.id && sn != null) {
             episodeIdMap.set(`${sn}:${en}`, String(ep.id));
+            originalEpisodeDataRef.current.set(`${sn}:${en}`, {
+              id: String(ep.id),
+              episodeNumber: Number(en),
+              title: ep.title ?? "",
+              durationMin: ep.duration ?? ep.durationMin,
+              synopsis: ep.synopsis ?? "",
+              airDate: ep.airDate ?? "",
+            });
           }
         });
       });
@@ -272,10 +308,17 @@ export default function MovieEdit() {
         const existingSeasonId = seasonIdByNumber.get(s.seasonNumber);
         let seasonIdToUse = existingSeasonId;
         if (existingSeasonId) {
-          await updateSeason({
-            id: existingSeasonId,
-            body: { seasonNumber: s.seasonNumber, title: s.title },
-          }).unwrap();
+          const originalSeason = originalSeasonDataRef.current.get(
+            s.seasonNumber
+          );
+          const titleChanged =
+            (s.title ?? "") !== (originalSeason?.title ?? "");
+          if (titleChanged) {
+            await updateSeason({
+              id: existingSeasonId,
+              body: { seasonNumber: s.seasonNumber, title: s.title },
+            }).unwrap();
+          }
         } else {
           const createdSeason = await addSeason({
             movieId: String(id),
@@ -283,6 +326,10 @@ export default function MovieEdit() {
           }).unwrap();
           seasonIdToUse = String(createdSeason.id);
           seasonIdByNumber.set(s.seasonNumber, seasonIdToUse);
+          originalSeasonDataRef.current.set(s.seasonNumber, {
+            id: seasonIdToUse,
+            title: s.title ?? "",
+          });
         }
         if (!seasonIdToUse) continue;
         for (const ep of s.episodes || []) {
@@ -296,12 +343,32 @@ export default function MovieEdit() {
             airDate: ep.airDate,
           };
           if (existingEpisodeId) {
-            await updateEpisode({ id: existingEpisodeId, body }).unwrap();
+            const original = originalEpisodeDataRef.current.get(key);
+            const isUnchanged =
+              original &&
+              original.episodeNumber === body.episodeNumber &&
+              (original.title ?? "") === (body.title ?? "") &&
+              (original.durationMin ?? undefined) ===
+                (body.durationMin ?? undefined) &&
+              (original.synopsis ?? "") === (body.synopsis ?? "") &&
+              (original.airDate ?? "") === (body.airDate ?? "");
+            if (!isUnchanged) {
+              await updateEpisode({ id: existingEpisodeId, body }).unwrap();
+            }
           } else {
             await addEpisode({
               seasonId: String(seasonIdToUse),
               body,
             }).unwrap();
+            // Track newly added episode as current state
+            originalEpisodeDataRef.current.set(key, {
+              id: "", // unknown until refetch; kept for comparison only
+              episodeNumber: body.episodeNumber,
+              title: body.title ?? "",
+              durationMin: body.durationMin,
+              synopsis: body.synopsis ?? "",
+              airDate: body.airDate ?? "",
+            });
           }
         }
       }
@@ -360,8 +427,10 @@ export default function MovieEdit() {
         <MovieEditForm
           form={movieForm}
           update={updateMovie}
-          displayGenres={(data?.genres as Genre[]) || []}
-          displayCountries={(data?.countries as Country[]) || []}
+          displayGenres={(allGenres as Genre[]) || []}
+          displayCountries={(allCountries as Country[]) || []}
+          movieGenre={(data?.genres as Genre[]) || []}
+          movieCountry={(data?.countries as Country[]) || []}
           formDataStatus="succeeded"
           loading={saving}
           onSubmit={handleMovieSubmit}
@@ -371,8 +440,10 @@ export default function MovieEdit() {
         <TvEditForm
           form={tvForm}
           update={updateTv}
-          displayGenres={(data?.genres as Genre[]) || []}
-          displayCountries={(data?.countries as Country[]) || []}
+          displayGenres={(allGenres as Genre[]) || []}
+          displayCountries={(allCountries as Country[]) || []}
+          movieGenre={(data?.genres as Genre[]) || []}
+          movieCountry={(data?.countries as Country[]) || []}
           formDataStatus="succeeded"
           loading={saving}
           onSubmit={handleTvSubmit}

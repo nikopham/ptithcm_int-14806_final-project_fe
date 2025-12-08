@@ -30,6 +30,8 @@ interface MovieEditFormProps {
   ) => void;
   displayGenres?: Genre[];
   displayCountries?: Country[];
+  movieGenre?: Genre[];
+  movieCountry?: Country[];
   formDataStatus?: string;
   onSubmit: (e: React.FormEvent) => void;
   loading?: boolean;
@@ -40,6 +42,8 @@ export function MovieEditForm({
   update,
   displayGenres,
   displayCountries,
+  movieGenre,
+  movieCountry,
   formDataStatus,
   onSubmit,
   loading,
@@ -50,6 +54,8 @@ export function MovieEditForm({
     update: update as MovieAddFormProps["update"],
     displayGenres,
     displayCountries,
+    movieGenre,
+    movieCountry,
     formDataStatus,
     handleSubmit: onSubmit,
     loading,

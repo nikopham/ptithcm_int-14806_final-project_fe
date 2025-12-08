@@ -73,13 +73,15 @@ export function CountrySelector({
           if (!open) setSearch("");
         }}
       >
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+        <DialogContent
+          className="bg-zinc-900 border-zinc-800 text-white max-w-md"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Search Countries</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
-              autoFocus
               placeholder="Enter country name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -109,9 +111,7 @@ export function CountrySelector({
               })}
             </div>
           </div>
-          <DialogFooter>
-           
-          </DialogFooter>
+          <DialogFooter></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

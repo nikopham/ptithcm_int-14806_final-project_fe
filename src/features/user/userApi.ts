@@ -45,7 +45,6 @@ export const userApi = createApi({
       }),
       transformResponse: (response: ServiceResult<UserProfile>) =>
         response.data,
-
       keepUnusedDataFor: 0,
     }),
     searchViewers: builder.query<PageResponse<User>, UserSearchParams>({

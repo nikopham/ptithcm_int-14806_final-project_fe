@@ -1,121 +1,107 @@
-import { useState } from "react";
-import { X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import clsx from "clsx";
-
-type Movie = {
-  id: string;
-  vi: string;
-  en: string;
-  poster: string;
-  age: string;
-  type: string;
-};
-
-type Actor = { id: string; name: string; avatar: string };
-
-const likedMovies: Movie[] = [
-  {
-    id: "marry-me",
-    vi: "Hãy Lấy Em Đi",
-    en: "Would You Marry Me?",
-    poster: "https://i.imgur.com/dkypWk3.jpeg",
-    age: "P0",
-    type: "TM 10",
-  },
-  // … nhiều phim khác
-];
-
-const likedActors: Actor[] = [
-  {
-    id: "tom-cruise",
-    name: "Tom Cruise",
-    avatar: "https://i.pravatar.cc/160?img=33",
-  },
-  // …
-];
+import { useSearchWatchedMoviesQuery } from "@/features/movie/movieApi";
+import type { Movie, MovieSearchParams } from "@/types/movie";
 
 export default function ContinueWatchPage() {
-  const [tab, setTab] = useState<"movies" | "actors">("movies");
-  const [movies, setMovies] = useState(likedMovies);
-  const [actors, setActors] = useState(likedActors);
+  const [page, setPage] = useState(1); // UI 1-based
+  const [size] = useState(24);
 
-  const removeMovie = (id: string) =>
-    setMovies((prev) => prev.filter((m) => m.id !== id));
+  // You can extend filters later (countryIds, genreIds, sort, etc.)
+  const params = useMemo<MovieSearchParams>(
+    () => ({ page, size }),
+    [page, size]
+  );
+
+  const { data, isLoading, isError } = useSearchWatchedMoviesQuery(params);
+  const movies: Movie[] = data?.content ?? [];
+  const totalPages = data?.totalPages ?? 0;
 
   return (
-    <section className="mx-auto max-w-6xl space-y-8 px-4 pb-24">
+    <section className="mx-auto max-w-7xl space-y-8 px-4 pb-24 text-white mt-8">
       {/* heading */}
-      <h1 className="text-xl font-bold text-white">Continue Watching</h1>
+      <h1 className="text-2xl font-extrabold md:text-3xl">Continue Watching</h1>
 
-      {/* toggle pills */}
-      <div className="inline-flex rounded-full bg-zinc-800 p-1">
-        {[{ key: "movies", label: "Phim" }].map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key as any)}
-            className={clsx(
-              "min-w-[90px] rounded-full px-4 py-1.5 text-sm font-medium transition",
-              tab === t.key
-                ? "bg-white text-black"
-                : "text-zinc-300 hover:bg-zinc-700/50"
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {isLoading && <div className="mt-6 text-sm text-zinc-400">Đang tải…</div>}
+      {isError && (
+        <div className="mt-6 text-sm text-red-400">Tải danh sách thất bại.</div>
+      )}
+      {!isLoading && !isError && movies.length === 0 && (
+        <div className="mt-6 text-sm text-zinc-400">
+          Không có phim đã xem.
+        </div>
+      )}
 
-      {/* content grid */}
-      {tab === "movies" ? (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {movies.map((m) => (
-            <div
-              key={m.id}
-              className="group relative w-full overflow-hidden rounded-lg"
-            >
-              {/* remove btn */}
-              <button
-                onClick={() => removeMovie(m.id)}
-                className="absolute right-1 top-1 z-10 hidden rounded bg-white/80 p-1 text-zinc-800 transition hover:bg-white group-hover:block"
+      {!isLoading && !isError && movies.length > 0 && (
+        <>
+          <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 mt-4">
+            {movies.map((m) => (
+              <Link
+                key={m.id}
+                to={`/movie/detail/${m.id}`}
+                className="block transform transition-transform duration-200 hover:scale-105"
               >
-                <X className="size-3" />
-              </button>
-
-              {/* poster */}
-              <img
-                src={m.poster}
-                alt={m.vi}
-                className="aspect-[2/3] w-full rounded-lg object-cover"
-              />
-
-              {/* titles */}
-              <div className="mt-1 space-y-0.5 text-center">
-                <p className="truncate text-sm font-medium text-white">
-                  {m.vi}
+                <div className="relative">
+                  <img
+                    src={m.posterUrl}
+                    alt={m.title}
+                    loading="lazy"
+                    className="h-[290px] w-full rounded-lg object-cover"
+                  />
+                  <div className="absolute bottom-2 left-2 flex gap-1">
+                    {m.ageRating && (
+                      <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-red-700">
+                        {m.ageRating}
+                      </span>
+                    )}
+                    {m.isSeries && (
+                      <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-emerald-600">
+                        Series
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <p className="mt-2 truncate text-sm font-medium">{m.title}</p>
+                <p className="truncate text-xs text-zinc-400">
+                  {m.originalTitle}
                 </p>
-                <p className="truncate text-[11px] text-zinc-400">{m.en}</p>
-              </div>
+              </Link>
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-2">
+              <button
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className={clsx(
+                  "rounded border px-3 py-1 text-sm",
+                  page <= 1
+                    ? "border-zinc-700 text-zinc-500"
+                    : "border-zinc-600 text-zinc-200 hover:bg-zinc-800"
+                )}
+              >
+                Trước
+              </button>
+              <span className="text-xs text-zinc-400">
+                Trang {page} / {totalPages}
+              </span>
+              <button
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className={clsx(
+                  "rounded border px-3 py-1 text-sm",
+                  page >= totalPages
+                    ? "border-zinc-700 text-zinc-500"
+                    : "border-zinc-600 text-zinc-200 hover:bg-zinc-800"
+                )}
+              >
+                Sau
+              </button>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-          {actors.map((a) => (
-            <div
-              key={a.id}
-              className="flex flex-col items-center gap-2 rounded-lg bg-zinc-800/40 p-2 md:p-4"
-            >
-              <img
-                src={a.avatar}
-                alt={a.name}
-                className="h-20 w-20 rounded-full object-cover md:h-24 md:w-24"
-              />
-              <p className="w-full truncate text-center text-sm font-medium text-white">
-                {a.name}
-              </p>
-            </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </section>
   );

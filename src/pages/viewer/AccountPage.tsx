@@ -12,7 +12,11 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 
 export default function AccountPage() {
-  const { data: me, isLoading: isMeLoading, refetch } = useGetMeQuery();
+  const isAuth = useSelector((s: RootState) => s.auth.isAuth);
+  const skipVerify = useSelector((s: RootState) => s.auth.skipVerify);
+  const { data: me, isLoading: isMeLoading, refetch } = useGetMeQuery(undefined, {
+    skip: !isAuth || skipVerify,
+  });
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdateUserProfileMutation();
   const [changePassword, { isLoading: isChangingPwd }] =
@@ -30,6 +34,7 @@ export default function AccountPage() {
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const authId = me?.id;
+  const hasPassword = me?.hasPassword ?? false;
 
   const validateUsername = (v: string) =>
     /^[A-Za-z0-9_. ]{3,32}$/.test(v.trim());
@@ -113,10 +118,12 @@ export default function AccountPage() {
         reNewPw: confirmPassword,
       }).unwrap();
       toast.success("Password changed");
+
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setPasswordError(null);
+      await refetch();
     } catch {
       toast.error("Failed to change password");
     }
@@ -169,33 +176,41 @@ export default function AccountPage() {
               Change Password
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-300">
-                  Current Password
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showOldPwd ? "text" : "password"}
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    aria-label={showOldPwd ? "Hide password" : "Show password"}
-                    title={showOldPwd ? "Hide password" : "Show password"}
-                    onClick={() => setShowOldPwd((v) => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
-                  >
-                    {showOldPwd ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
+              {hasPassword && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-300">
+                    Current Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showOldPwd ? "text" : "password"}
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      aria-label={
+                        showOldPwd ? "Hide password" : "Show password"
+                      }
+                      title={showOldPwd ? "Hide password" : "Show password"}
+                      onClick={() => setShowOldPwd((v) => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
+                    >
+                      {showOldPwd ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
+              )}
+              <div
+                className={
+                  hasPassword ? "space-y-4" : "sm:col-span-2 space-y-2"
+                }
+              >
                 <label className="text-sm font-medium text-zinc-300">
                   New Password
                 </label>

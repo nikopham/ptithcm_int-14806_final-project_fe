@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
 import { AnimatePresence, motion } from "framer-motion";
@@ -15,8 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-import { loginAsync } from "@/features/auth/authThunks"; // Giả định
+import { useGoogleLogin } from "@react-oauth/google";
+import { loginAsync, loginByGoogleAsync } from "@/features/auth/authThunks"; // Giả định
 import { clearAuthError } from "@/features/auth/authSlice"; // Giả định
 import type {
   ForgotPasswordRequest,
@@ -24,6 +24,8 @@ import type {
   RegisterRequest,
 } from "@/types/auth"; // Giả định
 import { authApi } from "@/features/auth/authApi";
+
+import { toast } from "sonner";
 
 /* ─── Props ─── */
 interface AuthDialogProps {
@@ -116,8 +118,31 @@ export function AuthDialog({
   // const [forgotStep, setForgotStep] = useState<"form" | "otp">("form"); // <-- 1. Đã XÓA
 
   const dispatch = useDispatch<AppDispatch>();
-  const { status } = useSelector((state: RootState) => state.auth);
+  const { status, isAuth } = useSelector((state: RootState) => state.auth);
   const isLoginLoading = status === "loading";
+
+  // Tự động đóng dialog khi login thành công
+  useEffect(() => {
+    if (isAuth && isOpen) {
+      onClose();
+    }
+  }, [isAuth, isOpen, onClose]);
+
+  const googleLogin = useGoogleLogin({
+    flow: "auth-code",
+    onSuccess: async (codeResponse) => {
+      // Gọi Thunk và unwrap để xử lý chuyển trang
+      try {
+        await dispatch(loginByGoogleAsync(codeResponse.code)).unwrap();
+        // Không cần navigate ở đây nếu bạn dùng useEffect theo dõi isAuth
+        // Hoặc navigate("/") nếu cần
+        onClose();
+      } catch (err) {
+        console.error("Google login failed", err);
+      }
+    },
+    onError: () => toast.error("Login Failed"),
+  });
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -156,9 +181,13 @@ export function AuthDialog({
     try {
       const credentials: LoginRequest = { email, password };
       await dispatch(loginAsync(credentials)).unwrap();
-      onClose(); // Thành công
+      // onClose() sẽ được gọi tự động bởi useEffect khi isAuth = true
+      // Không cần gọi onClose() ở đây nữa
     } catch (err: unknown) {
       console.error("Login failed:", err);
+      // Hiển thị lỗi cụ thể cho user
+      const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again.";
+      setMessage({ type: "error", text: errorMessage });
       // Lỗi đã được xử lý bởi interceptor (hiện modal)
       // hoặc bạn có thể set lỗi local ở đây nếu cần
     }
@@ -398,6 +427,28 @@ export function AuthDialog({
                         ) : (
                           "Login"
                         )}
+                      </Button>
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-zinc-700" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-zinc-900 px-2 text-zinc-400">
+                            Or continue with
+                          </span>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full border-zinc-700 hover:bg-zinc-800 hover:text-white"
+                        disabled={status === "loading"}
+                        onClick={() => googleLogin()}
+                      >
+                        {/* (Optional) Thêm icon Google nếu muốn */}
+                        {/* <FcGoogle className="mr-2 h-4 w-4" /> */}
+                        Google Login
                       </Button>
                     </form>
                   </motion.div>
