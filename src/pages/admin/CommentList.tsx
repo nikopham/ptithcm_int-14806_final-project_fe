@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
-import { Eye, Search, Film, CornerDownRight, AlertCircle } from "lucide-react";
+import { Eye, Film, CornerDownRight, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,6 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import {
   useSearchCommentsQuery,
   useToggleCommentHiddenMutation,
@@ -178,7 +185,7 @@ export default function CommentList() {
       parent_id: c.parentId,
       body: c.body,
       sentiment_score: c.sentimentScore ?? 0, // Default to 0 if not provided
-      is_hidden: c.hidden,
+      is_hidden: c.isHidden,
       created_at: c.createdAt,
       user: {
         id: c.userId,
@@ -204,11 +211,11 @@ export default function CommentList() {
       const result = await toggleHiddenMutation(commentId).unwrap();
       // Update local state
       if (selectedComment?.id === commentId) {
-        setSelectedComment({ ...selectedComment, is_hidden: result.hidden });
+        setSelectedComment({ ...selectedComment, is_hidden: result.isHidden });
       }
       // Refetch to get updated data
       await refetch();
-      toast.success(result.hidden ? "Comment hidden" : "Comment visible");
+      toast.success(result.isHidden ? "Comment hidden" : "Comment visible");
     } catch (error) {
       toast.error("Failed to toggle comment visibility");
       console.error("Toggle hidden error:", error);
@@ -311,14 +318,14 @@ export default function CommentList() {
           <Table>
             <TableHeader className="bg-zinc-950">
               <TableRow className="hover:bg-zinc-900">
-                <TableHead className="w-[60px]">Status</TableHead>
-                <TableHead className="w-[250px]">User</TableHead>
-                <TableHead>Comment</TableHead>
-                <TableHead className="w-[180px]">Sentiment</TableHead>
-                <TableHead className="hidden md:table-cell text-right">
+                <TableHead className="w-[60px] sm:w-[80px]">Status</TableHead>
+                <TableHead className="min-w-[150px] sm:min-w-[200px]">User</TableHead>
+                <TableHead className="min-w-[200px]">Comment</TableHead>
+                <TableHead className="hidden md:table-cell min-w-[120px]">Sentiment</TableHead>
+                <TableHead className="hidden lg:table-cell text-right min-w-[100px]">
                   Created
                 </TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-[60px] sm:w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -328,7 +335,7 @@ export default function CommentList() {
                   className="hover:bg-zinc-800/50 border-zinc-800"
                 >
                   {/* Status Switch (Quick Update) */}
-                  <TableCell>
+                  <TableCell className="w-[60px] sm:w-[80px]">
                     <Switch
                       checked={!c.is_hidden}
                       onCheckedChange={() => toggleHidden(c.id)}
@@ -338,20 +345,20 @@ export default function CommentList() {
                   </TableCell>
 
                   {/* User Info */}
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
+                  <TableCell className="min-w-[150px] sm:min-w-[200px]">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Avatar className="h-6 w-6 sm:h-8 sm:w-8 shrink-0">
                         <AvatarImage src={c.user.avatar || defaultAvatar} />
-                        <AvatarFallback className="bg-zinc-800 text-zinc-400">
+                        <AvatarFallback className="bg-zinc-800 text-zinc-400 text-[10px] sm:text-xs">
                           {c.user.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-white">
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs sm:text-sm font-medium text-white truncate">
                           {c.user.name}
                         </span>
                         {c.user.email && (
-                          <span className="text-xs text-zinc-500">
+                          <span className="text-[10px] sm:text-xs text-zinc-500 truncate hidden sm:block">
                             {c.user.email}
                           </span>
                         )}
@@ -360,43 +367,45 @@ export default function CommentList() {
                   </TableCell>
 
                   {/* Comment Body & Movie Context */}
-                  <TableCell>
+                  <TableCell className="min-w-[200px]">
                     <div className="flex flex-col gap-1 max-w-[400px]">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                         {c.parent_id && (
                           <Badge
                             variant="secondary"
-                            className="h-5 px-1 text-[10px] bg-zinc-800 text-zinc-400"
+                            className="h-4 sm:h-5 px-1 text-[9px] sm:text-[10px] bg-zinc-800 text-zinc-400"
                           >
-                            <CornerDownRight className="mr-1 size-3" /> Reply
+                            <CornerDownRight className="mr-0.5 sm:mr-1 size-2.5 sm:size-3" /> Reply
                           </Badge>
                         )}
-                        <span className="text-xs font-semibold text-teal-400 flex items-center gap-1">
-                          <Film className="size-3" /> {c.movie.title}
+                        <span className="text-[10px] sm:text-xs font-semibold text-teal-400 flex items-center gap-1">
+                          <Film className="size-2.5 sm:size-3" /> <span className="truncate">{c.movie.title}</span>
                         </span>
                       </div>
-                      <p className="text-sm line-clamp-2 text-zinc-300">
+                      <p className="text-xs sm:text-sm line-clamp-2 text-zinc-300">
                         {c.body}
                       </p>
                     </div>
                   </TableCell>
 
-                  {/* Sentiment */}
-                  <TableCell>{getSentimentBadge(c.sentiment_score)}</TableCell>
+                  {/* Sentiment - Hidden on mobile */}
+                  <TableCell className="hidden md:table-cell min-w-[120px]">
+                    {getSentimentBadge(c.sentiment_score)}
+                  </TableCell>
 
-                  {/* Date */}
-                  <TableCell className="hidden md:table-cell text-right text-zinc-400 text-xs">
+                  {/* Date - Hidden on mobile/tablet */}
+                  <TableCell className="hidden lg:table-cell text-right text-zinc-400 text-xs min-w-[100px]">
                     {format(new Date(c.created_at), "MMM dd, yyyy")}
                   </TableCell>
 
                   {/* Actions */}
-                  <TableCell>
+                  <TableCell className="w-[60px] sm:w-[80px]">
                     <Button
                       variant="ghost"
-                      className="h-8 w-8 p-0 text-zinc-400 hover:text-white"
+                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-zinc-400 hover:text-white"
                       onClick={() => handleView(c)}
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -418,28 +427,36 @@ export default function CommentList() {
 
       {/* Pagination */}
       {!isLoading && !isError && data && data.totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-zinc-400">
-            Page {page} of {data.totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= data.totalPages}
-            onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
-            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-          >
-            Next
-          </Button>
+        <div className="flex justify-center pt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className={
+                    page <= 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+              <PaginationItem>
+                <span className="px-4 text-sm text-zinc-400">
+                  Page {page} of {data.totalPages}
+                </span>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
+                  className={
+                    page >= data.totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </div>
       )}
 

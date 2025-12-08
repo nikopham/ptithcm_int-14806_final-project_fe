@@ -235,14 +235,14 @@ export default function ViewerList() {
         <Table>
           <TableHeader className="bg-zinc-950">
             <TableRow className="hover:bg-zinc-900">
-              <TableHead className="w-[250px]">User</TableHead>
-              <TableHead>Contact Info</TableHead>
-              <TableHead className="text-center">Verified</TableHead>
-              <TableHead className="hidden md:table-cell">
+              <TableHead className="min-w-[180px] sm:min-w-[250px]">User</TableHead>
+              <TableHead className="hidden sm:table-cell min-w-[200px]">Contact Info</TableHead>
+              <TableHead className="text-center min-w-[100px]">Verified</TableHead>
+              <TableHead className="hidden md:table-cell min-w-[120px]">
                 Joined Date
               </TableHead>
-              <TableHead className="text-center">Active Status</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="text-center min-w-[100px]">Active Status</TableHead>
+              <TableHead className="w-[60px] sm:w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -252,54 +252,59 @@ export default function ViewerList() {
                   key={v.id}
                   className="hover:bg-zinc-800/50 border-zinc-800"
                 >
-                  {/* User Avatar & Username */}
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
+                  {/* User Avatar & Username - Combined with email on mobile */}
+                  <TableCell className="min-w-[180px] sm:min-w-[250px]">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0">
                         <AvatarImage src={v.avatarUrl} />
-                        <AvatarFallback className="bg-teal-800 text-teal-200">
+                        <AvatarFallback className="bg-teal-800 text-teal-200 text-xs sm:text-sm">
                           {v.username.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <p className="font-medium text-white">{v.username}</p>
-                        <p className="text-xs text-zinc-500 font-mono">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-medium text-white truncate">{v.username}</p>
+                        <p className="text-[10px] sm:text-xs text-zinc-500 font-mono truncate hidden sm:block">
                           ID: {v.id}
                         </p>
+                        {/* Show email on mobile */}
+                        <div className="flex items-center gap-1 sm:hidden mt-0.5">
+                          <Mail className="size-2.5 text-zinc-500 shrink-0" />
+                          <span className="text-[10px] text-zinc-400 truncate">{v.email}</span>
+                        </div>
                       </div>
                     </div>
                   </TableCell>
 
-                  {/* Email */}
-                  <TableCell>
+                  {/* Email - Hidden on mobile */}
+                  <TableCell className="hidden sm:table-cell min-w-[200px]">
                     <div className="flex items-center gap-2 text-zinc-300">
-                      <Mail className="size-3 text-zinc-500" />
-                      {v.email}
+                      <Mail className="size-3 text-zinc-500 shrink-0" />
+                      <span className="truncate">{v.email}</span>
                     </div>
                   </TableCell>
 
                   {/* Verified Badge */}
-                  <TableCell className="text-center">
+                  <TableCell className="text-center min-w-[100px]">
                     {v.emailVerified ? (
-                      <div className="inline-flex items-center justify-center rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-500 ring-1 ring-inset ring-emerald-500/20">
-                        <ShieldCheck className="mr-1 size-3" /> Verified
+                      <div className="inline-flex items-center justify-center rounded-full bg-emerald-500/10 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium text-emerald-500 ring-1 ring-inset ring-emerald-500/20">
+                        <ShieldCheck className="mr-0.5 sm:mr-1 size-2.5 sm:size-3" /> <span className="hidden sm:inline">Verified</span>
                       </div>
                     ) : (
-                      <div className="inline-flex items-center justify-center rounded-full bg-zinc-500/10 px-2 py-1 text-xs font-medium text-zinc-400 ring-1 ring-inset ring-zinc-500/20">
-                        <ShieldAlert className="mr-1 size-3" /> Pending
+                      <div className="inline-flex items-center justify-center rounded-full bg-zinc-500/10 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium text-zinc-400 ring-1 ring-inset ring-zinc-500/20">
+                        <ShieldAlert className="mr-0.5 sm:mr-1 size-2.5 sm:size-3" /> <span className="hidden sm:inline">Pending</span>
                       </div>
                     )}
                   </TableCell>
 
-                  {/* Join Date */}
-                  <TableCell className="hidden md:table-cell text-zinc-400">
+                  {/* Join Date - Hidden on mobile/tablet */}
+                  <TableCell className="hidden md:table-cell text-zinc-400 text-xs sm:text-sm min-w-[120px]">
                     {v.createdAt
                       ? format(new Date(v.createdAt), "MMM dd, yyyy")
                       : "—"}
                   </TableCell>
 
                   {/* Quick Status Switch */}
-                  <TableCell className="text-center">
+                  <TableCell className="text-center min-w-[100px]">
                     <Switch
                       checked={v.active}
                       onCheckedChange={() => requestToggle(v.id, !v.active)}
@@ -308,14 +313,14 @@ export default function ViewerList() {
                   </TableCell>
 
                   {/* View Action */}
-                  <TableCell>
+                  <TableCell className="w-[60px] sm:w-[80px]">
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleView(v)}
-                      className="text-zinc-400 hover:text-white"
+                      className="h-7 w-7 sm:h-8 sm:w-8 text-zinc-400 hover:text-white"
                     >
-                      <Eye className="size-4" />
+                      <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>

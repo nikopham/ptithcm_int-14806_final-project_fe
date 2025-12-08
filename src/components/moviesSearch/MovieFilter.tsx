@@ -1,14 +1,13 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import {
   useGetPublishedGenresQuery,
   useGetPublishedCountriesQuery,
   useGetReleaseYearsQuery,
 } from "@/features/common/commonApi";
 import { AgeRating } from "@/types/movie";
-import { useSearchParams } from "react-router-dom";
 
 /* ▸ tiny helpers -------------------------------------------------- */
 const Section = ({
@@ -65,6 +64,7 @@ export default function MovieFilter({
     sort?: string;
   }) => void;
   initialGenreIds?: number[];
+  initialReleaseYear?: number;
 }) {
   // options
   const { data: genres } = useGetPublishedGenresQuery();
@@ -74,7 +74,7 @@ export default function MovieFilter({
   // local selections
   const [countryId, setCountryId] = useState<number | "all">("all");
   const [genreIds, setGenreIds] = useState<number[]>(initialGenreIds || []);
-  const [type, setType] = useState<"movie" | "series">("movie");
+  const [type, setType] = useState<"movie" | "series" | "all">("all");
   const [rating, setRating] = useState<"all" | AgeRating>("all");
   const [year, setYear] = useState<number | "all">("all");
   const [yearInput, setYearInput] = useState<string>("");
@@ -83,6 +83,18 @@ export default function MovieFilter({
     "createdAt,desc" | "viewCount,desc" | "averageRating,desc" | "title,asc"
   >("createdAt,desc");
 
+  // Track initial values when filter panel opens to detect changes
+  const initialValuesRef = useRef<{
+    countryId: number | "all";
+    genreIds: number[];
+    type: "movie" | "series" | "all";
+    rating: "all" | AgeRating;
+    year: number | "all";
+    sort: string;
+  } | null>(null);
+  const prevOpenRef = useRef(false);
+  const hasCapturedRef = useRef(false);
+
   useEffect(() => {
     setGenreIds(initialGenreIds || []);
   }, [initialGenreIds]);
@@ -90,6 +102,35 @@ export default function MovieFilter({
   useEffect(() => {
     setYear(initialReleaseYear ?? "all");
   }, [initialReleaseYear]);
+
+  // Capture initial values when filter panel opens (only when transitioning from closed to open)
+  useEffect(() => {
+    if (open && !prevOpenRef.current) {
+      // Panel just opened - reset capture flag
+      hasCapturedRef.current = false;
+    } else if (!open) {
+      // Panel closed - reset
+      initialValuesRef.current = null;
+      hasCapturedRef.current = false;
+    }
+    prevOpenRef.current = open;
+  }, [open]);
+
+  // Capture initial values after state has been updated from props (only once when panel opens)
+  useEffect(() => {
+    if (open && !hasCapturedRef.current) {
+      // Capture current values when panel is open and we haven't captured yet
+      initialValuesRef.current = {
+        countryId,
+        genreIds: [...genreIds],
+        type,
+        rating,
+        year,
+        sort,
+      };
+      hasCapturedRef.current = true;
+    }
+  }, [open, countryId, genreIds, type, rating, year, sort]);
 
   const ageRatingChips = useMemo(
     () => ["Tất cả", ...Object.values(AgeRating)],
@@ -105,18 +146,39 @@ export default function MovieFilter({
   const resetFilters = () => {
     setCountryId("all");
     setGenreIds([]);
-    setType("movie");
+    setType("all");
     setRating("all");
     setYear("all");
     setYearInput("");
     setSort("createdAt,desc");
   };
 
+  // Check if filters have changed from initial values
+  const hasChanges = useMemo(() => {
+    if (!initialValuesRef.current) return false;
+    
+    const initial = initialValuesRef.current;
+    
+    // Compare arrays by sorting and stringifying
+    const genreIdsChanged = 
+      JSON.stringify([...genreIds].sort()) !== 
+      JSON.stringify([...initial.genreIds].sort());
+    
+    return (
+      countryId !== initial.countryId ||
+      genreIdsChanged ||
+      type !== initial.type ||
+      rating !== initial.rating ||
+      year !== initial.year ||
+      sort !== initial.sort
+    );
+  }, [countryId, genreIds, type, rating, year, sort]);
+
   const applyAndClose = () => {
     onApply?.({
       countryIds: countryId === "all" ? undefined : [countryId as number],
       genreIds: genreIds.length ? genreIds : undefined,
-      isSeries: type === "series" ? true : type === "movie" ? false : undefined,
+      isSeries: type === "series" ? true : type === "movie" ? false : type === "all" ? undefined : undefined,
       ageRating: rating === "all" ? undefined : rating,
       releaseYear: year === "all" ? undefined : (year as number),
       sort,
@@ -236,6 +298,12 @@ export default function MovieFilter({
 
             {/* Loại phim */}
             <Section label="Loại phim:">
+              <Chip
+                active={type === "all"}
+                onClick={() => setType("all")}
+              >
+                Tất cả
+              </Chip>
               {[
                 { id: "movie", label: "Phim lẻ" },
                 { id: "series", label: "Phim bộ" },
@@ -294,7 +362,7 @@ export default function MovieFilter({
                 onClick={resetFilters}
                 className="rounded border border-zinc-600 px-4 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/40"
               >
-                Reset
+                Đặt Lại
               </button>
               <button
                 onClick={onClose}
@@ -304,7 +372,13 @@ export default function MovieFilter({
               </button>
               <button
                 onClick={applyAndClose}
-                className="rounded bg-red-500 px-4 py-1.5 text-sm font-medium text-black hover:bg-red-600"
+                disabled={!hasChanges}
+                className={clsx(
+                  "rounded px-4 py-1.5 text-sm font-medium transition",
+                  hasChanges
+                    ? "bg-red-500 text-black hover:bg-red-600"
+                    : "bg-zinc-700 text-zinc-400 cursor-not-allowed"
+                )}
               >
                 Lọc kết quả →
               </button>

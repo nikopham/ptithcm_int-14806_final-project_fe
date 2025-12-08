@@ -12,16 +12,16 @@ interface Faq {
 const FAQS: Faq[] = [
   {
     id: 1,
-    q: "What is StreamVibe?",
-    a: "StreamVibe is a streaming service that allows you to watch movies and shows on demand.",
+    q: "Streamify là gì?",
+    a: "Streamify là dịch vụ phát trực tuyến cho phép bạn xem phim và chương trình theo yêu cầu.",
   },
-  { id: 2, q: "How much does StreamVibe cost?", a: "" },
-  { id: 3, q: "What content is available on StreamVibe?", a: "" },
-  { id: 4, q: "How can I watch StreamVibe?", a: "" },
-  { id: 5, q: "How do I sign up for StreamVibe?", a: "" },
-  { id: 6, q: "What is the StreamVibe free trial?", a: "" },
-  { id: 7, q: "How do I contact StreamVibe customer support?", a: "" },
-  { id: 8, q: "What are the StreamVibe payment methods?", a: "" },
+  { id: 2, q: "Streamify có giá bao nhiêu?", a: "Streamify cung cấp nhiều gói đăng ký với mức giá khác nhau. Bạn có thể xem chi tiết tại trang đăng ký." },
+  { id: 3, q: "Nội dung nào có sẵn trên Streamify?", a: "Streamify cung cấp một thư viện phong phú các bộ phim, chương trình TV, phim tài liệu và nhiều nội dung khác từ nhiều thể loại khác nhau." },
+  { id: 4, q: "Làm thế nào để xem Streamify?", a: "Bạn có thể xem Streamify trên nhiều thiết bị như điện thoại, máy tính bảng, Smart TV, máy tính xách tay và máy chơi game." },
+  { id: 5, q: "Làm thế nào để đăng ký Streamify?", a: "Bạn có thể đăng ký bằng cách nhấp vào nút 'Đăng ký' ở góc trên bên phải và làm theo hướng dẫn." },
+  { id: 6, q: "Gói dùng thử miễn phí của Streamify là gì?", a: "Streamify cung cấp gói dùng thử miễn phí để bạn trải nghiệm dịch vụ trước khi quyết định đăng ký." },
+  { id: 7, q: "Làm thế nào để liên hệ hỗ trợ khách hàng Streamify?", a: "Bạn có thể liên hệ với chúng tôi qua email hoặc biểu mẫu liên hệ trên trang web." },
+  { id: 8, q: "Các phương thức thanh toán của Streamify là gì?", a: "Streamify chấp nhận nhiều phương thức thanh toán như thẻ tín dụng, thẻ ghi nợ và các phương thức thanh toán trực tuyến khác." },
 ];
 
 export const FaqSection = () => {
@@ -37,11 +37,11 @@ export const FaqSection = () => {
       <div className="mb-12 flex flex-wrap items-center justify-between gap-6">
         <div>
           <h2 className="mb-3 text-3xl font-extrabold text-white md:text-4xl">
-            Frequently Asked Questions
+            Câu Hỏi Thường Gặp
           </h2>
           <p className="max-w-2xl text-zinc-400">
-            Got questions? We've got answers! Check out our FAQ section to find
-            answers to the most common questions about StreamVibe.
+            Có câu hỏi? Chúng tôi có câu trả lời! Xem phần FAQ của chúng tôi để tìm
+            câu trả lời cho các câu hỏi phổ biến nhất về Streamify.
           </p>
         </div>
 
@@ -49,7 +49,7 @@ export const FaqSection = () => {
           to="/contact"
           className="inline-flex h-11 items-center rounded-md bg-red-600 px-6 text-sm font-medium text-white transition hover:bg-red-700"
         >
-          Ask a Question
+          Đặt Câu Hỏi
         </Link>
       </div>
 

@@ -9,13 +9,12 @@ export function NotFoundPage() {
         <div className="flex flex-col items-center gap-4">
           <AlertTriangle className="size-16 text-yellow-500" />
           <h1 className="text-4xl font-bold text-yellow-500">404</h1>
-          <h2 className="text-2xl font-semibold">Page Not Found</h2>
+          <h2 className="text-2xl font-semibold">Không Tìm Thấy Trang</h2>
           <p className="text-lg text-zinc-600 dark:text-zinc-300 max-w-md">
-            Sorry, the page you are looking for does not exist or has been
-            moved.
+            Xin lỗi, trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.
           </p>
           <Button asChild className="mt-4">
-            <Link to="/">Back to Home</Link>
+            <Link to="/">Về Trang Chủ</Link>
           </Button>
         </div>
       </div>

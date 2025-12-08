@@ -59,7 +59,7 @@ export function MovieEditForm({
     formDataStatus,
     handleSubmit: onSubmit,
     loading,
-    submitLabel: "Save Changes",
+    submitLabel: "Lưu Thay Đổi",
     showReset: false,
   };
   return <MovieAddForm {...addProps} />;

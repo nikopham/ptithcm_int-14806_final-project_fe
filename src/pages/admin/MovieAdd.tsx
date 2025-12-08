@@ -153,54 +153,54 @@ export default function MovieAdd() {
   };
 
   const validateReleaseYear = (year: string | number | null): string | null => {
-    if (!year) return "Release year required";
+    if (!year) return "Năm phát hành là bắt buộc";
 
     const y = Number(year);
-    if (Number.isNaN(y)) return "Release year must be a number";
+    if (Number.isNaN(y)) return "Năm phát hành phải là số";
 
     const str = String(year);
-    if (str.length !== 4) return "Release year must be 4 digits";
+    if (str.length !== 4) return "Năm phát hành phải có 4 chữ số";
 
     const min = 1900;
     const max = new Date().getFullYear();
 
-    if (y < min || y > max) return `Year must be between ${min} and ${max}`;
+    if (y < min || y > max) return `Năm phải từ ${min} đến ${max}`;
 
     return null;
   };
 
   const validateMovie = (m: MovieLocalForm): Record<string, string> => {
     const errors: Record<string, string> = {};
-    if (!m.title) errors.title = "Title required";
-    if (!m.originalTitle) errors.originalTitle = "Original title required";
-    if (!m.description) errors.description = "Description required";
+    if (!m.title) errors.title = "Tiêu đề là bắt buộc";
+    if (!m.originalTitle) errors.originalTitle = "Tiêu đề gốc là bắt buộc";
+    if (!m.description) errors.description = "Mô tả là bắt buộc";
     const releaseErr = validateReleaseYear(m.release);
     if (releaseErr) errors.release = releaseErr;
     if (m.countries.length === 0)
-      errors.countries = "Select at least one country";
-    if (m.genres.length === 0) errors.genres = "Select at least one genre";
-    if (!m.director) errors.director = "Director required";
-    if (m.actors.length === 0) errors.actors = "At least one actor required";
-    if (!m.age) errors.age = "Age rating required";
-    if (!m.poster) errors.poster = "Poster required";
-    if (!m.backdrop) errors.backdrop = "Backdrop required";
-    if (!m.duration) errors.duration = "Duration required";
+      errors.countries = "Chọn ít nhất một quốc gia";
+    if (m.genres.length === 0) errors.genres = "Chọn ít nhất một thể loại";
+    if (!m.director) errors.director = "Đạo diễn là bắt buộc";
+    if (m.actors.length === 0) errors.actors = "Cần ít nhất một diễn viên";
+    if (!m.age) errors.age = "Xếp hạng độ tuổi là bắt buộc";
+    if (!m.poster) errors.poster = "Poster là bắt buộc";
+    if (!m.backdrop) errors.backdrop = "Backdrop là bắt buộc";
+    if (!m.duration) errors.duration = "Thời lượng là bắt buộc";
     return errors;
   };
   const validateTv = (t: TvLocalForm): Record<string, string> => {
     const errors: Record<string, string> = {};
-    if (!t.title) errors.title = "Title required";
-    if (!t.description) errors.description = "Description required";
+    if (!t.title) errors.title = "Tiêu đề là bắt buộc";
+    if (!t.description) errors.description = "Mô tả là bắt buộc";
     const releaseErr = validateReleaseYear(t.release);
     if (releaseErr) errors.release = releaseErr;
     if (!t.countries || t.countries.length === 0)
-      errors.countries = "Select at least one country";
-    if (t.genres.length === 0) errors.genres = "Select at least one genre";
-    if (!t.director) errors.director = "Director required";
-    if (t.actors.length === 0) errors.actors = "At least one actor required";
-    if (!t.age) errors.age = "Age rating required";
-    if (!t.poster) errors.poster = "Poster required";
-    if (!t.backdrop) errors.backdrop = "Backdrop required";
+      errors.countries = "Chọn ít nhất một quốc gia";
+    if (t.genres.length === 0) errors.genres = "Chọn ít nhất một thể loại";
+    if (!t.director) errors.director = "Đạo diễn là bắt buộc";
+    if (t.actors.length === 0) errors.actors = "Cần ít nhất một diễn viên";
+    if (!t.age) errors.age = "Xếp hạng độ tuổi là bắt buộc";
+    if (!t.poster) errors.poster = "Poster là bắt buộc";
+    if (!t.backdrop) errors.backdrop = "Backdrop là bắt buộc";
     return errors;
   };
 
@@ -211,7 +211,7 @@ export default function MovieAdd() {
     if (creatingMovie) return;
     const errors = validateMovie(movieForm);
     if (Object.keys(errors).length) {
-      toast.error("Fix errors to continue", {
+      toast.error("Sửa lỗi để tiếp tục", {
         description: (
           <ul className="list-disc pl-5 mt-2 text-sm">
             {Object.entries(errors).map(([k, v]) => (
@@ -245,11 +245,11 @@ export default function MovieAdd() {
         fd.append("backdropImage", movieForm.backdrop);
 
       await createMovie(fd).unwrap();
-      toast.success("Movie created successfully");
+      toast.success("Đã tạo phim thành công");
       navigate("/admin/movies");
     } catch (err) {
-      const message = (err as Error)?.message || "Unknown error";
-      toast.error("Failed to create movie", {
+      const message = (err as Error)?.message || "Lỗi không xác định";
+      toast.error("Không thể tạo phim", {
         description: message,
       });
     }
@@ -258,7 +258,7 @@ export default function MovieAdd() {
     if (savingTv) return;
     const errors = validateTv(formData);
     if (Object.keys(errors).length) {
-      toast.error("Fix errors to continue", {
+      toast.error("Sửa lỗi để tiếp tục", {
         description: (
           <ul className="list-disc pl-5 mt-2 text-sm">
             {Object.entries(errors).map(([k, v]) => (
@@ -314,11 +314,11 @@ export default function MovieAdd() {
         }
       }
 
-      toast.success("TV Series created successfully");
+      toast.success("Đã tạo phim bộ thành công");
       navigate("/admin/movies");
     } catch (err) {
-      const message = (err as Error)?.message || "Unknown error";
-      toast.error("Failed to create TV Series", { description: message });
+      const message = (err as Error)?.message || "Lỗi không xác định";
+      toast.error("Không thể tạo phim bộ", { description: message });
     } finally {
       setSavingTv(false);
     }

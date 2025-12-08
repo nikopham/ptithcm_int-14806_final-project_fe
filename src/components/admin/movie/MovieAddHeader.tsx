@@ -24,13 +24,13 @@ export function MovieAddHeader({
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-bold text-white">Add new content</h1>
+        <h1 className="text-2xl font-bold text-white">Thêm nội dung mới</h1>
         <Button
           variant="ghost"
           size="icon"
           onClick={onReset}
           className="text-zinc-400 hover:text-white"
-          title="Reset form"
+          title="Đặt lại form"
         >
           <RotateCcw className="size-4" />
         </Button>
@@ -44,8 +44,8 @@ export function MovieAddHeader({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="movie">Movie</SelectItem>
-            <SelectItem value="tv">TV</SelectItem>
+            <SelectItem value="movie">Phim</SelectItem>
+            <SelectItem value="tv">Phim Bộ</SelectItem>
           </SelectContent>
         </Select>
       </div>

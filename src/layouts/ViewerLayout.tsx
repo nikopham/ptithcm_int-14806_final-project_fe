@@ -23,12 +23,12 @@ import { useAppSelector } from "@/app/hooks";
 /*  Sidebar items                                                     */
 /* ------------------------------------------------------------------ */
 const items = [
-  { to: "/viewer/favorites", icon: Heart, label: "Liked Movies" },
+  { to: "/viewer/favorites", icon: Heart, label: "Phim Yêu Thích" },
   // { to: "/viewer/lists", icon: Plus, label: "Danh sách" },
-  { to: "/viewer/continue", icon: RotateCw, label: "Continue Watching" },
+  { to: "/viewer/continue", icon: RotateCw, label: "Tiếp Tục Xem" },
   // { to: "/viewer/notifications", icon: Bell, label: "Thông báo" },
-  { to: "/viewer/balance-account", icon: LucideWallet, label: "Balance Account" },
-  { to: "/viewer", icon: User, label: "Account" },
+  { to: "/viewer/balance-account", icon: LucideWallet, label: "Tài Khoản Số Dư" },
+  { to: "/viewer", icon: User, label: "Tài Khoản" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -67,7 +67,7 @@ export default function ViewerLayout() {
           {/* title */}
           <div className="mb-6 flex items-center justify-between">
             <h2 className="ml-2 text-lg font-semibold text-white">
-              Manage Account{" "}
+              Quản Lý Tài Khoản{" "}
             </h2>
             {/* 👈 SỬA 7: Thêm nút đóng (X) cho mobile */}
             <button
@@ -127,7 +127,7 @@ export default function ViewerLayout() {
               />
               <div className="truncate">
                 <p className="max-w-[150px] truncate text-sm font-medium text-white">
-                  {userLoading ? "Loading..." : user?.username || "User"}
+                  {userLoading ? "Đang tải..." : user?.username || "Người dùng"}
                 </p>
                 <p className="max-w-[150px] truncate text-xs text-zinc-400">
                   {userLoading ? "..." : user?.email || ""}
@@ -143,7 +143,7 @@ export default function ViewerLayout() {
               className="flex items-center gap-2 text-sm font-medium text-red-400 transition hover:text-red-500"
             >
               <LogOut className="size-4" />
-              Logout
+              Đăng Xuất
             </button>
           </div>
         </aside>

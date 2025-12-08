@@ -21,6 +21,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useSearchReviewsQuery } from "@/features/review/reviewApi";
 import type { Review } from "@/types/review";
 
@@ -45,13 +52,14 @@ export default function RatingList() {
   const currentPage = page;
 
   /* Helper: Render Stars */
-  const renderStars = (rating: number, size = 4) => {
+  const renderStars = (rating: number, size: 3 | 4 = 4) => {
+    const sizeClass = size === 3 ? "size-3" : "size-4";
     return (
       <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
-            className={`size-${size} ${
+            className={`${sizeClass} ${
               star <= rating
                 ? "fill-yellow-500 text-yellow-500"
                 : "fill-zinc-800 text-zinc-700"
@@ -116,14 +124,14 @@ export default function RatingList() {
         <Table>
           <TableHeader className="bg-zinc-950">
             <TableRow className="hover:bg-zinc-900">
-              <TableHead className="w-[250px]">Movie</TableHead>
-              <TableHead className="w-[200px]">User</TableHead>
-              <TableHead className="w-[120px]">Rating</TableHead>
-              <TableHead>Review Title</TableHead>
-              <TableHead className="hidden md:table-cell text-right">
+              <TableHead className="min-w-[200px] sm:min-w-[250px]">Movie</TableHead>
+              <TableHead className="hidden sm:table-cell min-w-[150px]">User</TableHead>
+              <TableHead className="w-[100px] sm:w-[120px]">Rating</TableHead>
+              <TableHead className="hidden md:table-cell">Review Title</TableHead>
+              <TableHead className="hidden lg:table-cell text-right min-w-[100px]">
                 Date
               </TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[60px] sm:w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -132,31 +140,45 @@ export default function RatingList() {
                 key={r.id}
                 className="hover:bg-zinc-800/50 border-zinc-800"
               >
-                {/* Movie Info */}
-                <TableCell>
-                  <div className="flex items-center gap-3">
+                {/* Movie Info - Combined with User on mobile */}
+                <TableCell className="min-w-[200px] sm:min-w-[250px]">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <img
                       src={r.moviePosterUrl || ""}
                       alt={r.movieTitle}
-                      className="h-12 w-8 rounded bg-zinc-800 object-cover"
+                      className="h-10 w-7 sm:h-12 sm:w-8 rounded bg-zinc-800 object-cover shrink-0"
                     />
-                    <span className="font-medium text-white line-clamp-1">
-                      {r.movieTitle}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs sm:text-sm font-medium text-white line-clamp-1 block">
+                        {r.movieTitle}
+                      </span>
+                      {/* Show user on mobile */}
+                      <div className="flex items-center gap-1.5 sm:hidden mt-1">
+                        <Avatar className="h-4 w-4">
+                          <AvatarImage src={r.userAvatar} />
+                          <AvatarFallback className="text-[8px] bg-teal-800 text-teal-200">
+                            {getInitials(r.username)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-[10px] text-zinc-400 truncate">
+                          {r.username}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </TableCell>
 
-                {/* User Info */}
-                <TableCell>
+                {/* User Info - Hidden on mobile */}
+                <TableCell className="hidden sm:table-cell min-w-[150px]">
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
+                    <Avatar className="h-5 w-5 sm:h-6 sm:w-6 shrink-0">
                       <AvatarImage src={r.userAvatar} />
-                      <AvatarFallback className="text-[10px] bg-teal-800 text-teal-200">
+                      <AvatarFallback className="text-[9px] sm:text-[10px] bg-teal-800 text-teal-200">
                         {getInitials(r.username)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm text-zinc-200">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs sm:text-sm text-zinc-200 truncate">
                         {r.username}
                       </span>
                     </div>
@@ -164,33 +186,36 @@ export default function RatingList() {
                 </TableCell>
 
                 {/* Rating Stars */}
-                <TableCell>{renderStars(r.rating)}</TableCell>
+                <TableCell className="w-[100px] sm:w-[120px]">
+                  <div className="hidden sm:block">{renderStars(r.rating, 4)}</div>
+                  <div className="sm:hidden">{renderStars(r.rating, 3)}</div>
+                </TableCell>
 
-                {/* Review Title (Truncated Content) */}
-                <TableCell>
+                {/* Review Title - Hidden on mobile/tablet */}
+                <TableCell className="hidden md:table-cell">
                   <div className="flex flex-col gap-1">
-                    <span className="text-sm font-medium text-white">
+                    <span className="text-xs sm:text-sm font-medium text-white line-clamp-1">
                       {r.title}
                     </span>
-                    <span className="text-xs text-zinc-500 line-clamp-1">
+                    <span className="text-[10px] sm:text-xs text-zinc-500 line-clamp-1">
                       {r.body}
                     </span>
                   </div>
                 </TableCell>
 
-                {/* Date */}
-                <TableCell className="hidden md:table-cell text-right text-zinc-400 text-xs">
+                {/* Date - Hidden on mobile/tablet */}
+                <TableCell className="hidden lg:table-cell text-right text-zinc-400 text-xs min-w-[100px]">
                   {new Date(r.createdAt).toLocaleDateString("en-GB")}
                 </TableCell>
 
                 {/* Actions */}
-                <TableCell>
+                <TableCell className="w-[60px] sm:w-[80px]">
                   <Button
                     variant="ghost"
-                    className="h-8 w-8 p-0 text-zinc-400 hover:text-teal-400 hover:bg-teal-400/10"
+                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-zinc-400 hover:text-teal-400 hover:bg-teal-400/10"
                     onClick={() => handleView(r)}
                   >
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
@@ -199,7 +224,7 @@ export default function RatingList() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="h-24 text-center text-zinc-500"
+                  className="h-20 sm:h-24 text-center text-zinc-500 text-sm"
                 >
                   Loading reviews...
                 </TableCell>
@@ -209,7 +234,7 @@ export default function RatingList() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="h-24 text-center text-zinc-500"
+                  className="h-20 sm:h-24 text-center text-zinc-500 text-sm"
                 >
                   No reviews found.
                 </TableCell>
@@ -219,7 +244,7 @@ export default function RatingList() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="h-24 text-center text-red-400"
+                  className="h-20 sm:h-24 text-center text-red-400 text-sm"
                 >
                   Failed to load reviews.
                 </TableCell>
@@ -231,28 +256,36 @@ export default function RatingList() {
 
       {/* ─── Pagination ─── */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between gap-4">
-          <div className="text-xs text-zinc-500">
-            Page {currentPage} of {totalPages}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="border-zinc-700 text-zinc-300"
-              disabled={currentPage <= 1 || isFetching}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              Prev
-            </Button>
-            <Button
-              variant="outline"
-              className="border-zinc-700 text-zinc-300"
-              disabled={currentPage >= totalPages || isFetching}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              Next
-            </Button>
-          </div>
+        <div className="flex justify-center pt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className={
+                    isFetching || currentPage <= 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+              <PaginationItem>
+                <span className="px-4 text-sm text-zinc-400">
+                  Page {currentPage} of {totalPages}
+                </span>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className={
+                    isFetching || currentPage >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </div>
       )}
 

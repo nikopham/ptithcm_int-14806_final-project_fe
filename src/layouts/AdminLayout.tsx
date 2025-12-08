@@ -4,16 +4,12 @@ import {
   Plus,
   Layers3,
   Users2,
-  Video,
   ShieldCheck,
   MessageCircle,
-  Wallet,
   UserCog,
   ChevronRight,
   X,
-  Menu,
   LogOut,
-  Settings,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
@@ -72,7 +68,8 @@ function SidebarItem({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const hasChild = Boolean(item.children?.length);
-  const padding = depth === 0 ? "pl-3" : `pl-${depth * 4 + 3}`; // Tự động tính padding
+  // Padding responsive: depth 0 = pl-2 sm:pl-3, depth 1 = pl-6 sm:pl-7
+  const padding = depth === 0 ? "pl-2 sm:pl-3" : "pl-6 sm:pl-7";
 
   // --- Phần nội dung bên trái (Icon + Label) ---
   const LinkContent = ({ isActive }: { isActive: boolean }) => (
@@ -84,14 +81,14 @@ function SidebarItem({
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
         />
       )}
-      <item.icon className="relative z-10 size-4 flex-shrink-0" />
-      <span className="relative z-10 flex-1 text-left">{item.label}</span>
+      <item.icon className="relative z-10 size-3.5 sm:size-4 flex-shrink-0" />
+      <span className="relative z-10 flex-1 text-left truncate">{item.label}</span>
     </>
   );
 
   // Class chung cho row
   const baseClasses =
-    "group relative flex w-full items-center gap-3 rounded py-2 pr-9 text-sm font-medium transition-colors";
+    "group relative flex w-full items-center gap-2 sm:gap-3 rounded py-1.5 sm:py-2 pr-8 sm:pr-9 text-xs sm:text-sm font-medium transition-colors";
   const inactiveClasses = "text-zinc-300 hover:bg-zinc-800/50 hover:text-white";
   const activeClasses = "text-white";
 
@@ -138,11 +135,11 @@ function SidebarItem({
               e.stopPropagation();
               setIsOpen(!isOpen);
             }}
-            className="absolute right-1 top-1/2 z-20 -translate-y-1/2 p-1.5 text-zinc-400 transition-transform hover:text-white"
+            className="absolute right-1 top-1/2 z-20 -translate-y-1/2 p-1 sm:p-1.5 text-zinc-400 transition-transform hover:text-white"
           >
             <ChevronRight
               className={clsx(
-                "size-4 transition-transform duration-200",
+                "size-3.5 sm:size-4 transition-transform duration-200",
                 isOpen && "rotate-90"
               )}
             />
@@ -158,9 +155,7 @@ function SidebarItem({
           transition={{ duration: 0.3, ease: "easeInOut" }}
           className="overflow-hidden"
         >
-          <div className="flex flex-col gap-1 py-1 ml-6">
-            {" "}
-            {/* Thêm chút gap cho đẹp */}
+          <div className="flex flex-col gap-1 py-1 ml-4 sm:ml-6">
             {item.children!.map((child) => (
               <SidebarItem
                 key={child.label}
@@ -187,19 +182,15 @@ export default function AdminLayout() {
   });
 
   return (
-    <div className="grid grid-rows-[auto_1fr_auto] lg:h-[120vh]">
-      <Header
-        isAuth
-        roles={["super_admin"]}
-        onToggleSidebar={() => setOpen(true)}
-      />
+    <div className="flex min-h-screen flex-col bg-[#0d0d12]">
+      <Header onToggleSidebar={() => setOpen(true)} />
 
       {/* body */}
-      <div className="grid grid-cols-1 bg-[#0d0d12] overflow-hidden lg:grid-cols-[260px_1fr]">
+      <div className="relative flex flex-1 overflow-hidden lg:overflow-visible">
         {/* backdrop mobile */}
         {open && (
           <div
-            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            className="fixed top-16 inset-x-0 bottom-0 z-[45] bg-black/60 lg:hidden"
             onClick={() => setOpen(false)}
           />
         )}
@@ -207,8 +198,8 @@ export default function AdminLayout() {
         {/* sidebar */}
         <aside
           className={clsx(
-            "fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col justify-between gap-4 overflow-y-auto bg-zinc-900 px-6 py-8 transition-transform duration-300 lg:static lg:translate-x-0",
-            open ? "translate-x-0" : "-translate-x-full"
+            "fixed top-16 bottom-0 left-0 z-[50] flex w-[260px] sm:w-[280px] flex-col justify-between gap-4 overflow-y-auto bg-zinc-900 border-r border-zinc-800 px-4 sm:px-6 py-6 sm:py-8 transition-transform duration-300 ease-in-out lg:static lg:top-0 lg:z-auto",
+            open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           )}
         >
           {/* mobile top */}
@@ -216,14 +207,15 @@ export default function AdminLayout() {
             <span className="text-sm font-semibold text-white">Admin Menu</span>
             <button
               onClick={() => setOpen(false)}
-              className="p-1 text-zinc-400 hover:text-white"
+              className="p-1.5 text-zinc-400 hover:text-white transition"
+              aria-label="Close sidebar"
             >
               <X className="size-5" />
             </button>
           </div>
 
           {/* nav list */}
-          <nav className="flex-1 space-y-2">
+          <nav className="flex-1 space-y-1 sm:space-y-2">
             {nav.map((it) => (
               <SidebarItem
                 key={it.label}
@@ -234,18 +226,18 @@ export default function AdminLayout() {
           </nav>
 
           {/* footer */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
+          <div className="space-y-3 sm:space-y-4 border-t border-zinc-800 pt-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               <img
                 src={me?.avatarUrl || defaultAvatar}
                 alt={me?.username || "Admin"}
-                className="h-11 w-11 rounded-full object-cover"
+                className="h-9 w-9 sm:h-11 sm:w-11 rounded-full object-cover border border-zinc-700"
               />
-              <div className="truncate">
-                <p className="max-w-[150px] truncate text-sm font-medium text-white">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs sm:text-sm font-medium text-white">
                   {meLoading ? "Loading..." : me?.username || "Admin"}
                 </p>
-                <p className="max-w-[150px] truncate text-xs text-zinc-400">
+                <p className="truncate text-[10px] sm:text-xs text-zinc-400">
                   {meLoading ? "..." : me?.email || ""}
                 </p>
               </div>
@@ -253,16 +245,16 @@ export default function AdminLayout() {
 
             <button
               onClick={() => navigate("/")}
-              className="flex items-center gap-2 text-sm font-medium text-red-400 transition hover:text-red-500"
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium text-red-400 transition hover:bg-zinc-800 hover:text-red-500"
             >
-              <LogOut className="size-4" />
-              Logout
+              <LogOut className="size-3.5 sm:size-4" />
+              <span>Logout</span>
             </button>
           </div>
         </aside>
 
         {/* main */}
-        <main className="col-span-1 overflow-y-auto px-4 py-8 lg:px-10">
+        <main className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-4 sm:py-6 lg:py-8 min-w-0">
           <Outlet />
         </main>
       </div>

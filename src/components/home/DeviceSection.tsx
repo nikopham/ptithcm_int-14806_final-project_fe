@@ -29,14 +29,14 @@ const DeviceCard = ({ Icon, title, desc }: DeviceCardProps) => (
 
 export const DeviceSection = () => {
   const desc =
-    "StreamVibe is optimized for both Android and iOS smartphones. Download our app from the Google Play Store or the Apple App Store";
+    "Streamify được tối ưu hóa cho cả điện thoại thông minh Android và iOS. Tải ứng dụng của chúng tôi từ Google Play Store hoặc Apple App Store";
 
   const data = [
-    { Icon: Smartphone, title: "Smartphones" },
-    { Icon: Tablet, title: "Tablet" },
+    { Icon: Smartphone, title: "Điện Thoại Thông Minh" },
+    { Icon: Tablet, title: "Máy Tính Bảng" },
     { Icon: Tv2, title: "Smart TV" },
-    { Icon: Laptop, title: "Laptops" },
-    { Icon: Gamepad2, title: "Gaming Consoles" },
+    { Icon: Laptop, title: "Máy Tính Xách Tay" },
+    { Icon: Gamepad2, title: "Máy Chơi Game" },
   ];
 
   return (
@@ -44,13 +44,12 @@ export const DeviceSection = () => {
       {/* heading */}
       <div className="mb-14 max-w-3xl">
         <h2 className="mb-4 text-3xl font-extrabold text-white md:text-4xl">
-          We provide you streaming experience across various devices.
+          Trải Nghiệm Xem Phim Trên Mọi Thiết Bị
         </h2>
         <p className="text-zinc-400">
-          With StreamVibe, you can enjoy your favorite movies and TV shows
-          anytime, anywhere. Our platform is designed to be compatible with a
-          wide range of devices, ensuring that you never miss a moment of
-          entertainment.
+          Với Streamify, bạn có thể thưởng thức những bộ phim và chương trình TV yêu thích
+          mọi lúc, mọi nơi. Nền tảng của chúng tôi được thiết kế để tương thích với nhiều
+          loại thiết bị, đảm bảo bạn không bao giờ bỏ lỡ khoảnh khắc giải trí nào.
         </p>
       </div>
 

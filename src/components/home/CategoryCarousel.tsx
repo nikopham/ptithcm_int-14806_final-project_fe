@@ -231,11 +231,11 @@ export const CategoryCarousel = ({
       <div className="mb-8 flex flex-wrap items-center justify-between gap-6">
         <div>
           <h2 className="mb-2 text-3xl font-extrabold text-white md:text-4xl">
-            Explore our wide variety of categories
+            Khám Phá Đa Dạng Thể Loại
           </h2>
           <p className="max-w-2xl text-zinc-400">
-            Whether you're looking for a comedy to make you laugh, a drama to
-            make you think, or a documentary to learn something new
+            Dù bạn đang tìm kiếm một bộ phim hài để cười, một bộ phim chính kịch để suy ngẫm,
+            hay một bộ phim tài liệu để học hỏi điều gì đó mới mẻ
           </p>
         </div>
 
@@ -281,10 +281,10 @@ export const CategoryCarousel = ({
 
       {/* card grid --------------------------------------------------- */}
       {isLoading && (
-        <div className="text-sm text-zinc-400">Loading categories...</div>
+        <div className="text-sm text-zinc-400">Đang tải thể loại...</div>
       )}
       {!!error && !isLoading && apiCategories.length === 0 && (
-        <div className="text-sm text-red-400">Failed to load categories.</div>
+        <div className="text-sm text-red-400">Không thể tải thể loại.</div>
       )}
       <div className="grid gap-6 md:grid-cols-5 sm:grid-cols-2">
         {slice.map((cat) => (

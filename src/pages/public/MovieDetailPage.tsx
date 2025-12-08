@@ -104,12 +104,12 @@ export default function MovieDetailPage() {
     <>
       {isLoading && (
         <div className="mx-auto max-w-7xl px-4 py-16 text-zinc-300">
-          Loading movie…
+          Đang tải phim…
         </div>
       )}
       {isError && (
         <div className="mx-auto max-w-7xl px-4 py-16 text-red-400">
-          Failed to load movie detail.
+          Không thể tải thông tin phim.
         </div>
       )}
       {!isLoading && !isError && detail && (

@@ -49,7 +49,7 @@ export default function MoviePeoplePage() {
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center text-zinc-500 text-sm">
-                    No Image
+                    Không Có Hình Ảnh
                   </div>
                 )}
               </div>
@@ -65,7 +65,7 @@ export default function MoviePeoplePage() {
               <div className="flex">
                 <dt className="w-32 text-zinc-400">Nghề nghiệp:</dt>
                 <dd className="flex-1 capitalize">
-                  {(person as any)?.job ?? "Đang cập nhật"}
+                  {(person as any)?.job === "ACTOR" ? "Diễn Viên" : (person as any)?.job === "DIRECTOR" ? "Đạo Diễn" : "Đang cập nhật"}
                 </dd>
               </div>
             </dl>
@@ -126,9 +126,9 @@ export default function MoviePeoplePage() {
                             {m.ageRating}
                           </span>
                         )}
-                        {m.series && (
+                        {m.isSeries && (
                           <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-blue-600">
-                            Series
+                            Phim Bộ
                           </span>
                         )}
                       </div>

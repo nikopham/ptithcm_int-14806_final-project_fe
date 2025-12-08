@@ -9,13 +9,12 @@ export function ForbiddenPage() {
         <div className="flex flex-col items-center gap-4">
           <Ban className="size-16 text-red-500" />
           <h1 className="text-4xl font-bold text-red-500">403</h1>
-          <h2 className="text-2xl font-semibold">Access Denied</h2>
+          <h2 className="text-2xl font-semibold">Truy Cập Bị Từ Chối</h2>
           <p className="text-lg text-zinc-600 dark:text-zinc-300 max-w-md">
-            Sorry, you do not have the necessary permissions to access this
-            page.
+            Xin lỗi, bạn không có quyền truy cập trang này.
           </p>
           <Button asChild className="mt-4">
-            <Link to="/">Back to Home</Link>
+            <Link to="/">Về Trang Chủ</Link>
           </Button>
         </div>
       </div>

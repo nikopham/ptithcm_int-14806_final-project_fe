@@ -217,7 +217,7 @@ export function MovieAddForm({
       <div className="space-y-6">
         {/* POSTER */}
         <div className="space-y-2">
-          <Label>Poster (Vertical)</Label>
+          <Label>Poster (Dọc)</Label>
           <div className="overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900/50">
             <Dropzone
               accept={{ "image/*": [] }}
@@ -236,7 +236,7 @@ export function MovieAddForm({
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition group-hover:opacity-100">
                     <p className="text-xs font-medium text-white">
-                      Click to change
+                      Nhấp để thay đổi
                     </p>
                   </div>
                 </div>
@@ -249,7 +249,7 @@ export function MovieAddForm({
         </div>
         {/* BACKDROP */}
         <div className="space-y-2">
-          <Label>Backdrop (Horizontal)</Label>
+          <Label>Backdrop (Ngang)</Label>
           <div className="overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900/50">
             <Dropzone
               accept={{ "image/*": [] }}
@@ -267,7 +267,7 @@ export function MovieAddForm({
                     alt="Backdrop"
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition group-hover:opacity-100">
-                    <p className="text-xs font-medium text-white">Change</p>
+                    <p className="text-xs font-medium text-white">Thay Đổi</p>
                   </div>
                 </div>
               ) : (
@@ -284,20 +284,20 @@ export function MovieAddForm({
         <div className="grid gap-4 sm:grid-cols-2">
           {/* Original Title & Release */}
           <div>
-            <Label>Original Title</Label>
+            <Label>Tiêu Đề Gốc</Label>
             <Input
               value={form.originalTitle}
               onChange={(e) => update("originalTitle", e.target.value)}
               disabled={isLoading}
-              placeholder="Enter original title"
+              placeholder="Nhập tiêu đề gốc"
             />
           </div>
           <div>
-            <Label>Release year</Label>
+            <Label>Năm Phát Hành</Label>
             <Input
               type="number"
               inputMode="numeric"
-              placeholder="Enter release year"
+              placeholder="Nhập năm phát hành"
               value={form.release}
               onChange={(e) => {
                 let val = e.target.value;
@@ -332,7 +332,7 @@ export function MovieAddForm({
 
           {/* Title */}
           <div className="col-span-2">
-            <Label>Display Title</Label>
+            <Label>Tiêu Đề Hiển Thị</Label>
             <Input
               value={form.title}
               onChange={(e) => update("title", e.target.value)}
@@ -342,7 +342,7 @@ export function MovieAddForm({
 
           {/* Duration */}
           <div>
-            <Label>Duration (min)</Label>
+            <Label>Thời Lượng (phút)</Label>
             <Input
               type="number"
               inputMode="numeric"
@@ -369,14 +369,14 @@ export function MovieAddForm({
 
           {/* Age Rating */}
           <div>
-            <Label>Age rating</Label>
+            <Label>Xếp Hạng Độ Tuổi</Label>
             <Select
               value={form.age}
               onValueChange={(val) => update("age", val)}
               disabled={isLoading}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select rating" />
+                <SelectValue placeholder="Chọn xếp hạng" />
               </SelectTrigger>
               <SelectContent>
                 {ageRatings.map((rating) => (
@@ -390,14 +390,14 @@ export function MovieAddForm({
 
           {/* Status */}
           <div>
-            <Label>Status</Label>
+            <Label>Trạng Thái</Label>
             <Select
               value={form.status}
               onValueChange={(val) => update("status", val)}
               disabled={isLoading}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder="Chọn trạng thái" />
               </SelectTrigger>
               <SelectContent>
                 {statusOptions.map((s) => (
@@ -435,7 +435,7 @@ export function MovieAddForm({
         />
 
         <div className="relative">
-          <Label>Director</Label>
+          <Label>Đạo Diễn</Label>
           {form.director ? (
             <div className="mt-2 flex items-center justify-between rounded-md border border-zinc-700 bg-zinc-900 p-2 pr-3">
               <div className="flex items-center gap-3">
@@ -448,7 +448,7 @@ export function MovieAddForm({
                   <p className="text-sm font-medium text-white">
                     {form.director.fullName}
                   </p>
-                  <p className="text-xs text-zinc-400">Director</p>
+                  <p className="text-xs text-zinc-400">Đạo Diễn</p>
                 </div>
               </div>
               <Button
@@ -463,7 +463,7 @@ export function MovieAddForm({
             </div>
           ) : (
             <Input
-              placeholder="Type to search director..."
+              placeholder="Nhập để tìm đạo diễn..."
               value={directorSearch}
               onChange={(e) => {
                 setDirectorSearch(e.target.value);
@@ -474,7 +474,7 @@ export function MovieAddForm({
             />
           )}
           <PersonSelectDialog
-            label="Search Director"
+            label="Tìm Đạo Diễn"
             open={directorModalOpen}
             onOpenChange={(open) => {
               setDirectorModalOpen(open);
@@ -502,9 +502,9 @@ export function MovieAddForm({
         {/* Actors (reusable) */}
         <div className="relative">
           <Label className="flex items-center justify-between">
-            Actors{" "}
+            Diễn Viên{" "}
             <span className="text-xs text-zinc-400">
-              {form.actors.length} selected
+              {form.actors.length} đã chọn
             </span>
           </Label>
           <div className="mb-3 mt-2 space-y-2">
@@ -523,7 +523,7 @@ export function MovieAddForm({
                     <p className="text-sm font-medium text-white">
                       {a.fullName}
                     </p>
-                    <p className="text-xs text-zinc-400">Cast</p>
+                    <p className="text-xs text-zinc-400">Diễn Viên</p>
                   </div>
                 </div>
                 <Button
@@ -544,7 +544,7 @@ export function MovieAddForm({
             ))}
           </div>
           <Input
-            placeholder="Type to search actors..."
+            placeholder="Nhập để tìm diễn viên..."
             value={actorSearch}
             onChange={(e) => {
               setActorSearch(e.target.value);
@@ -554,7 +554,7 @@ export function MovieAddForm({
             disabled={isLoading}
           />
           <PersonSelectDialog
-            label="Search Actors"
+            label="Tìm Diễn Viên"
             open={actorModalOpen}
             onOpenChange={(open) => {
               setActorModalOpen(open);
@@ -582,7 +582,7 @@ export function MovieAddForm({
 
         {/* Description */}
         <div>
-          <Label>Description</Label>
+          <Label>Mô Tả</Label>
           <Textarea
             rows={4}
             value={form.description}
@@ -601,7 +601,7 @@ export function MovieAddForm({
               onClick={handleReset}
               disabled={isLoading}
             >
-              Reset Form
+              Đặt Lại Form
             </Button>
           )} */}
           <Button
@@ -610,7 +610,7 @@ export function MovieAddForm({
             disabled={isLoading}
           >
             {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-            {isLoading ? "Saving..." : submitLabel || "Save Movie"}
+            {isLoading ? "Đang lưu..." : submitLabel || "Lưu Phim"}
           </Button>
         </div>
       </div>

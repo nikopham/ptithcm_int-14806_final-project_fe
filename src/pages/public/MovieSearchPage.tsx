@@ -111,42 +111,49 @@ export default function MovieSearchPage() {
 
       {!isLoading && !isError && resultMovies.length > 0 && (
         <>
-          <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 mt-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4 md:gap-5 lg:gap-6 mt-4">
             {resultMovies.map((m) => (
               <Link
                 key={m.id}
                 to={`/movie/detail/${m.id}`}
-                className="block transform transition-transform duration-200 hover:scale-105"
+                className="group block transform transition-all duration-200 hover:scale-105 hover:z-10"
               >
                 {/* poster */}
-                <div className="relative">
+                <div className="relative overflow-hidden rounded-lg bg-zinc-800">
                   <img
                     src={m.posterUrl}
                     alt={m.title}
                     loading="lazy"
-                    className="h-[290px] w-full rounded-lg object-cover"
+                    className="w-full aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-110"
                   />
 
                   {/* badges */}
-                  <div className="absolute bottom-2 left-2 flex gap-1">
+                  <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
                     {m.ageRating && (
-                      <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-red-700">
+                      <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-red-700 text-white shadow-lg">
                         {m.ageRating}
                       </span>
                     )}
-                    {m.series && (
-                      <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-emerald-600">
+                    {m.isSeries && (
+                      <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-emerald-600 text-white shadow-lg">
                         Series
                       </span>
                     )}
                   </div>
+                  
+                  {/* Overlay on hover */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
                 </div>
 
                 {/* titles */}
-                <p className="mt-2 truncate text-sm font-medium">{m.title}</p>
-                <p className="truncate text-xs text-zinc-400">
-                  {m.originalTitle}
-                </p>
+                <div className="mt-2 space-y-1">
+                  <p className="truncate text-sm font-medium text-white group-hover:text-red-500 transition-colors">
+                    {m.title}
+                  </p>
+                  <p className="truncate text-xs text-zinc-400">
+                    {m.originalTitle}
+                  </p>
+                </div>
               </Link>
             ))}
           </div>

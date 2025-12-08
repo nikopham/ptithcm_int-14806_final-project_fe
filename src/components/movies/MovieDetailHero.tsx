@@ -178,9 +178,9 @@ export const MovieDetailHero = ({
     const urlToCopy = shortUrl || currentPageUrl;
     try {
       await navigator.clipboard.writeText(urlToCopy);
-      toast.success("Link copied to clipboard!");
+      toast.success("Đã sao chép liên kết!");
     } catch {
-      toast.error("Failed to copy link");
+      toast.error("Không thể sao chép liên kết");
     }
   };
 
@@ -200,7 +200,7 @@ export const MovieDetailHero = ({
           <div className="mb-3 px-2">
             <h2 className="text-lg font-semibold text-white md:text-xl">
               {episodeInfo
-                ? `${title}: Episode ${episodeInfo.episodeNumber} Season ${episodeInfo.seasonNumber}`
+                ? `${title}: Tập ${episodeInfo.episodeNumber} Mùa ${episodeInfo.seasonNumber}`
                 : title}
             </h2>
             {episodeInfo && (
@@ -237,12 +237,12 @@ export const MovieDetailHero = ({
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-sm text-zinc-300">
-                    Invalid HLS manifest URL
+                    URL phát video không hợp lệ
                   </div>
                 )
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-zinc-300">
-                  Unsupported stream source
+                  Nguồn phát không được hỗ trợ
                 </div>
               )}
             </div>
@@ -268,7 +268,7 @@ export const MovieDetailHero = ({
                       return;
                     }
                     if (!streamUrl) {
-                      toast.error("No stream URL available");
+                      toast.error("Không có đường dẫn phát video");
                       return;
                     }
                     // Reset episode state when playing main movie
@@ -281,7 +281,7 @@ export const MovieDetailHero = ({
                   }}
                 >
                   <Play className="size-4 -translate-x-0.5" />
-                  Play Now
+                  Phát Ngay
                 </button>
 
                 <button
@@ -381,7 +381,7 @@ export const MovieDetailHero = ({
                   await toggleLike(id).unwrap();
                   setLiked((v) => {
                     const next = !v;
-                    toast.success(next ? "Added to Likes" : "Removed from Likes");
+                      toast.success(next ? "Đã thêm vào yêu thích" : "Đã xóa khỏi yêu thích");
                     return next;
                   });
                 } catch {
@@ -390,24 +390,24 @@ export const MovieDetailHero = ({
               }}
             >
               <ThumbsUp className="size-4" />
-              {liked ? "Liked" : "Like"}
+              {liked ? "Đã Thích" : "Thích"}
             </button>
 
             <button
               className="inline-flex h-9 items-center gap-2 rounded-md border border-zinc-600 bg-zinc-800 px-4 text-xs font-medium text-white transition hover:bg-zinc-700"
               onClick={() => setTheaterMode((v) => !v)}
               aria-pressed={theaterMode}
-              title="Toggle Theater Mode"
+              title="Chuyển Chế Độ Rạp"
             >
-              {theaterMode ? "Exit Theater" : "Theater Mode"}
+              {theaterMode ? "Thoát Rạp" : "Chế Độ Rạp"}
             </button>
 
             <button
               className="inline-flex h-9 items-center gap-2 rounded-md border border-zinc-600 bg-zinc-800 px-4 text-xs font-medium text-white transition hover:bg-zinc-700"
               onClick={() => setShareOpen(true)}
-              title="Share"
+              title="Chia Sẻ"
             >
-              Share
+              Chia Sẻ
             </button>
           </div>
         )}
@@ -423,15 +423,15 @@ export const MovieDetailHero = ({
       <AlertDialog open={shareOpen} onOpenChange={setShareOpen}>
         <AlertDialogContent className="bg-zinc-900 border-zinc-800">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Share this movie</AlertDialogTitle>
+            <AlertDialogTitle className="text-white">Chia Sẻ Phim Này</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
-              Share with your friends on social media
+              Chia sẻ với bạn bè trên mạng xã hội
             </AlertDialogDescription>
           </AlertDialogHeader>
           {isShortening ? (
             <div className="flex flex-col items-center justify-center gap-3 py-8">
               <Loader2 className="size-8 animate-spin text-zinc-400" />
-              <p className="text-sm text-zinc-400">Preparing share link...</p>
+              <p className="text-sm text-zinc-400">Đang chuẩn bị liên kết chia sẻ...</p>
             </div>
           ) : (
             <div className="flex flex-wrap items-center justify-center gap-4 py-4">
@@ -487,13 +487,13 @@ export const MovieDetailHero = ({
                 disabled={!shortUrl && !currentPageUrl}
               >
                 <Copy className="size-6" />
-                <span className="text-xs font-medium">Copy</span>
+                <span className="text-xs font-medium">Sao Chép</span>
               </button>
             </div>
           )}
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-zinc-800 text-white hover:bg-zinc-700">
-              Close
+              Đóng
             </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>

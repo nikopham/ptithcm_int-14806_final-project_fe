@@ -88,10 +88,10 @@ export default function MovieManageSource({
       if (statusData.state === "ready") {
         setIsReady(true);
         setProgress(100);
-        if (!isReady) toast.success("Video processed & saved successfully!");
+        if (!isReady) toast.success("Video đã được xử lý và lưu thành công!");
       } else if (statusData.state === "error") {
         setIsReady(true); // Dừng poll
-        toast.error("Video processing failed on Cloudflare.");
+        toast.error("Xử lý video thất bại trên Cloudflare.");
       }
     }
   }, [statusData, isReady]);
@@ -133,10 +133,10 @@ export default function MovieManageSource({
       });
 
       setVideoUID(uid);
-      toast.success("Uploaded! Processing video...");
+      toast.success("Đã tải lên! Đang xử lý video...");
     } catch (err) {
       console.error(err);
-      toast.error("Upload failed");
+      toast.error("Tải lên thất bại");
       setHideExistingPreview(false);
       setShowPreview(true);
     } finally {
@@ -187,7 +187,7 @@ export default function MovieManageSource({
         >
           <ArrowLeft className="size-5" />
         </Button>
-        <h1 className="text-2xl font-extrabold text-white">Source Manager</h1>
+        <h1 className="text-2xl font-extrabold text-white">Quản Lý Nguồn</h1>
       </div>
 
       {/* Card */}
@@ -198,7 +198,7 @@ export default function MovieManageSource({
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-3 text-sm text-zinc-300">
               <div>
-                <span className="text-zinc-500">Title</span>
+                <span className="text-zinc-500">Tiêu Đề</span>
                 <div className="font-medium text-white">{info.title}</div>
               </div>
 
@@ -223,12 +223,12 @@ export default function MovieManageSource({
               </div>
 
               <div>
-                <span className="text-zinc-500">Release Year</span>
+                <span className="text-zinc-500">Năm Phát Hành</span>
                 <div className="font-medium text-white">{info.release}</div>
               </div>
 
               <div>
-                <span className="text-zinc-500">Status</span>
+                <span className="text-zinc-500">Trạng Thái</span>
                 <div className="mt-1">
                   <Badge className="border-none bg-teal-600 hover:bg-teal-700">
                     {info.status}
@@ -237,7 +237,7 @@ export default function MovieManageSource({
               </div>
 
               <div>
-                <span className="text-zinc-500">Source Status</span>
+                <span className="text-zinc-500">Trạng Thái Nguồn</span>
                 <div className="mt-1">
                   <Badge
                     className={
@@ -246,7 +246,7 @@ export default function MovieManageSource({
                         : "border-none bg-zinc-700 text-zinc-200"
                     }
                   >
-                    {isReady ? "READY" : "NOT READY"}
+                    {isReady ? "SẴN SÀNG" : "CHƯA SẴN SÀNG"}
                   </Badge>
                 </div>
               </div>
@@ -259,7 +259,7 @@ export default function MovieManageSource({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label className="text-zinc-200 text-base font-semibold">
-                Upload Movie Source (Cloudflare)
+                Tải Lên Nguồn Phim (Cloudflare)
               </Label>
               {!busy && (
                 <Badge className="border-none bg-zinc-800 text-zinc-300">
@@ -288,7 +288,7 @@ export default function MovieManageSource({
                         {selectedFile.name}
                       </p>
                       <p className="text-xs text-zinc-400">
-                        Click or drop to change file
+                        Nhấp hoặc kéo thả để thay đổi file
                       </p>
                     </div>
                   </div>
@@ -297,10 +297,10 @@ export default function MovieManageSource({
                     <div className="flex flex-col items-center justify-center gap-2">
                       <UploadCloud className="h-8 w-8 text-zinc-400" />
                       <p className="text-sm text-zinc-300">
-                        Drag and drop your video here
+                        Kéo thả video của bạn vào đây
                       </p>
                       <p className="text-xs text-zinc-500">
-                        Or click to browse
+                        Hoặc nhấp để duyệt
                       </p>
                     </div>
                   </DropzoneEmptyState>
@@ -313,7 +313,7 @@ export default function MovieManageSource({
             {progress > 0 && progress < 100 && (
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-zinc-400">
-                  <span>Uploading to Cloud...</span>
+                  <span>Đang tải lên Cloud...</span>
                   <span>{progress}%</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
@@ -365,7 +365,7 @@ export default function MovieManageSource({
 
                   <div className="flex-1 overflow-hidden">
                     <p className="text-xs font-semibold">
-                      {isReady ? "Video Ready to Stream!" : "Processing..."}
+                      {isReady ? "Video Sẵn Sàng Phát!" : "Đang xử lý..."}
                     </p>
                     <p className="text-xs truncate">UID: {videoUID}</p>
                   </div>
@@ -377,7 +377,7 @@ export default function MovieManageSource({
                       onClick={() => setShowPreview((v) => !v)}
                       className="border-green-700 text-green-400 hover:bg-green-800/30"
                     >
-                      {showPreview ? "Hide" : "Preview"}
+                      {showPreview ? "Ẩn" : "Xem Trước"}
                     </Button>
                   )}
                 </div>
@@ -391,7 +391,7 @@ export default function MovieManageSource({
                       allowFullScreen
                     />
                     <p className="mt-2 text-[10px] text-zinc-500 text-center">
-                      Playback from Cloudflare Stream via HLS.
+                      Phát từ Cloudflare Stream qua HLS.
                     </p>
                   </div>
                 )}
@@ -405,7 +405,7 @@ export default function MovieManageSource({
                   <CheckCircle className="h-5 w-5" />
                   <div className="flex-1 overflow-hidden">
                     <p className="text-xs font-semibold">
-                      Video Ready to Stream!
+                      Video Sẵn Sàng Phát!
                     </p>
                     <p className="text-xs truncate">HLS: {info.videoUrl}</p>
                   </div>
@@ -415,7 +415,7 @@ export default function MovieManageSource({
                     onClick={() => setShowPreview((v) => !v)}
                     className="border-green-700 text-green-400 hover:bg-green-800/30"
                   >
-                    {showPreview ? "Hide" : "Preview"}
+                    {showPreview ? "Ẩn" : "Xem Trước"}
                   </Button>
                 </div>
 
@@ -427,7 +427,7 @@ export default function MovieManageSource({
                       src={info.videoUrl as string}
                     />
                     <p className="mt-2 text-[10px] text-zinc-500 text-center">
-                      Previewing existing HLS (.m3u8) source.
+                      Xem trước nguồn HLS (.m3u8) hiện có.
                     </p>
                   </div>
                 )}
@@ -451,7 +451,7 @@ export default function MovieManageSource({
               setShowPreview(true);
             }}
           >
-            Reset
+            Đặt Lại
           </Button>
           <Button
             disabled={!selectedFile || busy}
@@ -465,7 +465,7 @@ export default function MovieManageSource({
             }}
             className="bg-teal-600 hover:bg-teal-700 text-white"
           >
-            {busy ? "Uploading..." : videoUID ? "Re-upload" : "Save Changes"}
+            {busy ? "Đang tải lên..." : videoUID ? "Tải lên lại" : "Lưu Thay Đổi"}
           </Button>
         </div>
       </div>

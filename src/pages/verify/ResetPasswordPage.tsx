@@ -16,23 +16,23 @@ import { authApi } from "@/features/auth/authApi";
 
 // Copy 2 hàm validate này từ AuthDialog.tsx
 const validatePassword = (password: string) => {
-  if (!password) return "Password is required.";
-  if (password.length < 8) return "Password must be at least 8 characters.";
+  if (!password) return "Mật khẩu là bắt buộc.";
+  if (password.length < 8) return "Mật khẩu phải có ít nhất 8 ký tự.";
   if (password.length > 16)
-    return "Password must be no more than 16 characters.";
+    return "Mật khẩu không được quá 16 ký tự.";
   if (!/(?=.*[a-z])/.test(password))
-    return "Must contain one lowercase letter.";
+    return "Phải chứa ít nhất một chữ cái thường.";
   if (!/(?=.*[A-Z])/.test(password))
-    return "Must contain one uppercase letter.";
-  if (!/(?=.*\d)/.test(password)) return "Must contain one number.";
+    return "Phải chứa ít nhất một chữ cái hoa.";
+  if (!/(?=.*\d)/.test(password)) return "Phải chứa ít nhất một số.";
   if (!/(?=.*[^a-zA-Z0-9])/.test(password))
-    return "Must contain one special character.";
-  if (/\s/.test(password)) return "Password cannot contain spaces.";
+    return "Phải chứa ít nhất một ký tự đặc biệt.";
+  if (/\s/.test(password)) return "Mật khẩu không được chứa khoảng trắng.";
   return "";
 };
 const validateRepassword = (pass: string, repass: string) => {
-  if (!repass) return "Please confirm your password.";
-  if (pass !== repass) return "Passwords do not match.";
+  if (!repass) return "Vui lòng xác nhận mật khẩu của bạn.";
+  if (pass !== repass) return "Mật khẩu không khớp.";
   return "";
 };
 
@@ -59,7 +59,7 @@ export function ResetPasswordPage() {
   useEffect(() => {
     if (!token) {
       setStatus("invalid");
-      setMessage("Invalid or missing token.");
+      setMessage("Token không hợp lệ hoặc thiếu.");
       return;
     }
 
@@ -71,7 +71,7 @@ export function ResetPasswordPage() {
       } catch (error: unknown) {
         // Token không hợp lệ
         setStatus("invalid");
-        let msg = "Invalid or expired token.";
+        let msg = "Token không hợp lệ hoặc đã hết hạn.";
         if (typeof error === "object" && error !== null) {
           const e = error as { response?: { data?: { message?: string } } };
           msg = e.response?.data?.message || msg;
@@ -110,10 +110,10 @@ export function ResetPasswordPage() {
       const result = await authApi.resetPassword(req);
       // Thành công!
       setStatus("success");
-      setMessage(result.message || "Password has been reset successfully!");
+      setMessage(result.message || "Mật khẩu đã được đặt lại thành công!");
     } catch (error: unknown) {
       // Lỗi (ví dụ: mismatch, token hết hạn lần 2)
-      let msg = "An error occurred.";
+      let msg = "Đã xảy ra lỗi.";
       if (typeof error === "object" && error !== null) {
         const e = error as { response?: { data?: { message?: string } } };
         msg = e.response?.data?.message || msg;
@@ -132,7 +132,7 @@ export function ResetPasswordPage() {
         return (
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="size-12 animate-spin text-blue-500" />
-            <p className="text-lg">Verifying your request...</p>
+            <p className="text-lg">Đang xác minh yêu cầu của bạn...</p>
           </div>
         );
 
@@ -141,10 +141,10 @@ export function ResetPasswordPage() {
         return (
           <div className="flex flex-col items-center gap-4 text-center">
             <CircleAlert className="size-16 text-red-500" />
-            <h1 className="text-3xl font-bold">Request Failed</h1>
+            <h1 className="text-3xl font-bold">Yêu Cầu Thất Bại</h1>
             <p className="text-lg text-red-400 max-w-md">{message}</p>
             <Button asChild className="mt-4" variant="outline">
-              <Link to="/">Back to Home</Link>
+              <Link to="/">Về Trang Chủ</Link>
             </Button>
           </div>
         );
@@ -153,20 +153,20 @@ export function ResetPasswordPage() {
       case "form":
         return (
           <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-            <h1 className="text-3xl font-bold text-center">Set New Password</h1>
+            <h1 className="text-3xl font-bold text-center">Đặt Mật Khẩu Mới</h1>
             <p className="text-zinc-400 text-center">
-              Please enter your new password.
+              Vui lòng nhập mật khẩu mới của bạn.
             </p>
 
             {/* ... Form ... */}
             <div className="space-y-2">
-              <Label htmlFor="password">New Password</Label>
+              <Label htmlFor="password">Mật Khẩu Mới</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Min. 8 characters"
+                  placeholder="Tối thiểu 8 ký tự"
                   className="pl-10 pr-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
                   value={password}
                   onChange={(e) => {
@@ -193,13 +193,13 @@ export function ResetPasswordPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="repassword">Confirm New Password</Label>
+              <Label htmlFor="repassword">Xác Nhận Mật Khẩu Mới</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
                 <Input
                   id="repassword"
                   type={showRepassword ? "text" : "password"}
-                  placeholder="Repeat new password"
+                  placeholder="Nhập lại mật khẩu mới"
                   className="pl-10 pr-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
                   value={repassword}
                   onChange={(e) => {
@@ -237,7 +237,7 @@ export function ResetPasswordPage() {
               {isSubmitting ? (
                 <Loader2 className="animate-spin" />
               ) : (
-                "Save New Password"
+                "Lưu Mật Khẩu Mới"
               )}
             </Button>
           </form>
@@ -248,11 +248,11 @@ export function ResetPasswordPage() {
         return (
           <div className="flex flex-col items-center gap-4 text-center">
             <CircleCheck className="size-16 text-green-500" />
-            <h1 className="text-3xl font-bold">Password Reset!</h1>
+            <h1 className="text-3xl font-bold">Đã Đặt Lại Mật Khẩu!</h1>
             <p className="text-lg">{message}</p>
             <Button asChild className="mt-4">
               {/* Bạn có thể mở Dialog đăng nhập từ đây */}
-              <Link to="/">Back to Home</Link>
+              <Link to="/">Về Trang Chủ</Link>
             </Button>
           </div>
         );

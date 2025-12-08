@@ -414,14 +414,14 @@ export default function AdminList() {
         <Table>
           <TableHeader className="bg-zinc-950">
             <TableRow className="hover:bg-zinc-900">
-              <TableHead className="w-[250px]">Admin</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead className="hidden md:table-cell">
+              <TableHead className="min-w-[180px] sm:min-w-[250px]">Admin</TableHead>
+              <TableHead className="hidden sm:table-cell min-w-[200px]">Email</TableHead>
+              <TableHead className="min-w-[120px]">Role</TableHead>
+              <TableHead className="hidden md:table-cell min-w-[120px]">
                 Joined Date
               </TableHead>
-              <TableHead className="text-center">Active</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="text-center min-w-[100px]">Active</TableHead>
+              <TableHead className="w-[100px] sm:w-[120px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -446,29 +446,39 @@ export default function AdminList() {
                   key={a.id}
                   className="hover:bg-zinc-800/50 border-zinc-800"
                 >
-                  {/* Admin Info */}
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
+                  {/* Admin Info - Combined with email on mobile */}
+                  <TableCell className="min-w-[180px] sm:min-w-[250px]">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0">
                         <AvatarImage src={a.avatar_url} />
-                        <AvatarFallback className="bg-zinc-800 text-zinc-400">
+                        <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xs sm:text-sm">
                           {a.username.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="font-medium text-white">{a.username}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-medium text-white truncate">{a.username}</p>
+                        {/* Show email on mobile */}
+                        <p className="text-[10px] text-zinc-400 truncate sm:hidden mt-0.5">{a.email}</p>
+                      </div>
                     </div>
                   </TableCell>
 
-                  <TableCell className="text-zinc-300">{a.email}</TableCell>
-                  <TableCell>
+                  {/* Email - Hidden on mobile */}
+                  <TableCell className="hidden sm:table-cell text-zinc-300 text-xs sm:text-sm min-w-[200px]">
+                    <span className="truncate block">{a.email}</span>
+                  </TableCell>
+                  
+                  <TableCell className="min-w-[120px]">
                     <RoleBadge role={a.role} />
                   </TableCell>
-                  <TableCell className="hidden md:table-cell text-zinc-400">
+                  
+                  {/* Join Date - Hidden on mobile/tablet */}
+                  <TableCell className="hidden md:table-cell text-zinc-400 text-xs sm:text-sm min-w-[120px]">
                     {format(new Date(a.created_at), "MMM dd, yyyy")}
                   </TableCell>
 
                   {/* Status Switch */}
-                  <TableCell className="text-center">
+                  <TableCell className="text-center min-w-[100px]">
                     <Switch
                       checked={a.is_active}
                       onCheckedChange={() => requestToggle(a.id, !a.is_active)}
@@ -477,25 +487,23 @@ export default function AdminList() {
                   </TableCell>
 
                   {/* Actions */}
-                  <TableCell>
-                    <div className="flex gap-1">
+                  <TableCell className="w-[100px] sm:w-[120px]">
+                    <div className="flex gap-0.5 sm:gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleView(a)}
-                        className="text-zinc-400 hover:text-white"
+                        className="h-7 w-7 sm:h-8 sm:w-8 text-zinc-400 hover:text-white"
                       >
-                        {" "}
-                        <Eye className="size-4" />{" "}
+                        <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => openDeleteConfirm(a.id)}
-                        className="text-zinc-400 hover:text-red-500"
+                        className="h-7 w-7 sm:h-8 sm:w-8 text-zinc-400 hover:text-red-500"
                       >
-                        {" "}
-                        <Trash2 className="size-4" />{" "}
+                        <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
                   </TableCell>

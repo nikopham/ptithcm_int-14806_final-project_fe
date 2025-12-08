@@ -147,14 +147,14 @@ export default function MovieList() {
         {/* ─── Header ─── */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-white">Movies</h1>
-            <p className="text-sm text-zinc-400">Manage your movie database</p>
+            <h1 className="text-2xl font-bold text-white">Phim</h1>
+            <p className="text-sm text-zinc-400">Quản lý cơ sở dữ liệu phim của bạn</p>
           </div>
           <Button
             onClick={() => navigate("/admin/movies/new")}
             className="bg-teal-600 hover:bg-teal-700"
           >
-            <Plus className="mr-2 size-4" /> Add Movie
+            <Plus className="mr-2 size-4" /> Thêm Phim
           </Button>
         </div>
 
@@ -164,7 +164,7 @@ export default function MovieList() {
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
             <Input
-              placeholder="Search title…"
+              placeholder="Tìm kiếm tiêu đề…"
               className="pl-9 bg-zinc-900 border-zinc-700"
               value={query}
               onChange={(e) => handleFilterChange(setQuery, e.target.value)}
@@ -177,13 +177,13 @@ export default function MovieList() {
             onValueChange={(v) => handleFilterChange(setFilterStatus, v)}
           >
             <SelectTrigger className="w-full sm:w-40 bg-zinc-900 border-zinc-700">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder="Trạng Thái" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="PUBLISHED">Published</SelectItem>
-              <SelectItem value="DRAFT">Draft</SelectItem>
-              <SelectItem value="HIDDEN">Hidden</SelectItem>
+              <SelectItem value="all">Tất Cả Trạng Thái</SelectItem>
+              <SelectItem value="PUBLISHED">Đã Xuất Bản</SelectItem>
+              <SelectItem value="DRAFT">Bản Nháp</SelectItem>
+              <SelectItem value="HIDDEN">Ẩn</SelectItem>
             </SelectContent>
           </Select>
 
@@ -195,12 +195,12 @@ export default function MovieList() {
             }
           >
             <SelectTrigger className="w-full sm:w-40 bg-zinc-900 border-zinc-700">
-              <SelectValue placeholder="Type" />
+              <SelectValue placeholder="Loại" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="movie">Movie</SelectItem>
-              <SelectItem value="series">TV Series</SelectItem>
+              <SelectItem value="all">Tất Cả Loại</SelectItem>
+              <SelectItem value="movie">Phim</SelectItem>
+              <SelectItem value="series">Phim Bộ</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -212,18 +212,18 @@ export default function MovieList() {
               <TableRow className="hover:bg-zinc-900">
                 <TableHead className="w-20">Poster</TableHead>
 
-                <TableHead>Title</TableHead>
+                <TableHead>Tiêu Đề</TableHead>
 
-                <TableHead className="hidden md:table-cell">Release</TableHead>
+                <TableHead className="hidden md:table-cell">Phát Hành</TableHead>
 
-                <TableHead className="hidden lg:table-cell">Duration</TableHead>
+                <TableHead className="hidden lg:table-cell">Thời Lượng</TableHead>
 
-                <TableHead className="hidden lg:table-cell">Age</TableHead>
+                <TableHead className="hidden lg:table-cell">Độ Tuổi</TableHead>
 
-                <TableHead>Status</TableHead>
+                <TableHead>Trạng Thái</TableHead>
 
                 <TableHead className="hidden md:table-cell text-right">
-                  Views
+                  Lượt Xem
                 </TableHead>
 
                 <TableHead className="w-[50px]"></TableHead>
@@ -269,9 +269,9 @@ export default function MovieList() {
                         <span className="font-medium text-white">
                           {m.title}
                         </span>
-                        {m.series && (
+                        {m.isSeries && (
                           <span className="text-xs font-medium text-teal-400">
-                            TV Series
+                            Phim Bộ
                           </span>
                         )}
                       </div>
@@ -325,7 +325,7 @@ export default function MovieList() {
                             }
                             className="cursor-pointer hover:bg-zinc-800 focus:bg-zinc-800"
                           >
-                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                            <Pencil className="mr-2 h-4 w-4" /> Chỉnh Sửa
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
@@ -333,13 +333,13 @@ export default function MovieList() {
                             }
                             className="cursor-pointer hover:bg-zinc-800 focus:bg-zinc-800"
                           >
-                            <Search className="mr-2 h-4 w-4" /> Source Manager
+                            <Search className="mr-2 h-4 w-4" /> Quản Lý Nguồn
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(m.id)}
                             className="text-red-500 cursor-pointer hover:bg-red-900/20 focus:bg-red-900/20 hover:text-red-400 focus:text-red-400"
                           >
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            <Trash2 className="mr-2 h-4 w-4" /> Xóa
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -354,7 +354,7 @@ export default function MovieList() {
                     colSpan={8}
                     className="h-24 text-center text-zinc-500"
                   >
-                    No movie found matching your criteria.
+                    Không tìm thấy phim nào phù hợp với tiêu chí của bạn.
                   </TableCell>
                 </TableRow>
               )}
@@ -378,8 +378,8 @@ export default function MovieList() {
             {/* Hiển thị trang hiện tại */}
             <PaginationItem>
               <span className="px-4 py-2 text-sm font-medium text-zinc-300">
-                Page {totalPages > 0 ? currentPage + 1 : 0} of {totalPages}
-                {isError ? " (error)" : ""}
+                Trang {totalPages > 0 ? currentPage + 1 : 0} / {totalPages}
+                {isError ? " (lỗi)" : ""}
               </span>
             </PaginationItem>
 

@@ -9,78 +9,78 @@ export const Footer = () => {
   const linkCls = "block transition-colors duration-200 hover:text-white";
 
   return (
-    <footer className="mt-20 bg-[#0b0b0b] px-4 text-zinc-400">
+    <footer className="mt-20  px-4 text-zinc-400">
       {/* top columns ---------------------------------------------------- */}
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-y-10 gap-x-8 py-14 md:grid-cols-6">
         {/* Home */}
         <div className={colCls}>
-          <h6 className={headCls}>Home</h6>
+          <h6 className={headCls}>Trang Chủ</h6>
           <Link to="/categories" className={linkCls}>
-            Categories
+            Thể Loại
           </Link>
           <Link to="/devices" className={linkCls}>
-            Devices
+            Thiết Bị
           </Link>
           <Link to="/pricing" className={linkCls}>
-            Pricing
+            Giá Cả
           </Link>
           <Link to="/faq" className={linkCls}>
-            FAQ
+            Câu Hỏi Thường Gặp
           </Link>
         </div>
 
         <div className={colCls}>
-          <h6 className={headCls}>Movies</h6>
+          <h6 className={headCls}>Phim</h6>
           <Link to="/movies/genres" className={linkCls}>
-            Genres
+            Thể Loại
           </Link>
           <Link to="/movies/trending" className={linkCls}>
-            Trending
+            Đang Thịnh Hành
           </Link>
           <Link to="/movies/new" className={linkCls}>
-            New Release
+            Mới Phát Hành
           </Link>
           <Link to="/movies/popular" className={linkCls}>
-            Popular
+            Phổ Biến
           </Link>
         </div>
 
         <div className={colCls}>
-          <h6 className={headCls}>Shows</h6>
+          <h6 className={headCls}>Chương Trình</h6>
           <Link to="/shows/genres" className={linkCls}>
-            Genres
+            Thể Loại
           </Link>
           <Link to="/shows/trending" className={linkCls}>
-            Trending
+            Đang Thịnh Hành
           </Link>
           <Link to="/shows/new" className={linkCls}>
-            New Release
+            Mới Phát Hành
           </Link>
           <Link to="/shows/popular" className={linkCls}>
-            Popular
+            Phổ Biến
           </Link>
         </div>
 
         <div className={colCls}>
-          <h6 className={headCls}>Support</h6>
+          <h6 className={headCls}>Hỗ Trợ</h6>
           <Link to="/contact" className={linkCls}>
-            Contact Us
+            Liên Hệ
           </Link>
         </div>
 
         <div className={colCls}>
-          <h6 className={headCls}>Subscription</h6>
+          <h6 className={headCls}>Đăng Ký</h6>
           <Link to="/plans" className={linkCls}>
-            Plans
+            Gói Dịch Vụ
           </Link>
           <Link to="/features" className={linkCls}>
-            Features
+            Tính Năng
           </Link>
         </div>
 
         {/* Connect */}
         <div className={colCls}>
-          <h6 className={headCls}>Connect With Us</h6>
+          <h6 className={headCls}>Kết Nối Với Chúng Tôi</h6>
           <div className="flex gap-3 pt-1">
             {[Facebook, Twitter, Linkedin].map((Icon, i) => (
               <a
@@ -100,19 +100,19 @@ export const Footer = () => {
 
       {/* bottom bar ----------------------------------------------------- */}
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 py-6 text-xs md:flex-row">
-        <p>©{year} streamify, All Rights Reserved</p>
+        <p>©{year} Streamify, Bảo Lưu Mọi Quyền</p>
 
         <nav className="flex flex-wrap items-center gap-4 text-zinc-300">
           <Link to="/terms" className={linkCls}>
-            Terms of Use
+            Điều Khoản Sử Dụng
           </Link>
           <span className="hidden select-none text-zinc-600 md:inline">│</span>
           <Link to="/privacy" className={linkCls}>
-            Privacy Policy
+            Chính Sách Bảo Mật
           </Link>
           <span className="hidden select-none text-zinc-600 md:inline">│</span>
           <Link to="/cookies" className={linkCls}>
-            Cookie Policy
+            Chính Sách Cookie
           </Link>
         </nav>
       </div>

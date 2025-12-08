@@ -12,28 +12,28 @@ import { Card, CardContent } from "@/components/ui/card";
 /* ───── mock stats ───── */
 const KPIS = [
   {
-    label: "Total Users",
+    label: "Tổng Người Dùng",
     value: "40,689",
     icon: Users,
     diff: "+8.5%",
     trend: "up",
   },
   {
-    label: "Active Subscriptions",
+    label: "Đăng Ký Đang Hoạt Động",
     value: "10,293",
     icon: Film,
     diff: "+1.3%",
     trend: "up",
   },
   {
-    label: "Total Revenue",
+    label: "Tổng Doanh Thu",
     value: "$89,000",
     icon: Wallet,
     diff: "-4.3%",
     trend: "down",
   },
   {
-    label: "Pending Payments",
+    label: "Thanh Toán Đang Chờ",
     value: "2,040",
     icon: Clock3,
     diff: "+1.8%",
@@ -76,7 +76,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-10">
       {/* ───── heading */}
-      <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-white">Bảng Điều Khiển</h1>
 
       {/* ───── KPI cards */}
       <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
@@ -113,7 +113,7 @@ export default function Dashboard() {
       <Card className="bg-zinc-900">
         <CardContent className="p-6">
           <h2 className="mb-4 text-lg font-semibold text-white">
-            Daily Subscription Revenue
+            Doanh Thu Đăng Ký Hàng Ngày
           </h2>
           <ResponsiveContainer width="100%" height={240}>
             <LineChart data={sales}>
@@ -138,17 +138,17 @@ export default function Dashboard() {
       <Card className="bg-zinc-900">
         <CardContent className="p-6">
           <h2 className="mb-4 text-lg font-semibold text-white">
-            Recent Activity
+            Hoạt Động Gần Đây
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-zinc-800 text-zinc-400">
-                  <th className="py-2 pr-4">Item</th>
-                  <th className="py-2 pr-4">User</th>
-                  <th className="py-2 pr-4">Date – Time</th>
-                  <th className="py-2 pr-4">Amount</th>
-                  <th className="py-2 pr-4">Status</th>
+                  <th className="py-2 pr-4">Mục</th>
+                  <th className="py-2 pr-4">Người Dùng</th>
+                  <th className="py-2 pr-4">Ngày – Giờ</th>
+                  <th className="py-2 pr-4">Số Tiền</th>
+                  <th className="py-2 pr-4">Trạng Thái</th>
                 </tr>
               </thead>
               <tbody>

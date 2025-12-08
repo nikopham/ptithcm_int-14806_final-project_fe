@@ -116,7 +116,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
       // Immediately refresh comments so the new one appears
       refetchComments();
     } catch {
-      toast.error("Failed to create comment");
+      toast.error("Không thể tạo bình luận");
     }
   };
 
@@ -137,7 +137,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
       // Refresh comments list to show the new reply immediately
       refetchComments();
     } catch {
-      toast.error("Failed to create reply");
+      toast.error("Không thể tạo phản hồi");
     }
   };
 
@@ -152,7 +152,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
       // Refresh comments list to show the edited content immediately
       refetchComments();
     } catch {
-      toast.error("Failed to edit comment");
+      toast.error("Không thể chỉnh sửa bình luận");
     }
   };
 
@@ -195,7 +195,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
   const submitCreate = async () => {
     if (!movieId) return;
     if (crRating < 1 || crRating > 5) {
-      toast.error("Rating must be between 1 and 5");
+      toast.error("Điểm đánh giá phải từ 1 đến 5");
       return;
     }
     try {
@@ -205,7 +205,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
         title: crTitle,
         body: crBody,
       }).unwrap();
-      toast.success("Review created");
+      toast.success("Đã tạo đánh giá");
       setCreateOpen(false);
       setConfirmOpen(false);
       setCrTitle("");
@@ -214,7 +214,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
       setRevPage(0);
       refetchReviews();
     } catch {
-      toast.error("Failed to create review");
+      toast.error("Không thể tạo đánh giá");
     }
   };
 
@@ -226,17 +226,17 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
         {/* Description */}
         <div className="rounded-lg bg-zinc-900 p-6">
           <h4 className="mb-3 text-sm font-semibold text-zinc-400">
-            Description
+            Mô Tả
           </h4>
           <p className="text-sm leading-relaxed text-zinc-300">
-            {detail.description || "No description available."}
+            {detail.description || "Không có mô tả."}
           </p>
         </div>
 
         {/* Cast */}
         <div className="rounded-lg bg-zinc-900 p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-zinc-400">Cast</h4>
+            <h4 className="text-sm font-semibold text-zinc-400">Diễn Viên</h4>
             <NavPair
               page={castPg}
               total={castTotal}
@@ -247,7 +247,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
 
           <div className="flex gap-8">
             {sliceCast.length === 0 && (
-              <span className="text-xs text-zinc-500">No cast data.</span>
+              <span className="text-xs text-zinc-500">Không có dữ liệu diễn viên.</span>
             )}
             {sliceCast.map((c) => (
               <Link
@@ -271,7 +271,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
         {/* Overall Rating Summary */}
         <div className="rounded-lg bg-zinc-900 p-6">
           <h4 className="mb-4 text-sm font-semibold text-zinc-400">
-            Rating Summary
+            Tổng Quan Đánh Giá
           </h4>
           <div className="flex items-center gap-3">
             <Star className="size-6 fill-red-500 stroke-red-500" />
@@ -279,7 +279,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
               {detail.averageRating?.toFixed(1) ?? "0.0"}
             </div>
             <span className="text-xs text-zinc-400">
-              {detail.reviewCount} reviews
+              {detail.reviewCount} đánh giá
             </span>
           </div>
         </div>
@@ -288,11 +288,11 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
         <div className="rounded-lg bg-zinc-900 p-6">
           <div className="mb-4 flex items-center justify-between">
             <h4 className="text-sm font-semibold text-zinc-400">
-              User Reviews
+              Đánh Giá Người Dùng
             </h4>
             <div className="flex items-center gap-2">
               <span className="text-xs text-zinc-500 mr-1">
-                Page {revPage + 1} of {Math.max(totalRevPages, 1)}
+                Trang {revPage + 1} / {Math.max(totalRevPages, 1)}
               </span>
               <button
                 type="button"
@@ -302,8 +302,8 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
                   "grid h-8 w-8 place-items-center rounded-md bg-zinc-800 text-white",
                   revPage === 0 ? "opacity-40" : "hover:bg-zinc-700"
                 )}
-                aria-label="Previous reviews page"
-                title="Previous"
+                aria-label="Trang đánh giá trước"
+                title="Trước"
               >
                 <ArrowLeft className="size-4" />
               </button>
@@ -321,13 +321,13 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
                     ? "opacity-40"
                     : "hover:bg-zinc-700"
                 )}
-                aria-label="Next reviews page"
-                title="Next"
+                aria-label="Trang đánh giá sau"
+                title="Sau"
               >
                 <ArrowRight className="size-4" />
               </button>
               <Button size="sm" className="ml-2" onClick={openCreateFlow}>
-                Create Review
+                Tạo Đánh Giá
               </Button>
             </div>
           </div>
@@ -349,7 +349,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
           )}
 
           {!revLoading && reviews.length === 0 && (
-            <div className="text-xs text-zinc-500">No reviews yet.</div>
+            <div className="text-xs text-zinc-500">Chưa có đánh giá nào.</div>
           )}
 
           {!revLoading && reviews.length > 0 && (
@@ -401,10 +401,10 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
         {/* Comments (threaded with reply) */}
         <div className="rounded-lg bg-zinc-900 p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-zinc-400">Comments</h4>
+            <h4 className="text-sm font-semibold text-zinc-400">Bình Luận</h4>
             {commentsData && (
               <span className="text-xs text-zinc-500">
-                Total {commentsData.totalElements ?? 0}
+                Tổng {commentsData.totalElements ?? 0}
               </span>
             )}
           </div>
@@ -415,7 +415,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder={
-                isAuth ? "Add a public comment..." : "Login to comment"
+                isAuth ? "Thêm bình luận công khai..." : "Đăng nhập để bình luận"
               }
               className="bg-zinc-800 border-zinc-700 min-h-[120px] text-sm"
               disabled={creatingComment}
@@ -426,7 +426,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
                 disabled={!newComment.trim() || creatingComment}
                 onClick={handleSubmitNewComment}
               >
-                {creatingComment ? "Posting..." : "Post Comment"}
+                {creatingComment ? "Đang đăng..." : "Đăng Bình Luận"}
               </Button>
             </div>
           </div>
@@ -450,7 +450,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
           )}
 
           {!cmtLoading && comments.length === 0 && (
-            <div className="text-xs text-zinc-500">No comments yet.</div>
+            <div className="text-xs text-zinc-500">Chưa có bình luận nào.</div>
           )}
 
           {comments.length > 0 && (
@@ -487,7 +487,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
           <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-lg">
             <DialogHeader>
               <DialogTitle className="text-white">
-                {detail.title || "Create Review"}
+                {detail.title || "Tạo Đánh Giá"}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-5">
@@ -571,30 +571,29 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
         <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-white">
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Create Review</AlertDialogTitle>
+              <AlertDialogTitle>Xác Nhận Tạo Đánh Giá</AlertDialogTitle>
               <AlertDialogDescription className="text-zinc-400">
-                Are you sure you want to publish this review? This action cannot
-                be undone.
+                Bạn có chắc muốn xuất bản đánh giá này? Hành động này không thể hoàn tác.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <div className="rounded-md border border-zinc-800 p-4 text-sm space-y-2 max-h-60 overflow-y-auto">
               <p>
-                <span className="text-zinc-400">Rating:</span>{" "}
+                <span className="text-zinc-400">Điểm:</span>{" "}
                 <span className="font-medium text-red-500">{crRating}</span>
               </p>
               {crTitle && (
                 <p>
-                  <span className="text-zinc-400">Title:</span> {crTitle}
+                  <span className="text-zinc-400">Tiêu đề:</span> {crTitle}
                 </p>
               )}
               {crBody && (
                 <p className="whitespace-pre-line">
-                  <span className="text-zinc-400">Body:</span> {crBody}
+                  <span className="text-zinc-400">Nội dung:</span> {crBody}
                 </p>
               )}
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={creating}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel disabled={creating}>Hủy</AlertDialogCancel>
               <AlertDialogAction
                 disabled={creating}
                 onClick={(e) => {
@@ -602,7 +601,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
                   submitCreate();
                 }}
               >
-                {creating ? "Publishing..." : "Confirm"}
+                {creating ? "Đang xuất bản..." : "Xác Nhận"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -621,7 +620,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
         {/* Year */}
         <div>
           <h4 className="flex items-center gap-1 text-sm font-semibold text-zinc-400">
-            <span className="i-lucide-calendar" /> Released Year
+            <span className="i-lucide-calendar" /> Năm Phát Hành
           </h4>
           <Link
             to={`/filter?releaseYear=${detail.releaseYear}`}
@@ -633,26 +632,26 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
 
         {/* Basic Stats */}
         <div>
-          <h4 className="mb-2 text-sm font-semibold text-zinc-400">Stats</h4>
+          <h4 className="mb-2 text-sm font-semibold text-zinc-400">Thống Kê</h4>
           <div className="space-y-2 text-xs text-zinc-300">
             <div className="flex justify-between rounded bg-zinc-800 px-3 py-1.5">
-              <span>Quality</span>
+              <span>Chất Lượng</span>
               <span className="font-medium text-white">{detail.quality}</span>
             </div>
             <div className="flex justify-between rounded bg-zinc-800 px-3 py-1.5">
-              <span>Duration</span>
+              <span>Thời Lượng</span>
               <span className="font-medium text-white">
-                {detail.durationMin} min
+                {detail.durationMin} phút
               </span>
             </div>
             <div className="flex justify-between rounded bg-zinc-800 px-3 py-1.5">
-              <span>Average rating</span>
+              <span>Điểm trung bình</span>
               <span className="font-medium text-white">
                 {detail.averageRating?.toFixed(1) ?? "0.0"}
               </span>
             </div>
             <div className="flex justify-between rounded bg-zinc-800 px-3 py-1.5">
-              <span>Views</span>
+              <span>Lượt xem</span>
               <span className="font-medium text-white">{detail.viewCount}</span>
             </div>
           </div>
@@ -660,7 +659,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
 
         {/* Genres */}
         <div>
-          <h4 className="mb-2 text-sm font-semibold text-zinc-400">Genres</h4>
+          <h4 className="mb-2 text-sm font-semibold text-zinc-400">Thể Loại</h4>
           <div className="flex flex-wrap gap-2">
             {detail.genres.map((g) => (
               <Link
@@ -672,14 +671,14 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
               </Link>
             ))}
             {detail.genres.length === 0 && (
-              <span className="text-[11px] text-zinc-500">No genres</span>
+              <span className="text-[11px] text-zinc-500">Không có thể loại</span>
             )}
           </div>
         </div>
 
         {/* Director */}
         <div>
-          <h4 className="mb-2 text-sm font-semibold text-zinc-400">Director</h4>
+          <h4 className="mb-2 text-sm font-semibold text-zinc-400">Đạo Diễn</h4>
           {detail.directors && detail.directors.length > 0 ? (
             detail.directors.slice(0, 1).map((d) => (
               <Link
@@ -694,12 +693,12 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
                 />
                 <div>
                   <p className="text-sm font-medium text-white">{d.fullName}</p>
-                  <span className="text-[11px] text-zinc-400">Director</span>
+                  <span className="text-[11px] text-zinc-400">Đạo Diễn</span>
                 </div>
               </Link>
             ))
           ) : (
-            <span className="text-xs text-zinc-500">No director data</span>
+            <span className="text-xs text-zinc-500">Không có dữ liệu đạo diễn</span>
           )}
         </div>
       </aside>

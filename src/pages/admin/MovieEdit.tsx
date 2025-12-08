@@ -259,11 +259,11 @@ export default function MovieEdit() {
         fd.append("backdropImage", movieForm.backdrop);
 
       await updateMovieMutation({ id, body: fd }).unwrap();
-      toast.success("Movie updated successfully");
+      toast.success("Đã cập nhật phim thành công");
       navigate("/admin/movies");
     } catch (err) {
-      const message = (err as Error)?.message || "Unknown error";
-      toast.error("Failed to update movie", { description: message });
+      const message = (err as Error)?.message || "Lỗi không xác định";
+      toast.error("Không thể cập nhật phim", { description: message });
     } finally {
       setSaving(false);
     }
@@ -373,11 +373,11 @@ export default function MovieEdit() {
         }
       }
 
-      toast.success("TV Series updated successfully");
+      toast.success("Đã cập nhật phim bộ thành công");
       navigate("/admin/movies");
     } catch (err) {
-      const message = (err as Error)?.message || "Unknown error";
-      toast.error("Failed to update TV Series", { description: message });
+      const message = (err as Error)?.message || "Lỗi không xác định";
+      toast.error("Không thể cập nhật phim bộ", { description: message });
     } finally {
       setSaving(false);
     }
@@ -393,9 +393,9 @@ export default function MovieEdit() {
   if (isError || (!movieForm && !tvForm)) {
     return (
       <div className="mx-auto max-w-xl p-10 text-center text-zinc-400">
-        <p>Unable to load movie info. Please try again.</p>
+        <p>Không thể tải thông tin phim. Vui lòng thử lại.</p>
         <Button className="mt-4" onClick={() => navigate(-1)}>
-          Go Back
+          Quay Lại
         </Button>
       </div>
     );

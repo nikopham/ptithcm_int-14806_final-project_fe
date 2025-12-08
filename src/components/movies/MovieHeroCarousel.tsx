@@ -81,7 +81,7 @@ export const MovieHeroCarousel = () => {
   const slide = slides[idx];
 
   return (
-    <div className="relative mx-auto max-w-7xl overflow-hidden rounded-xl">
+    <div className="relative mx-auto max-w-7xl overflow-hidden rounded-xl px-3 sm:px-4">
       <div className="relative aspect-video w-full">
         {/* backdrop full-cover */}
         <img
@@ -91,52 +91,53 @@ export const MovieHeroCarousel = () => {
         />
         {/* overlay đen bán trong suốt */}
         <div className="absolute inset-0 bg-black/60" />
-        {/* backdrop */}
 
         {/* content center */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
-          <h1 className="mb-4 text-3xl font-extrabold text-white md:text-4xl">
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 sm:px-6 md:px-8 text-center">
+          <h1 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl font-extrabold text-white">
             {slide.title}
           </h1>
-          <p className="mx-auto mb-8 max-w-3xl text-sm leading-relaxed text-zinc-300">
-            {slide.overview}
-          </p>
+          {slide.overview && (
+            <p className="mx-auto mb-6 sm:mb-8 max-w-3xl text-xs sm:text-sm leading-relaxed text-zinc-300 line-clamp-2 sm:line-clamp-3">
+              {slide.overview}
+            </p>
+          )}
 
           {/* action row */}
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
             <Link
               to={`/movie/detail/${slide.id}`}
-              className="inline-flex h-11 items-center gap-2 rounded-md bg-red-600 px-6 text-sm font-medium text-white transition hover:bg-red-700"
+              className="inline-flex h-10 sm:h-11 items-center gap-2 rounded-md bg-red-600 px-4 sm:px-6 text-xs sm:text-sm font-medium text-white transition hover:bg-red-700"
             >
-              <Play className="size-4 -translate-x-0.5" />
-              Watch Now
+              <Play className="size-3.5 sm:size-4 -translate-x-0.5" />
+              Xem Ngay
             </Link>
-
-       
           </div>
         </div>
 
         {/* nav arrows */}
         <button
           onClick={prev}
-          className="absolute left-6 top-1/2 -translate-y-1/2 rounded-md bg-zinc-900/70 p-2 text-white transition hover:bg-zinc-900"
+          className="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 rounded-md bg-zinc-900/70 p-1.5 sm:p-2 text-white transition hover:bg-zinc-900"
+          aria-label="Previous slide"
         >
-          <ChevronLeft className="size-5" />
+          <ChevronLeft className="size-4 sm:size-5" />
         </button>
         <button
           onClick={next}
-          className="absolute right-6 top-1/2 -translate-y-1/2 rounded-md bg-zinc-900/70 p-2 text-white transition hover:bg-zinc-900"
+          className="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 rounded-md bg-zinc-900/70 p-1.5 sm:p-2 text-white transition hover:bg-zinc-900"
+          aria-label="Next slide"
         >
-          <ChevronRight className="size-5" />
+          <ChevronRight className="size-4 sm:size-5" />
         </button>
 
         {/* dot indicators */}
-        <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">
+        <div className="absolute bottom-3 sm:bottom-4 md:bottom-5 left-1/2 flex -translate-x-1/2 gap-1.5 sm:gap-2">
           {slides.map((_, i) => (
             <span
               key={i}
               className={clsx(
-                "h-1 w-8 rounded-full transition",
+                "h-1 w-6 sm:w-8 rounded-full transition",
                 i === idx ? "bg-red-500" : "bg-zinc-600"
               )}
             />

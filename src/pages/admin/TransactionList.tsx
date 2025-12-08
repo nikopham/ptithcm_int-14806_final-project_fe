@@ -141,19 +141,19 @@ const StatusBadge = ({ status }: { status: TransactionStatus }) => {
     case "SUCCESS":
       return (
         <Badge className="bg-emerald-600/20 text-emerald-400 border-emerald-600/50">
-          <CheckCircle2 className="size-3 mr-1" /> Success
+          <CheckCircle2 className="size-3 mr-1" /> Thành Công
         </Badge>
       );
     case "PENDING":
       return (
         <Badge className="bg-yellow-600/20 text-yellow-400 border-yellow-600/50">
-          <Clock className="size-3 mr-1" /> Pending
+          <Clock className="size-3 mr-1" /> Đang Chờ
         </Badge>
       );
     case "FAILED":
       return (
         <Badge className="bg-red-600/20 text-red-400 border-red-600/50">
-          <XCircle className="size-3 mr-1" /> Failed
+          <XCircle className="size-3 mr-1" /> Thất Bại
         </Badge>
       );
     default:
@@ -199,8 +199,8 @@ export default function TransactionList() {
       {/* ─── Header ─── */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Transactions</h1>
-          <p className="text-sm text-zinc-400">View payment history and logs</p>
+          <h1 className="text-2xl font-bold text-white">Giao Dịch</h1>
+          <p className="text-sm text-zinc-400">Xem lịch sử thanh toán và nhật ký</p>
         </div>
         {/* Total Stats (Optional) */}
         <div className="flex gap-4">
@@ -208,7 +208,7 @@ export default function TransactionList() {
             <p className="text-2xl font-bold text-white">
               {transactions.length}
             </p>
-            <p className="text-xs text-zinc-500">Total Payments</p>
+            <p className="text-xs text-zinc-500">Tổng Thanh Toán</p>
           </div>
         </div>
       </div>
@@ -218,7 +218,7 @@ export default function TransactionList() {
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
           <Input
-            placeholder="Search user, ref ID, package..."
+            placeholder="Tìm kiếm người dùng, ID tham chiếu, gói..."
             className="pl-9 bg-zinc-900 border-zinc-700"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -230,13 +230,13 @@ export default function TransactionList() {
           onValueChange={(v) => setFilterStatus(v as any)}
         >
           <SelectTrigger className="w-full sm:w-40 bg-zinc-900 border-zinc-700">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder="Trạng Thái" />
           </SelectTrigger>
           <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-            <SelectItem value="ALL">All Status</SelectItem>
-            <SelectItem value="SUCCESS">Success</SelectItem>
-            <SelectItem value="PENDING">Pending</SelectItem>
-            <SelectItem value="FAILED">Failed</SelectItem>
+            <SelectItem value="ALL">Tất Cả Trạng Thái</SelectItem>
+            <SelectItem value="SUCCESS">Thành Công</SelectItem>
+            <SelectItem value="PENDING">Đang Chờ</SelectItem>
+            <SelectItem value="FAILED">Thất Bại</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -246,11 +246,11 @@ export default function TransactionList() {
         <Table>
           <TableHeader className="bg-zinc-950">
             <TableRow className="hover:bg-zinc-900">
-              <TableHead className="w-[200px]">User</TableHead>
-              <TableHead>Details</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Date</TableHead>
+              <TableHead className="w-[200px]">Người Dùng</TableHead>
+              <TableHead>Chi Tiết</TableHead>
+              <TableHead>Số Tiền</TableHead>
+              <TableHead>Trạng Thái</TableHead>
+              <TableHead className="text-right">Ngày</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -335,7 +335,7 @@ export default function TransactionList() {
                   colSpan={6}
                   className="h-24 text-center text-zinc-500"
                 >
-                  No transactions found.
+                  Không tìm thấy giao dịch nào.
                 </TableCell>
               </TableRow>
             )}
@@ -349,7 +349,7 @@ export default function TransactionList() {
           {selectedTxn && (
             <>
               <DialogHeader>
-                <DialogTitle>Transaction Details</DialogTitle>
+                <DialogTitle>Chi Tiết Giao Dịch</DialogTitle>
                 <DialogDescription className="text-zinc-500 font-mono">
                   ID: {selectedTxn.id}
                 </DialogDescription>
@@ -377,7 +377,7 @@ export default function TransactionList() {
                       </div>
                     </div>
                     <div className="border-t border-zinc-800 pt-3">
-                      <p className="text-xs text-zinc-500">Package</p>
+                      <p className="text-xs text-zinc-500">Gói</p>
                       <p className="font-semibold text-teal-400">
                         {selectedTxn.package.name}
                       </p>
@@ -386,13 +386,13 @@ export default function TransactionList() {
                   {/* Right Side: Amount/Status */}
                   <div className="space-y-4 rounded-md bg-zinc-900 p-4 border border-zinc-800">
                     <div>
-                      <p className="text-xs text-zinc-500">Amount Paid</p>
+                      <p className="text-xs text-zinc-500">Số Tiền Đã Thanh Toán</p>
                       <p className="text-2xl font-bold text-white">
                         {formatMoney(selectedTxn.amount, selectedTxn.currency)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-zinc-500">Status</p>
+                      <p className="text-xs text-zinc-500">Trạng Thái</p>
                       <StatusBadge status={selectedTxn.status} />
                     </div>
                   </div>
@@ -400,21 +400,21 @@ export default function TransactionList() {
 
                 {/* Payment Refs */}
                 <div className="space-y-2 text-sm">
-                  <h4 className="font-semibold text-zinc-300">Payment Info</h4>
+                  <h4 className="font-semibold text-zinc-300">Thông Tin Thanh Toán</h4>
                   <div className="flex justify-between border-b border-zinc-800 pb-2">
-                    <span className="text-zinc-500">Provider</span>
+                    <span className="text-zinc-500">Nhà Cung Cấp</span>
                     <span className="text-white font-medium">
                       {selectedTxn.provider}
                     </span>
                   </div>
                   <div className="flex justify-between border-b border-zinc-800 pb-2">
-                    <span className="text-zinc-500">Reference ID</span>
+                    <span className="text-zinc-500">ID Tham Chiếu</span>
                     <span className="text-white font-mono text-xs">
                       {selectedTxn.payment_ref}
                     </span>
                   </div>
                   <div className="flex justify-between border-b border-zinc-800 pb-2">
-                    <span className="text-zinc-500">Timestamp</span>
+                    <span className="text-zinc-500">Thời Gian</span>
                     <span className="text-white">
                       {format(new Date(selectedTxn.created_at), "PPPpp")}
                     </span>
@@ -424,7 +424,7 @@ export default function TransactionList() {
                 {/* Metadata JSON */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-zinc-400">
-                    <Code2 className="size-4" /> Metadata (JSON)
+                    <Code2 className="size-4" /> Siêu Dữ Liệu (JSON)
                   </Label>
                   <ScrollArea className="h-[150px] w-full rounded-md border border-zinc-800 bg-zinc-950 p-4">
                     <pre className="text-xs text-zinc-300 whitespace-pre-wrap">
@@ -439,7 +439,7 @@ export default function TransactionList() {
                   onClick={() => setIsDialogOpen(false)}
                   className="w-full bg-zinc-800 hover:bg-zinc-700"
                 >
-                  Close
+                  Đóng
                 </Button>
               </DialogFooter>
             </>

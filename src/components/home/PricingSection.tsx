@@ -11,22 +11,22 @@ interface Plan {
 const PLANS: Plan[] = [
   {
     id: "basic",
-    title: "Basic Plan",
-    desc: "Enjoy an extensive library of movies and shows, featuring a range of content, including recently released titles.",
+    title: "Gói Cơ Bản",
+    desc: "Tận hưởng thư viện phim và chương trình phong phú, bao gồm nhiều nội dung, trong đó có các bộ phim mới phát hành.",
     priceMonthly: 9.99,
     priceYearly: 99.9,
   },
   {
     id: "standard",
-    title: "Standard Plan",
-    desc: "Access to a wider selection of movies and shows, including most new releases and exclusive content",
+    title: "Gói Tiêu Chuẩn",
+    desc: "Truy cập vào nhiều lựa chọn phim và chương trình hơn, bao gồm hầu hết các bộ phim mới phát hành và nội dung độc quyền",
     priceMonthly: 12.99,
     priceYearly: 129.9,
   },
   {
     id: "premium",
-    title: "Premium Plan",
-    desc: "Access to a widest selection of movies and shows, including all new releases and Offline Viewing",
+    title: "Gói Cao Cấp",
+    desc: "Truy cập vào nhiều lựa chọn phim và chương trình nhất, bao gồm tất cả các bộ phim mới phát hành và tính năng Xem Offline",
     priceMonthly: 14.99,
     priceYearly: 149.9,
   },
@@ -41,12 +41,11 @@ export const PricingSection = () => {
       <div className="mb-12 flex flex-wrap items-center justify-between gap-6">
         <div>
           <h2 className="mb-3 text-3xl font-extrabold text-white md:text-4xl">
-            Choose the plan that’s right for you
+            Chọn Gói Phù Hợp Với Bạn
           </h2>
           <p className="max-w-2xl text-zinc-400">
-            Join StreamVibe and select from our flexible subscription options
-            tailored to suit your viewing preferences. Get ready for non-stop
-            entertainment!
+            Tham gia Streamify và chọn từ các tùy chọn đăng ký linh hoạt của chúng tôi
+            được điều chỉnh phù hợp với sở thích xem của bạn. Sẵn sàng cho giải trí không ngừng!
           </p>
         </div>
 
@@ -77,7 +76,7 @@ export const PricingSection = () => {
                     : plan.priceYearly.toFixed(2)}
                 </span>
                 <span className="text-sm text-zinc-400">
-                  /{billing === "monthly" ? "month" : "year"}
+                  /{billing === "monthly" ? "tháng" : "năm"}
                 </span>
               </div>
             </div>
@@ -85,7 +84,7 @@ export const PricingSection = () => {
             {/* cụm CTA luôn sát đáy */}
             <div className="mt-auto flex gap-4">
               <button className="flex-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
-                Choose Plan
+                Chọn Gói
               </button>
             </div>
           </div>

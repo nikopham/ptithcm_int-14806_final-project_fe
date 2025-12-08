@@ -87,10 +87,10 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
     if (epStatusData.state === "ready") {
       setEpIsReady(true);
       setEpProgress(100);
-      toast.success("Episode processed & saved successfully!");
+      toast.success("Tập phim đã được xử lý và lưu thành công!");
     } else if (epStatusData.state === "error") {
       setEpIsReady(true);
-      toast.error("Episode processing failed on Cloudflare.");
+      toast.error("Xử lý tập phim thất bại trên Cloudflare.");
     }
   }, [epStatusData, epIsReady]);
 
@@ -132,10 +132,10 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
 
       setEpUID(uid);
       setEpIsReady(false);
-      toast.success("Uploaded! Processing episode video...");
+      toast.success("Đã tải lên! Đang xử lý video tập phim...");
     } catch (err) {
       console.error(err);
-      toast.error("Upload failed");
+      toast.error("Tải lên thất bại");
     } finally {
       setBusyEp(null);
     }
@@ -189,7 +189,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
           <ArrowLeft className="size-5" />
         </Button>
         <h1 className="text-2xl font-extrabold text-white">
-          Source Manager (TV)
+          Quản Lý Nguồn (Phim Bộ)
         </h1>
       </div>
 
@@ -197,7 +197,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
         {/* TV Info */}
         <div className="grid grid-cols-1 gap-3 text-sm text-zinc-300 sm:grid-cols-2">
           <div>
-            <span className="text-zinc-500">Title</span>
+            <span className="text-zinc-500">Tiêu Đề</span>
             <div className="font-medium text-white">{info.title}</div>
           </div>
           <div>
@@ -220,11 +220,11 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
             </div>
           </div>
           <div>
-            <span className="text-zinc-500">Release Year</span>
+            <span className="text-zinc-500">Năm Phát Hành</span>
             <div>{info.release}</div>
           </div>
           <div>
-            <span className="text-zinc-500">Status</span>
+            <span className="text-zinc-500">Trạng Thái</span>
             <div>
               <Badge className="border-none bg-teal-600 hover:bg-teal-700">
                 {info.status}
@@ -245,13 +245,13 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
         >
           <TabsList className="flex flex-wrap">
             {seasons.length === 0 && (
-              <p className="text-sm text-zinc-400">No seasons</p>
+              <p className="text-sm text-zinc-400">Không có mùa</p>
             )}
             {seasons.map((s) => {
               const key = `${s.id || s.seasonNumber}`;
               return (
                 <TabsTrigger key={key} value={key} className="text-xs">
-                  Season {s.seasonNumber}
+                  Mùa {s.seasonNumber}
                 </TabsTrigger>
               );
             })}
@@ -283,7 +283,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                             resetEpisodeUploadState();
                           }}
                         >
-                          Ep {ep.episodeNumber}
+                          Tập {ep.episodeNumber}
                           {hasSource && (
                             <CheckCircle className="ml-1 h-3 w-3 text-green-400" />
                           )}
@@ -315,7 +315,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                               <CheckCircle className="h-5 w-5" />
                               <div className="flex-1 overflow-hidden">
                                 <p className="text-xs font-semibold">
-                                  Video Ready to Stream!
+                                  Video Sẵn Sàng Phát!
                                 </p>
                                 <p className="text-xs truncate">
                                   {epUID
@@ -338,7 +338,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                         >
                           <div className="flex items-center justify-between p-3">
                             <span className="text-sm font-semibold text-white">
-                              Upload source tập {selectedEpNumber} phần{" "}
+                              Tải lên nguồn tập {selectedEpNumber} mùa{" "}
                               {s.seasonNumber}
                             </span>
                             <Badge className="border-none bg-zinc-800 text-zinc-300">
@@ -365,7 +365,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                                     {epSelectedFile.name}
                                   </p>
                                   <p className="text-xs text-zinc-400">
-                                    Click or drop to change file
+                                    Nhấp hoặc kéo thả để thay đổi file
                                   </p>
                                 </div>
                               </div>
@@ -373,10 +373,10 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                               <DropzoneEmptyState>
                                 <div className="flex flex-col items-center justify-center gap-2">
                                   <span className="text-sm text-zinc-300">
-                                    Drag and drop episode video
+                                    Kéo thả video tập phim
                                   </span>
                                   <span className="text-xs text-zinc-500">
-                                    Or click to browse
+                                    Hoặc nhấp để duyệt
                                   </span>
                                 </div>
                               </DropzoneEmptyState>
@@ -388,7 +388,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                           {epProgress > 0 && epProgress < 100 && (
                             <div className="p-3 space-y-1">
                               <div className="flex justify-between text-xs text-zinc-400">
-                                <span>Uploading to Cloud...</span>
+                                <span>Đang tải lên Cloud...</span>
                                 <span>{epProgress}%</span>
                               </div>
                               <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
@@ -404,7 +404,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                           {epUID && !epIsReady && epProgress === 100 && (
                             <div className="p-3 space-y-1 animate-pulse">
                               <div className="flex justify-between text-xs text-amber-500">
-                                <span>Cloudflare Processing...</span>
+                                <span>Cloudflare Đang Xử Lý...</span>
                                 <span>{epEncodingPct.toFixed(1)}%</span>
                               </div>
                               <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
@@ -423,7 +423,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                               disabled={isBusy}
                               onClick={resetEpisodeUploadState}
                             >
-                              Reset
+                              Đặt Lại
                             </Button>
                             <Button
                               disabled={!epSelectedFile || isBusy}
@@ -448,10 +448,10 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                               className="bg-teal-600 hover:bg-teal-700 text-white"
                             >
                               {isBusy
-                                ? "Uploading..."
+                                ? "Đang tải lên..."
                                 : epUID
-                                  ? "Re-upload"
-                                  : "Save Changes"}
+                                  ? "Tải lên lại"
+                                  : "Lưu Thay Đổi"}
                             </Button>
                           </div>
                         </div>
@@ -467,7 +467,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                                 allowFullScreen
                               />
                               <p className="text-[10px] text-zinc-500 text-center">
-                                Playback from Cloudflare Stream via HLS.
+                                Phát từ Cloudflare Stream qua HLS.
                               </p>
                             </div>
                           ) : hasSource ? (
@@ -483,10 +483,10 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                           )}
                           <p className="mt-2 text-[10px] text-zinc-500 text-center">
                             {epIsReady && epUID
-                              ? "Previewing new uploaded episode source."
+                              ? "Xem trước nguồn tập mới đã tải lên."
                               : hasSource
-                                ? "Previewing existing episode source."
-                                : "No source to preview."}
+                                ? "Xem trước nguồn tập hiện có."
+                                : "Không có nguồn để xem trước."}
                           </p>
                         </div>
                       </div>

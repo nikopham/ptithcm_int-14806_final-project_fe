@@ -68,18 +68,18 @@ export default function AccountPage() {
     const hasAvatarChange = !!avatarFile;
     const hasUsernameChange = usernameTrimmed !== initialUsername;
     if (!hasAvatarChange && !hasUsernameChange) {
-      toast.info("No changes to update");
+      toast.info("Không có thay đổi để cập nhật");
       return;
     }
 
     const errs = {
       username: validateUsername(username)
         ? null
-        : "Username must be 3-32 chars (letters, numbers, _ and space .)",
+        : "Tên người dùng phải từ 3-32 ký tự (chữ cái, số, _ và khoảng trắng .)",
     };
     setUsernameError(errs.username);
     if (errs.username) {
-      toast.error("Please fix validation errors");
+      toast.error("Vui lòng sửa lỗi xác thực");
       return;
     }
     try {
@@ -88,11 +88,11 @@ export default function AccountPage() {
       formData.append("username", usernameTrimmed);
       if (avatarFile) formData.append("avatar", avatarFile);
       await updateProfile(formData).unwrap();
-      toast.success("Profile updated");
+      toast.success("Đã cập nhật hồ sơ");
       setAvatarFile(null);
       await refetch();
     } catch {
-      toast.error("Failed to update profile");
+      toast.error("Không thể cập nhật hồ sơ");
     }
   };
 
@@ -100,14 +100,14 @@ export default function AccountPage() {
     e.preventDefault();
     if (!me?.id || !authId) return;
     if (newPassword !== confirmPassword) {
-      toast.error("New password and confirmation do not match");
+      toast.error("Mật khẩu mới và xác nhận không khớp");
       return;
     }
     if (!validateStrongPassword(newPassword)) {
       setPasswordError(
-        "Password must be ≥8 chars and include upper, lower, number, special"
+        "Mật khẩu phải ≥8 ký tự và bao gồm chữ hoa, chữ thường, số, ký tự đặc biệt"
       );
-      toast.error("Please use a stronger password");
+      toast.error("Vui lòng sử dụng mật khẩu mạnh hơn");
       return;
     }
     try {
@@ -117,7 +117,7 @@ export default function AccountPage() {
         newPw: newPassword,
         reNewPw: confirmPassword,
       }).unwrap();
-      toast.success("Password changed");
+      toast.success("Đã đổi mật khẩu");
 
       setOldPassword("");
       setNewPassword("");
@@ -125,7 +125,7 @@ export default function AccountPage() {
       setPasswordError(null);
       await refetch();
     } catch {
-      toast.error("Failed to change password");
+      toast.error("Không thể đổi mật khẩu");
     }
   };
 
@@ -133,8 +133,8 @@ export default function AccountPage() {
     <section className="mx-auto max-w-3xl space-y-10">
       {/* heading */}
       <div>
-        <h1 className="mb-1 text-2xl font-bold text-white">Account</h1>
-        <p className="text-sm text-zinc-400">Update your account information</p>
+        <h1 className="mb-1 text-2xl font-bold text-white">Tài Khoản</h1>
+        <p className="text-sm text-zinc-400">Cập nhật thông tin tài khoản của bạn</p>
       </div>
 
       {/* ---------- form body ---------- */}
@@ -150,7 +150,7 @@ export default function AccountPage() {
           {/* display name */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-300">
-              Display Name
+              Tên Hiển Thị
             </label>
             <Input
               value={username}
@@ -167,19 +167,19 @@ export default function AccountPage() {
             disabled={isUpdating || isMeLoading}
             className="bg-teal-500 text-black hover:bg-teal-600"
           >
-            {isUpdating ? "Updating..." : "Update Profile"}
+            {isUpdating ? "Đang cập nhật..." : "Cập Nhật Hồ Sơ"}
           </Button>
 
           {/* change password */}
           <div className="mt-8 space-y-4 rounded-lg border border-zinc-700/50 bg-zinc-900 p-4">
             <h2 className="text-sm font-semibold text-white">
-              Change Password
+              Đổi Mật Khẩu
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {hasPassword && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-300">
-                    Current Password
+                    Mật Khẩu Hiện Tại
                   </label>
                   <div className="relative">
                     <Input
@@ -191,9 +191,9 @@ export default function AccountPage() {
                     <button
                       type="button"
                       aria-label={
-                        showOldPwd ? "Hide password" : "Show password"
+                        showOldPwd ? "Ẩn mật khẩu" : "Hiện mật khẩu"
                       }
-                      title={showOldPwd ? "Hide password" : "Show password"}
+                      title={showOldPwd ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                       onClick={() => setShowOldPwd((v) => !v)}
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
                     >
@@ -212,7 +212,7 @@ export default function AccountPage() {
                 }
               >
                 <label className="text-sm font-medium text-zinc-300">
-                  New Password
+                  Mật Khẩu Mới
                 </label>
                 <div className="relative">
                   <Input
@@ -223,8 +223,8 @@ export default function AccountPage() {
                   />
                   <button
                     type="button"
-                    aria-label={showNewPwd ? "Hide password" : "Show password"}
-                    title={showNewPwd ? "Hide password" : "Show password"}
+                    aria-label={showNewPwd ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                    title={showNewPwd ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                     onClick={() => setShowNewPwd((v) => !v)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
                   >
@@ -238,7 +238,7 @@ export default function AccountPage() {
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <label className="text-sm font-medium text-zinc-300">
-                  Confirm New Password
+                  Xác Nhận Mật Khẩu Mới
                 </label>
                 <div className="relative">
                   <Input
@@ -250,9 +250,9 @@ export default function AccountPage() {
                   <button
                     type="button"
                     aria-label={
-                      showConfirmPwd ? "Hide password" : "Show password"
+                      showConfirmPwd ? "Ẩn mật khẩu" : "Hiện mật khẩu"
                     }
-                    title={showConfirmPwd ? "Hide password" : "Show password"}
+                    title={showConfirmPwd ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                     onClick={() => setShowConfirmPwd((v) => !v)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
                   >
@@ -276,7 +276,7 @@ export default function AccountPage() {
                 variant="outline"
                 className="border-zinc-700 text-zinc-200"
               >
-                {isChangingPwd ? "Changing..." : "Change Password"}
+                {isChangingPwd ? "Đang đổi..." : "Đổi Mật Khẩu"}
               </Button>
             </div>
           </div>
@@ -290,7 +290,7 @@ export default function AccountPage() {
           />
           <div className="flex items-center gap-2">
             <label className="cursor-pointer rounded border border-zinc-700 px-3 py-1 text-xs text-zinc-300 hover:bg-zinc-800">
-              Pick Avatar
+              Chọn Ảnh Đại Diện
               <input
                 type="file"
                 accept="image/*"
@@ -304,11 +304,11 @@ export default function AccountPage() {
                 className="text-xs text-zinc-400 hover:text-red-400"
                 onClick={() => setAvatarFile(null)}
               >
-                Remove
+                Xóa
               </Button>
             )}
           </div>
-          <span className="text-xs text-zinc-500">JPG, PNG up to 5MB</span>
+          <span className="text-xs text-zinc-500">JPG, PNG tối đa 5MB</span>
         </div>
       </div>
     </section>

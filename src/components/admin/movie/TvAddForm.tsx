@@ -218,7 +218,7 @@ export function TvAddForm({
       {/* LEFT COLUMN: uploads */}
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label>Poster (Vertical)</Label>
+          <Label>Ảnh Bìa (Dọc)</Label>
           <div className="overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900/50">
             <Dropzone
               accept={{ "image/*": [] }}
@@ -233,11 +233,11 @@ export function TvAddForm({
                   <img
                     src={posterPreview ?? undefined}
                     className="h-full w-full object-cover"
-                    alt="Poster"
+                    alt="Ảnh Bìa"
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition group-hover:opacity-100">
                     <p className="text-xs font-medium text-white">
-                      Click to change
+                      Nhấn để thay đổi
                     </p>
                   </div>
                 </div>
@@ -249,7 +249,7 @@ export function TvAddForm({
           </div>
         </div>
         <div className="space-y-2">
-          <Label>Backdrop (Horizontal)</Label>
+          <Label>Ảnh Nền (Ngang)</Label>
           <div className="overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900/50">
             <Dropzone
               accept={{ "image/*": [] }}
@@ -264,10 +264,10 @@ export function TvAddForm({
                   <img
                     src={backdropPreview ?? undefined}
                     className="h-full w-full object-cover"
-                    alt="Backdrop"
+                    alt="Ảnh Nền"
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition group-hover:opacity-100">
-                    <p className="text-xs font-medium text-white">Change</p>
+                    <p className="text-xs font-medium text-white">Thay đổi</p>
                   </div>
                 </div>
               ) : (
@@ -284,22 +284,22 @@ export function TvAddForm({
         {/* Basic Info */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label>Original Title</Label>
+            <Label>Tiêu Đề Gốc</Label>
             <Input
               value={form.originalTitle ?? ""}
               onChange={(e) =>
                 update("originalTitle", e.target.value as unknown as string)
               }
               disabled={isLoading}
-              placeholder="Enter original title"
+              placeholder="Nhập tiêu đề gốc"
             />
           </div>
           <div>
-            <Label>Release year</Label>
+            <Label>Năm Phát Hành</Label>
             <Input
               type="number"
               inputMode="numeric"
-              placeholder="Enter release year"
+              placeholder="Nhập năm phát hành"
               value={form.release}
               onChange={(e) => {
                 let val = e.target.value;
@@ -333,7 +333,7 @@ export function TvAddForm({
           </div>
 
           <div className="col-span-2">
-            <Label>Display Title</Label>
+            <Label>Tiêu Đề Hiển Thị</Label>
             <Input
               value={form.title}
               onChange={(e) => update("title", e.target.value)}
@@ -341,14 +341,14 @@ export function TvAddForm({
             />
           </div>
           <div>
-            <Label>Age rating</Label>
+            <Label>Xếp Hạng Độ Tuổi</Label>
             <Select
               value={form.age}
               onValueChange={(val) => update("age", val)}
               disabled={isLoading}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select rating" />
+                <SelectValue placeholder="Chọn xếp hạng" />
               </SelectTrigger>
               <SelectContent>
                 {ageRatings.map((rating) => (
@@ -360,14 +360,14 @@ export function TvAddForm({
             </Select>
           </div>
           <div>
-            <Label>Status</Label>
+            <Label>Trạng Thái</Label>
             <Select
               value={form.status}
               onValueChange={(val) => update("status", val)}
               disabled={isLoading}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder="Chọn trạng thái" />
               </SelectTrigger>
               <SelectContent>
                 {statusOptions.map((s) => (
@@ -407,26 +407,26 @@ export function TvAddForm({
         {/* Seasons summary + sheet trigger */}
         <div className="border-t border-zinc-800 pt-4">
           <div className="flex items-center justify-between">
-            <Label>Custom seasons (draft)</Label>
+            <Label>Mùa tùy chỉnh (bản nháp)</Label>
             <Button
               type="button"
               size="sm"
               onClick={() => setSeasonSheetOpen(true)}
             >
-              Manage Seasons
+              Quản Lý Mùa
             </Button>
           </div>
           <p className="mt-1 text-xs text-zinc-400">
-            {form.seasonDrafts?.length || 0} season(s) configured
+            {form.seasonDrafts?.length || 0} mùa đã cấu hình
           </p>
           <div className="mt-2 space-y-2">
             {(form.seasonDrafts || []).map((s, idx) => (
               <div key={idx} className="rounded border border-zinc-800 p-2">
                 <div className="text-sm text-white">
-                  Season {s.seasonNumber} {s.title ? `- ${s.title}` : ""}
+                  Mùa {s.seasonNumber} {s.title ? `- ${s.title}` : ""}
                 </div>
                 <div className="text-xs text-zinc-400">
-                  {s.episodes?.length || 0} episode(s)
+                  {s.episodes?.length || 0} tập
                 </div>
               </div>
             ))}
@@ -435,7 +435,7 @@ export function TvAddForm({
 
         {/* Director */}
         <div className="relative">
-          <Label>Director</Label>
+          <Label>Đạo Diễn</Label>
           {form.director ? (
             <div className="mt-2 flex items-center justify-between rounded-md border border-zinc-700 bg-zinc-900 p-2 pr-3">
               <div className="flex items-center gap-3">
@@ -451,7 +451,7 @@ export function TvAddForm({
                   <p className="text-sm font-medium text-white">
                     {form.director.fullName}
                   </p>
-                  <p className="text-xs text-zinc-400">Director</p>
+                  <p className="text-xs text-zinc-400">Đạo Diễn</p>
                 </div>
               </div>
               <Button
@@ -466,7 +466,7 @@ export function TvAddForm({
             </div>
           ) : (
             <Input
-              placeholder="Type to search director..."
+              placeholder="Nhập để tìm đạo diễn..."
               value={directorSearch}
               onChange={(e) => {
                 setDirectorSearch(e.target.value);
@@ -477,7 +477,7 @@ export function TvAddForm({
             />
           )}
           <PersonSelectDialog
-            label="Search Director"
+            label="Tìm Đạo Diễn"
             open={directorModalOpen}
             onOpenChange={(open) => {
               setDirectorModalOpen(open);
@@ -505,9 +505,9 @@ export function TvAddForm({
         {/* Actors */}
         <div className="relative">
           <Label className="flex items-center justify-between">
-            Actors{" "}
+            Diễn Viên{" "}
             <span className="text-xs text-zinc-400">
-              {(form.actors || []).length} selected
+              {(form.actors || []).length} đã chọn
             </span>
           </Label>
           <div className="mb-3 mt-2 space-y-2">
@@ -529,7 +529,7 @@ export function TvAddForm({
                     <p className="text-sm font-medium text-white">
                       {a.fullName}
                     </p>
-                    <p className="text-xs text-zinc-400">Cast</p>
+                    <p className="text-xs text-zinc-400">Diễn Viên</p>
                   </div>
                 </div>
                 <Button
@@ -550,7 +550,7 @@ export function TvAddForm({
             ))}
           </div>
           <Input
-            placeholder="Type to search actors..."
+            placeholder="Nhập để tìm diễn viên..."
             value={actorSearch}
             onChange={(e) => {
               setActorSearch(e.target.value);
@@ -560,7 +560,7 @@ export function TvAddForm({
             disabled={isLoading}
           />
           <PersonSelectDialog
-            label="Search Actors"
+            label="Tìm Diễn Viên"
             open={actorModalOpen}
             onOpenChange={(open) => {
               setActorModalOpen(open);
@@ -587,7 +587,7 @@ export function TvAddForm({
 
         {/* Description */}
         <div>
-          <Label>Description</Label>
+          <Label>Mô Tả</Label>
           <Textarea
             rows={4}
             value={form.description}
@@ -621,7 +621,7 @@ export function TvAddForm({
               update("seasons", []);
             }}
           >
-            Reset Form
+            Đặt Lại Form
           </Button> */}
           <Button
             className="w-full bg-teal-600 py-6 text-lg font-bold hover:bg-teal-700 sm:flex-1"
@@ -632,7 +632,7 @@ export function TvAddForm({
             }}
           >
             {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-            {isLoading ? "Saving..." : "Save TV Series"}
+            {isLoading ? "Đang lưu..." : "Lưu Phim Bộ"}
           </Button>
         </div>
       </div>
@@ -1054,22 +1054,19 @@ function SeasonsSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="bg-zinc-950 text-white border-zinc-800 w-[95vw] sm:max-w-2xl">
         <SheetHeader>
-          <SheetTitle>Manage Seasons & Episodes</SheetTitle>
+          <SheetTitle>Quản Lý Mùa & Tập</SheetTitle>
         </SheetHeader>
         <div className="mt-4 space-y-6 overflow-y-auto pr-2 max-h-[85vh]">
           {(hasAnyDuplicates || hasInvalid) && (
             <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-400 space-y-1">
               {hasAnyDuplicates && (
                 <p>
-                  Duplicate numbers detected: ensure each season number is
-                  unique and episode numbers within a season are unique.
+                  Phát hiện số trùng lặp: đảm bảo mỗi số mùa là duy nhất và số tập trong mỗi mùa là duy nhất.
                 </p>
               )}
               {hasInvalid && (
                 <p>
-                  Required fields missing: season number/title and episode
-                  number/title/duration/synopsis/year must be filled and greater
-                  or equal 0.
+                  Thiếu các trường bắt buộc: số mùa/tiêu đề và số tập/tiêu đề/thời lượng/tóm tắt/năm phải được điền và lớn hơn hoặc bằng 0.
                 </p>
               )}
             </div>
@@ -1077,7 +1074,7 @@ function SeasonsSheet({
           {(drafts || []).map((s, si) => (
             <div key={si} className="rounded-lg border border-zinc-800 p-3">
               <div className="flex items-center gap-2">
-                <Label className="w-28">Season number</Label>
+                <Label className="w-28">Số mùa</Label>
                 <div className="flex flex-col">
                   <Input
                     className={`w-24 ${seasonDuplicateSet.has(s.seasonNumber) || seasonInvalidSet.has(si) ? "border-red-500 focus-visible:ring-red-500" : ""}`}
@@ -1090,17 +1087,17 @@ function SeasonsSheet({
                   />
                   {seasonDuplicateSet.has(s.seasonNumber) && (
                     <span className="mt-1 text-[10px] text-red-400">
-                      Duplicate season #
+                      Số mùa trùng lặp
                     </span>
                   )}
                   {!seasonDuplicateSet.has(s.seasonNumber) &&
                     seasonInvalidSet.has(si) && (
                       <span className="mt-1 text-[10px] text-red-400">
-                        Required (greater or equal 0)
+                        Bắt buộc (lớn hơn hoặc bằng 0)
                       </span>
                     )}
                 </div>
-                <Label className="ml-4 w-12">Title</Label>
+                <Label className="ml-4 w-12">Tiêu đề</Label>
                 <Input
                   value={s.title ?? ""}
                   onChange={(e) => updateSeason(si, { title: e.target.value })}
@@ -1114,7 +1111,7 @@ function SeasonsSheet({
                   onClick={() => removeSeason(si)}
                   disabled={disabled}
                 >
-                  Remove
+                  Xóa
                 </Button>
               </div>
               <div className="mt-3 space-y-2">
@@ -1141,7 +1138,7 @@ function SeasonsSheet({
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-white">
-                          Episode #{ei + 1}
+                          Tập #{ei + 1}
                         </span>
                         <Button
                           type="button"
@@ -1151,13 +1148,13 @@ function SeasonsSheet({
                           onClick={() => removeEpisode(si, ei)}
                           disabled={disabled}
                         >
-                          Remove
+                          Xóa
                         </Button>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <Label className="text-xs text-zinc-400">
-                            Episode Number
+                            Số tập
                           </Label>
                           <div className="flex flex-col">
                             <Input
@@ -1173,22 +1170,22 @@ function SeasonsSheet({
                             />
                             {episodeDuplicateSet.has(ep.episodeNumber) && (
                               <span className="mt-1 text-[10px] text-red-400">
-                                Duplicate episode #
+                                Số tập trùng lặp
                               </span>
                             )}
                             {!episodeDuplicateSet.has(ep.episodeNumber) &&
                               isEpisodeInvalid &&
                               (!ep.episodeNumber || ep.episodeNumber < 0) && (
                                 <span className="mt-1 text-[10px] text-red-400">
-                                  Required (greater or equal 0)
+                                  Bắt buộc (lớn hơn hoặc bằng 0)
                                 </span>
                               )}
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-zinc-400">Title</Label>
+                          <Label className="text-xs text-zinc-400">Tiêu đề</Label>
                           <Input
-                            placeholder="Episode title"
+                            placeholder="Tiêu đề tập"
                             value={ep.title}
                             onChange={(e) =>
                               updateEpisode(si, ei, { title: e.target.value })
@@ -1199,11 +1196,11 @@ function SeasonsSheet({
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs text-zinc-400">
-                            Duration (min)
+                            Thời lượng (phút)
                           </Label>
                           <Input
                             type="number"
-                            placeholder="e.g. 42"
+                            placeholder="ví dụ: 42"
                             value={ep.durationMin ?? ""}
                             onChange={(e) =>
                               updateEpisode(si, ei, {
@@ -1216,7 +1213,7 @@ function SeasonsSheet({
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs text-zinc-400">
-                            Air Year
+                            Năm phát sóng
                           </Label>
                           <Select
                             value={existingYear}
@@ -1228,7 +1225,7 @@ function SeasonsSheet({
                             disabled={disabled}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Year" />
+                              <SelectValue placeholder="Năm" />
                             </SelectTrigger>
                             <SelectContent className="max-h-72 overflow-y-auto">
                               {years.map((y) => (
@@ -1240,17 +1237,17 @@ function SeasonsSheet({
                           </Select>
                           {isEpisodeInvalid && !existingYear && (
                             <span className="mt-1 text-[10px] text-red-400">
-                              Required
+                              Bắt buộc
                             </span>
                           )}
                         </div>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-zinc-400">
-                          Synopsis
+                          Tóm tắt
                         </Label>
                         <Textarea
-                          placeholder="Short episode synopsis"
+                          placeholder="Tóm tắt ngắn tập phim"
                           value={ep.synopsis ?? ""}
                           onChange={(e) =>
                             updateEpisode(si, ei, { synopsis: e.target.value })
@@ -1269,7 +1266,7 @@ function SeasonsSheet({
                   onClick={() => addEpisode(si)}
                   disabled={disabled}
                 >
-                  Add episode
+                  Thêm tập
                 </Button>
               </div>
             </div>
@@ -1281,7 +1278,7 @@ function SeasonsSheet({
             onClick={addSeason}
             disabled={disabled}
           >
-            Add season
+            Thêm mùa
           </Button>
         </div>
         <SheetFooter className="mt-4">
@@ -1294,7 +1291,7 @@ function SeasonsSheet({
             }}
             disabled={disabled || hasBlockingIssues}
           >
-            Save seasons
+            Lưu mùa
           </Button>
         </SheetFooter>
       </SheetContent>

@@ -207,14 +207,14 @@ export default function SubscriptionList() {
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold text-white">
-            Subscription Packages
+            Gói Đăng Ký
           </h1>
           <p className="text-sm text-zinc-400">
-            Manage pricing tiers and benefits
+            Quản lý các mức giá và lợi ích
           </p>
         </div>
         <Button onClick={handleAdd} className="bg-teal-600 hover:bg-teal-700">
-          <Plus className="mr-2 size-4" /> Create Package
+          <Plus className="mr-2 size-4" /> Tạo Gói
         </Button>
       </div>
 
@@ -222,7 +222,7 @@ export default function SubscriptionList() {
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
         <Input
-          placeholder="Search packages..."
+          placeholder="Tìm kiếm gói..."
           className="pl-9 bg-zinc-900 border-zinc-700"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -235,12 +235,12 @@ export default function SubscriptionList() {
           <TableHeader className="bg-zinc-950">
             <TableRow className="hover:bg-zinc-900">
               <TableHead className="w-[50px]"></TableHead>
-              <TableHead>Package Name</TableHead>
-              <TableHead>Price (Monthly)</TableHead>
-              <TableHead>Quality</TableHead>
-              <TableHead className="text-center">Devices</TableHead>
-              <TableHead className="text-right">Subscribers</TableHead>
-              <TableHead className="text-center">Status</TableHead>
+              <TableHead>Tên Gói</TableHead>
+              <TableHead>Giá (Hàng Tháng)</TableHead>
+              <TableHead>Chất Lượng</TableHead>
+              <TableHead className="text-center">Thiết Bị</TableHead>
+              <TableHead className="text-right">Người Đăng Ký</TableHead>
+              <TableHead className="text-center">Trạng Thái</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -318,7 +318,7 @@ export default function SubscriptionList() {
                   colSpan={8}
                   className="h-24 text-center text-zinc-500"
                 >
-                  No package found.
+                  Không tìm thấy gói nào.
                 </TableCell>
               </TableRow>
             )}
@@ -331,10 +331,10 @@ export default function SubscriptionList() {
         <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? "Edit Package" : "Create Package"}
+              {isEditing ? "Chỉnh Sửa Gói" : "Tạo Gói"}
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Configure subscription details and limits.
+              Cấu hình chi tiết và giới hạn đăng ký.
             </DialogDescription>
           </DialogHeader>
 
@@ -342,18 +342,18 @@ export default function SubscriptionList() {
             {/* Name & Price */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Package Name</Label>
+                <Label>Tên Gói</Label>
                 <Input
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
                   className="bg-zinc-950 border-zinc-700"
-                  placeholder="e.g. Premium"
+                  placeholder="ví dụ: Premium"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Monthly Price (VND)</Label>
+                <Label>Giá Hàng Tháng (VND)</Label>
                 <Input
                   type="number"
                   value={formData.monthly_price}
@@ -371,7 +371,7 @@ export default function SubscriptionList() {
             {/* Quality & Devices */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Max Quality</Label>
+                <Label>Chất Lượng Tối Đa</Label>
                 <Select
                   value={formData.max_quality}
                   onValueChange={(v) =>
@@ -390,7 +390,7 @@ export default function SubscriptionList() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Device Limit</Label>
+                <Label>Giới Hạn Thiết Bị</Label>
                 <Input
                   type="number"
                   min={1}
@@ -408,7 +408,7 @@ export default function SubscriptionList() {
 
             {/* Description */}
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label>Mô Tả</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) =>
@@ -422,11 +422,11 @@ export default function SubscriptionList() {
             {/* Status (In Dialog) */}
             <div className="flex items-center justify-between rounded-lg border border-zinc-800 p-3 bg-zinc-950/50">
               <div className="space-y-0.5">
-                <Label>Package Status</Label>
+                <Label>Trạng Thái Gói</Label>
                 <p className="text-xs text-zinc-500">
                   {formData.status === "ACTIVE"
-                    ? "Visible to users"
-                    : "Hidden from pricing page"}
+                    ? "Hiển thị cho người dùng"
+                    : "Ẩn khỏi trang giá"}
                 </p>
               </div>
               <Select
@@ -439,8 +439,8 @@ export default function SubscriptionList() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="ARCHIVED">Archived</SelectItem>
+                  <SelectItem value="ACTIVE">Hoạt Động</SelectItem>
+                  <SelectItem value="ARCHIVED">Đã Lưu Trữ</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -452,13 +452,13 @@ export default function SubscriptionList() {
               onClick={() => setIsOpen(false)}
               className="bg-zinc-800 hover:bg-zinc-700 text-white border-none"
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               onClick={handleSave}
               className="bg-teal-600 hover:bg-teal-700 text-white"
             >
-              Save Package
+              Lưu Gói
             </Button>
           </DialogFooter>
         </DialogContent>

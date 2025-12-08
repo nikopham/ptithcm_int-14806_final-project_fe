@@ -156,12 +156,12 @@ export default function MoviePeopleList() {
     if (!deleteId) return;
     try {
       await deletePerson(deleteId).unwrap();
-      toast.success("Person deleted!");
+      toast.success("Đã xóa người!");
       setConfirmOpen(false);
       setDeleteId(null);
       await refetch();
     } catch {
-      toast.error("Failed to delete person");
+      toast.error("Không thể xóa người");
     }
   };
 
@@ -170,11 +170,11 @@ export default function MoviePeopleList() {
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">People Manager</h1>
-          <p className="text-sm text-zinc-400">Actors & Directors</p>
+          <h1 className="text-2xl font-bold text-white">Quản Lý Người</h1>
+          <p className="text-sm text-zinc-400">Diễn Viên & Đạo Diễn</p>
         </div>
         <Button onClick={handleAdd} className="bg-teal-600 hover:bg-teal-700">
-          <Plus className="mr-2 size-4" /> Add Person
+          <Plus className="mr-2 size-4" /> Thêm Người
         </Button>
       </div>
 
@@ -183,7 +183,7 @@ export default function MoviePeopleList() {
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
           <Input
-            placeholder="Search name..."
+            placeholder="Tìm kiếm tên..."
             className="pl-9 bg-zinc-900 border-zinc-700"
             value={query}
             onChange={(e) => {
@@ -201,12 +201,12 @@ export default function MoviePeopleList() {
           }}
         >
           <SelectTrigger className="w-full sm:w-40 bg-zinc-900 border-zinc-700">
-            <SelectValue placeholder="Role" />
+            <SelectValue placeholder="Vai Trò" />
           </SelectTrigger>
           <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-            <SelectItem value="ALL">All Roles</SelectItem>
-            <SelectItem value="ACTOR">Actors</SelectItem>
-            <SelectItem value="DIRECTOR">Directors</SelectItem>
+            <SelectItem value="ALL">Tất Cả Vai Trò</SelectItem>
+            <SelectItem value="ACTOR">Diễn Viên</SelectItem>
+            <SelectItem value="DIRECTOR">Đạo Diễn</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -216,10 +216,10 @@ export default function MoviePeopleList() {
         <Table>
           <TableHeader className="bg-zinc-950">
             <TableRow className="hover:bg-zinc-900">
-              <TableHead className="w-20">Image</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead className="text-right">Movies</TableHead>
+              <TableHead className="w-20">Hình Ảnh</TableHead>
+              <TableHead>Tên</TableHead>
+              <TableHead>Vai Trò</TableHead>
+              <TableHead className="text-right">Phim</TableHead>
               <TableHead className="w-20"></TableHead>
             </TableRow>
           </TableHeader>
@@ -236,7 +236,7 @@ export default function MoviePeopleList() {
                   colSpan={5}
                   className="h-24 text-center text-zinc-500"
                 >
-                  {isError ? "Failed to load people." : "No result found."}
+                  {isError ? "Không thể tải danh sách người." : "Không tìm thấy kết quả."}
                 </TableCell>
               </TableRow>
             ) : (
@@ -326,7 +326,7 @@ export default function MoviePeopleList() {
             </PaginationItem>
             <PaginationItem>
               <span className="px-4 text-sm text-zinc-400">
-                Page {currentPage + 1} of {totalPages}
+                Trang {currentPage + 1} / {totalPages}
               </span>
             </PaginationItem>
             <PaginationItem>
@@ -352,10 +352,10 @@ export default function MoviePeopleList() {
         <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? "Edit Person" : "Add New Person"}
+              {isEditing ? "Chỉnh Sửa Người" : "Thêm Người Mới"}
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Manage actor or director details.
+              Quản lý thông tin diễn viên hoặc đạo diễn.
             </DialogDescription>
           </DialogHeader>
 
@@ -378,7 +378,7 @@ export default function MoviePeopleList() {
             </div>
 
             <div className="grid gap-2">
-              <Label>Full Name</Label>
+              <Label>Họ Tên</Label>
               <Input
                 value={formData.name}
                 onChange={(e) =>
@@ -389,7 +389,7 @@ export default function MoviePeopleList() {
             </div>
 
             <div className="grid gap-2">
-              <Label>Primary Job</Label>
+              <Label>Vai Trò Chính</Label>
               <Select
                 value={formData.job}
                 onValueChange={(v) =>
@@ -400,14 +400,14 @@ export default function MoviePeopleList() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-                  <SelectItem value="ACTOR">Actor</SelectItem>
-                  <SelectItem value="DIRECTOR">Director</SelectItem>
+                  <SelectItem value="ACTOR">Diễn Viên</SelectItem>
+                  <SelectItem value="DIRECTOR">Đạo Diễn</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="grid gap-2">
-              <Label>Profile Image</Label>
+              <Label>Ảnh Đại Diện</Label>
               <Input
                 type="file"
                 accept="image/*"
@@ -417,7 +417,7 @@ export default function MoviePeopleList() {
                 }}
                 className="bg-zinc-950 border-zinc-700 text-xs"
               />
-              <p className="text-[11px] text-zinc-500">PNG/JPG, up to 5MB.</p>
+              <p className="text-[11px] text-zinc-500">PNG/JPG, tối đa 5MB.</p>
             </div>
           </div>
 
@@ -427,14 +427,14 @@ export default function MoviePeopleList() {
               onClick={() => setIsOpen(false)}
               className="bg-zinc-800 hover:bg-zinc-700 text-white border-none"
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               onClick={handleSave}
               className="bg-teal-600 hover:bg-teal-700 text-white"
               disabled={creating || updating}
             >
-              {creating || updating ? "Saving..." : "Save"}
+              {creating || updating ? "Đang lưu..." : "Lưu"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -7,7 +7,7 @@ export default function SourceManager() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, isError } = useGetMovieInfoQuery(id || "");
 
-  if (!id) return <div className="p-6 text-red-400">Invalid movie id</div>;
+  if (!id) return <div className="p-6 text-red-400">ID phim không hợp lệ</div>;
   if (isLoading) return <div className="p-6 text-zinc-400">Đang tải…</div>;
   if (isError || !data)
     return (

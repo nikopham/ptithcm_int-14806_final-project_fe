@@ -231,9 +231,9 @@
 // };
 
 import { useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
-import { Play, Menu, LogOut, Settings, CircleUserRound } from "lucide-react";
-import { motion } from "framer-motion";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Play, Menu, LogOut, Settings, CircleUserRound, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/auth/AuthDialog";
@@ -262,9 +262,9 @@ interface HeaderProps {
 }
 
 const navItems = [
-  { to: "/", label: "Home" },
-  { to: "/movies", label: "Movies & Shows" },
-  { to: "/filter", label: "Search" },
+  { to: "/", label: "Trang Chủ" },
+  { to: "/movies", label: "Phim & Chương Trình" },
+  { to: "/filter", label: "Tìm Kiếm" },
   // { to: "/subscriptions", label: "Subscriptions" },
 ];
 
@@ -280,6 +280,7 @@ const getInitials = (name: string | null) => {
 
 export const Header = ({ onToggleSidebar }: HeaderProps) => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isAuth, roles, username, avatarUrl } = useSelector(
     (state: RootState) => state.auth
@@ -287,16 +288,18 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
 
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "register">("login");
-  console.log(isAuth);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const openLoginDialog = () => {
     setAuthTab("login");
     setIsAuthOpen(true);
+    setIsMobileMenuOpen(false);
   };
 
   // Sửa handleLogout thành async để đợi dispatch xong (nếu cần)
   const handleLogout = () => {
     dispatch(logoutAsync() as any); // Type assertion nếu TS lỗi async thunk
+    setIsMobileMenuOpen(false);
   };
 
   const foundIndex = navItems.findIndex(
@@ -305,22 +308,58 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
   );
   const activeIndex = foundIndex === -1 ? 0 : foundIndex;
 
+  const handleNavClick = (to: string) => {
+    navigate(to);
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <>
       <header className="sticky top-0 z-40 w-full bg-zinc-900/95 backdrop-blur border-b border-zinc-800">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 gap-4">
-          {/* 1. LEFT: Logo & Sidebar Toggle */}
+          {/* 1. LEFT: Logo & Menu Toggle */}
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
+            {/* Sidebar Toggle (for admin layout - desktop) */}
             {onToggleSidebar && (
               <button
                 onClick={onToggleSidebar}
-                className="p-1 text-zinc-300 hover:text-white lg:hidden"
+                className="hidden lg:block p-1 text-zinc-300 hover:text-white"
                 aria-label="Open sidebar"
               >
                 <Menu className="size-6" />
               </button>
             )}
-            <Link to="/" className="flex items-center gap-1">
+            
+            {/* Mobile Menu Toggle */}
+            {onToggleSidebar ? (
+              // If has sidebar (AdminLayout), hamburger opens sidebar on mobile
+              <button
+                onClick={onToggleSidebar}
+                className="lg:hidden p-1 text-zinc-300 hover:text-white"
+                aria-label="Open sidebar"
+              >
+                <Menu className="size-6" />
+              </button>
+            ) : (
+              // If no sidebar (PublicLayout), hamburger opens navigation menu
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-1 text-zinc-300 hover:text-white"
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="size-6" />
+                ) : (
+                  <Menu className="size-6" />
+                )}
+              </button>
+            )}
+            
+            <Link 
+              to="/" 
+              className="flex items-center gap-1"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               <Play className="size-6 -rotate-90 text-red-600" />
               <span className="font-heading text-lg font-semibold text-white hidden sm:inline-block">
                 Stream<span className="text-red-500">ify</span>
@@ -328,8 +367,9 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
             </Link>
           </div>
 
-          {/* 2. CENTER: Navigation (Desktop) */}
-          <nav className="hidden lg:block">
+          {/* 2. CENTER: Navigation (Desktop) - Only show if no sidebar */}
+          {!onToggleSidebar && (
+            <nav className="hidden lg:block">
             <ul className="relative flex items-center rounded-full bg-zinc-800/50 p-1 border border-zinc-700/50">
               {navItems.map(({ to, label }, index) => (
                 <li key={to} className="relative z-10">
@@ -361,6 +401,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
               ))}
             </ul>
           </nav>
+          )}
 
           {/* 3. RIGHT: Search & Profile */}
           <div className="flex items-center gap-3 md:gap-4 justify-end flex-1 md:flex-none">
@@ -415,7 +456,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                   >
                     <Link to="/viewer">
                       <CircleUserRound className="mr-2 size-4" />
-                      <span>Profile</span>
+                      <span>Trang Cá Nhân</span>
                     </Link>
                   </DropdownMenuItem>
 
@@ -429,7 +470,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                     >
                       <Link to="/admin">
                         <Settings className="mr-2 size-4" />
-                        <span>Admin Dashboard</span>
+                        <span>Trang Quản Trị</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -441,7 +482,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                     className="text-red-500 focus:text-red-400 focus:bg-red-500/10 cursor-pointer"
                   >
                     <LogOut className="mr-2 size-4" />
-                    <span>Log out</span>
+                    <span>Đăng Xuất</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -451,12 +492,82 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                 size="sm"
                 className="bg-white text-zinc-900 hover:bg-zinc-200 font-semibold"
               >
-                Sign In
+                Đăng Nhập
               </Button>
             )}
           </div>
         </div>
       </header>
+
+      {/* Mobile Navigation Menu - Only show if no sidebar */}
+      {!onToggleSidebar && (
+        <AnimatePresence mode="wait">
+          {isMobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/60 z-[50] lg:hidden"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            
+            {/* Mobile Menu Drawer */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed left-0 top-16 bottom-0 w-64 bg-zinc-900 border-r border-zinc-800 z-[60] lg:hidden overflow-y-auto"
+            >
+              <div className="flex flex-col p-4 gap-1">
+                <div className="px-3 py-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                  Điều Hướng
+                </div>
+                {navItems.map(({ to, label }) => {
+                  const isActive = pathname === to || (to !== "/" && pathname.startsWith(to + "/"));
+                  return (
+                    <button
+                      key={to}
+                      onClick={() => handleNavClick(to)}
+                      className={clsx(
+                        "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
+                        isActive
+                          ? "bg-red-600 text-white"
+                          : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                      )}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+                
+                <div className="border-t border-zinc-800 my-4" />
+                
+               
+
+                {/* Mobile Auth Section */}
+                {!isAuth && (
+                  <>
+                    <div className="border-t border-zinc-800 my-4" />
+                    <div className="px-3">
+                      <Button
+                        onClick={openLoginDialog}
+                        className="w-full bg-white text-zinc-900 hover:bg-zinc-200 font-semibold"
+                      >
+                        Đăng Nhập
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Auth Dialog */}
       <AuthDialog

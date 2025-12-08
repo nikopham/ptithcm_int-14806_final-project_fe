@@ -2,12 +2,12 @@ export const PlanComparisonTable = () => (
   <section className="mx-auto max-w-7xl px-4 pb-24">
     {/* heading */}
     <h2 className="mb-2 text-3xl font-extrabold text-white md:text-4xl">
-      Compare our plans and find the right one for you
+      So Sánh Các Gói Và Tìm Gói Phù Hợp Với Bạn
     </h2>
     <p className="mb-10 max-w-2xl text-sm leading-relaxed text-zinc-400">
-      StreamVibe offers three different plans to fit your needs: Basic,
-      Standard, and Premium. Compare the features of each plan and choose the
-      one that’s right for you.
+      StreamVibe cung cấp ba gói khác nhau để phù hợp với nhu cầu của bạn: Cơ Bản,
+      Tiêu Chuẩn, và Cao Cấp. So sánh các tính năng của từng gói và chọn
+      gói phù hợp với bạn.
     </p>
 
     {/* comparison table */}
@@ -15,51 +15,51 @@ export const PlanComparisonTable = () => (
       <table className="min-w-full text-left text-sm text-zinc-300">
         <thead>
           <tr className="border-b border-zinc-700 text-white">
-            <th className="w-48 px-6 py-4 font-semibold">Features</th>
-            <th className="px-6 py-4 font-semibold">Basic</th>
+            <th className="w-48 px-6 py-4 font-semibold">Tính Năng</th>
+            <th className="px-6 py-4 font-semibold">Cơ Bản</th>
             <th className="px-6 py-4 font-semibold">
               <div className="flex items-center gap-2">
-                Standard
+                Tiêu Chuẩn
                 <span className="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase leading-none text-white">
-                  Popular
+                  Phổ Biến
                 </span>
               </div>
             </th>
-            <th className="px-6 py-4 font-semibold">Premium</th>
+            <th className="px-6 py-4 font-semibold">Cao Cấp</th>
           </tr>
         </thead>
 
         <tbody>
           {[
-            ["Price", "$9.99/Month", "$12.99/Month", "$14.99/Month"],
+            ["Giá", "$9.99/Tháng", "$12.99/Tháng", "$14.99/Tháng"],
             [
-              "Content",
-              "Access to a wide selection of movies and shows, including some new releases.",
-              "Access to a wider selection of movies and shows, including most new releases and exclusive content",
-              "Access to a widest selection of movies and shows, including all new releases and Offline Viewing",
+              "Nội Dung",
+              "Truy cập vào bộ sưu tập phim và chương trình đa dạng, bao gồm một số phim mới phát hành.",
+              "Truy cập vào bộ sưu tập phim và chương trình rộng hơn, bao gồm hầu hết các phim mới phát hành và nội dung độc quyền",
+              "Truy cập vào bộ sưu tập phim và chương trình rộng nhất, bao gồm tất cả các phim mới phát hành và Xem Ngoại Tuyến",
             ],
             [
-              "Devices",
-              "Watch on one device simultaneously",
-              "Watch on two device simultaneously",
-              "Watch on four device simultaneously",
+              "Thiết Bị",
+              "Xem trên một thiết bị đồng thời",
+              "Xem trên hai thiết bị đồng thời",
+              "Xem trên bốn thiết bị đồng thời",
             ],
-            ["Free Trial", "7 Days", "7 Days", "7 Days"],
-            ["Cancel Anytime", "Yes", "Yes", "Yes"],
-            ["HDR", "No", "Yes", "Yes"],
-            ["Dolby Atmos", "No", "Yes", "Yes"],
-            ["Ad-Free", "No", "Yes", "Yes"],
+            ["Dùng Thử Miễn Phí", "7 Ngày", "7 Ngày", "7 Ngày"],
+            ["Hủy Bất Cứ Lúc Nào", "Có", "Có", "Có"],
+            ["HDR", "Không", "Có", "Có"],
+            ["Dolby Atmos", "Không", "Có", "Có"],
+            ["Không Quảng Cáo", "Không", "Có", "Có"],
             [
-              "Offline Viewing",
-              "No",
-              "Yes, for select titles.",
-              "Yes, for all titles.",
+              "Xem Ngoại Tuyến",
+              "Không",
+              "Có, cho một số tiêu đề được chọn.",
+              "Có, cho tất cả các tiêu đề.",
             ],
             [
-              "Family Sharing",
-              "No",
-              "Yes, up to 5 family members.",
-              "Yes, up to 6 family members.",
+              "Chia Sẻ Gia Đình",
+              "Không",
+              "Có, tối đa 5 thành viên gia đình.",
+              "Có, tối đa 6 thành viên gia đình.",
             ],
           ].map((row, rIdx) => (
             <tr

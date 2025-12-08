@@ -13,16 +13,16 @@ export function VerifySuccessPage() {
       <div className="p-8 bg-white dark:bg-zinc-800 rounded-lg shadow-xl text-center">
         <div className="flex flex-col items-center gap-4">
           <CircleCheck className="size-16 text-green-500" />
-          <h1 className="text-3xl font-bold">Verification Successful!</h1>
+          <h1 className="text-3xl font-bold">Xác Minh Thành Công!</h1>
           {email && (
             <p className="text-lg text-zinc-600 dark:text-zinc-300">
-              Your email <strong>{email}</strong> has been verified.
+              Email <strong>{email}</strong> của bạn đã được xác minh.
             </p>
           )}
-          <p className="text-lg">You can now log in to your account.</p>
+          <p className="text-lg">Bạn có thể đăng nhập vào tài khoản của mình ngay bây giờ.</p>
           <Button asChild className="mt-4">
             {/* You can open the Login Dialog from here, or go to home */}
-            <Link to="/">Back to Home</Link>
+            <Link to="/">Về Trang Chủ</Link>
           </Button>
         </div>
       </div>
