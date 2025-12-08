@@ -75,7 +75,7 @@ const initialCreateForm = {
   username: "",
   email: "",
   password: "",
-  role: "comment_admin" as AdminRole,
+  role: "movie_admin" as AdminRole,
   avatarFile: null as File | null,
 };
 
@@ -93,7 +93,7 @@ export default function AdminList() {
     "ALL"
   );
   const [filterRole, setFilterRole] = useState<
-    "ALL" | "movie_admin" | "comment_admin"
+    "ALL" | "movie_admin"
   >("ALL");
   const PAGE_SIZE = 10;
   const debouncedQuery = useDebounce(query, 400);
@@ -138,7 +138,7 @@ export default function AdminList() {
   }>({
     username: "",
     email: "",
-    role: "comment_admin",
+    role: "movie_admin",
     avatarFile: null,
     newPassword: "",
   });
@@ -192,7 +192,7 @@ export default function AdminList() {
       const role: AdminRole =
         filterRole !== "ALL"
           ? (filterRole as AdminRole)
-          : ((ru.roleCode as AdminRole) ?? "comment_admin");
+          : ((ru.roleCode as AdminRole) ?? "movie_admin");
       return {
         id: u.id,
         username: u.username,
@@ -268,34 +268,31 @@ export default function AdminList() {
     // Validate fields
     const errs: typeof createErrors = {};
     if (!validateUsername(createForm.username)) {
-      errs.username = "Username must be 3-32 chars (letters, numbers, _ .)";
+      errs.username = "Tên người dùng phải có 3-32 ký tự (chữ cái, số, _ .)";
     }
     if (!validateEmail(createForm.email)) {
-      errs.email = "Invalid email format";
+      errs.email = "Định dạng email không hợp lệ";
     }
     if (!validatePassword(createForm.password)) {
       errs.password =
-        "Password must be ≥8 chars and include upper, lower, number, special";
+        "Mật khẩu phải có ≥8 ký tự và bao gồm chữ hoa, chữ thường, số, ký tự đặc biệt";
     }
     setCreateErrors(errs);
     if (Object.keys(errs).length > 0) {
-      toast.error("Please fix form validation errors");
+      toast.error("Vui lòng sửa lỗi xác thực biểu mẫu");
       return;
     }
     const fd = new FormData();
     fd.append("username", createForm.username);
     fd.append("email", createForm.email);
     fd.append("password", createForm.password);
-    fd.append(
-      "roleCode",
-      createForm.role === "movie_admin" ? "movie_admin" : "comment_admin"
-    );
+    fd.append("roleCode", "movie_admin");
     if (createForm.avatarFile) {
       fd.append("avatar", createForm.avatarFile, createForm.avatarFile.name);
     }
     try {
       await createAdmin(fd).unwrap();
-      toast.success("Admin created successfully");
+      toast.success("Đã tạo quản trị viên thành công");
       setIsCreateOpen(false);
       setCreateForm(initialCreateForm);
       setCreateErrors({});
@@ -314,7 +311,7 @@ export default function AdminList() {
     try {
       await deleteAdmin(deleteId).unwrap();
       setAdmins((prev) => prev.filter((a) => a.id !== deleteId));
-      toast.success("Admin deleted successfully");
+      toast.success("Đã xóa quản trị viên thành công");
       setDeleteId(null);
     } catch {
       setDeleteId(null);
@@ -327,14 +324,14 @@ export default function AdminList() {
     if (role === "movie_admin") {
       return (
         <Badge className="bg-teal-600/20 text-teal-400 border-teal-600/50">
-          Movie Admin
+          Quản Trị Phim
         </Badge>
       );
     }
-    if (role === "comment_admin") {
+    if (role === "super_admin") {
       return (
-        <Badge className="bg-purple-600/20 text-purple-400 border-purple-600/50">
-          Comment Admin
+        <Badge className="bg-red-600/20 text-red-400 border-red-600/50">
+          Quản Trị Tối Cao
         </Badge>
       );
     }
@@ -346,16 +343,16 @@ export default function AdminList() {
       {/* ─── Header ─── */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Admin Management</h1>
+          <h1 className="text-2xl font-bold text-white">Quản Lý Quản Trị Viên</h1>
           <p className="text-sm text-zinc-400">
-            Manage internal staff roles and access
+            Quản lý vai trò và quyền truy cập của nhân viên nội bộ
           </p>
         </div>
         <Button
           onClick={handleOpenCreate}
           className="bg-teal-600 hover:bg-teal-700"
         >
-          <Plus className="mr-2 size-4" /> Add Admin
+          <Plus className="mr-2 size-4" /> Thêm Quản Trị Viên
         </Button>
       </div>
 
@@ -364,7 +361,7 @@ export default function AdminList() {
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
           <Input
-            placeholder="Search username or email..."
+            placeholder="Tìm kiếm tên người dùng hoặc email..."
             className="pl-9 bg-zinc-900 border-zinc-700"
             value={query}
             onChange={(e) => {
@@ -377,17 +374,16 @@ export default function AdminList() {
         <Select
           value={filterRole}
           onValueChange={(v) => {
-            setFilterRole(v as "ALL" | "movie_admin" | "comment_admin");
+            setFilterRole(v as "ALL" | "movie_admin");
             setCurrentPage(0);
           }}
         >
           <SelectTrigger className="w-full sm:w-44 bg-zinc-900 border-zinc-700">
-            <SelectValue placeholder="Role" />
+            <SelectValue placeholder="Vai Trò" />
           </SelectTrigger>
           <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-            <SelectItem value="ALL">All Roles</SelectItem>
-            <SelectItem value="movie_admin">Movie Admin</SelectItem>
-            <SelectItem value="comment_admin">Comment Admin</SelectItem>
+            <SelectItem value="ALL">Tất Cả Vai Trò</SelectItem>
+            <SelectItem value="movie_admin">Quản Trị Phim</SelectItem>
           </SelectContent>
         </Select>
 
@@ -399,12 +395,12 @@ export default function AdminList() {
           }}
         >
           <SelectTrigger className="w-full sm:w-40 bg-zinc-900 border-zinc-700">
-            <SelectValue placeholder="Active" />
+            <SelectValue placeholder="Trạng Thái" />
           </SelectTrigger>
           <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-            <SelectItem value="ALL">All Status</SelectItem>
-            <SelectItem value="TRUE">Active</SelectItem>
-            <SelectItem value="FALSE">Banned</SelectItem>
+            <SelectItem value="ALL">Tất Cả Trạng Thái</SelectItem>
+            <SelectItem value="TRUE">Hoạt Động</SelectItem>
+            <SelectItem value="FALSE">Bị Cấm</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -414,21 +410,21 @@ export default function AdminList() {
         <Table>
           <TableHeader className="bg-zinc-950">
             <TableRow className="hover:bg-zinc-900">
-              <TableHead className="min-w-[180px] sm:min-w-[250px]">Admin</TableHead>
+              <TableHead className="min-w-[180px] sm:min-w-[250px]">Quản Trị Viên</TableHead>
               <TableHead className="hidden sm:table-cell min-w-[200px]">Email</TableHead>
-              <TableHead className="min-w-[120px]">Role</TableHead>
+              <TableHead className="min-w-[120px]">Vai Trò</TableHead>
               <TableHead className="hidden md:table-cell min-w-[120px]">
-                Joined Date
+                Ngày Tham Gia
               </TableHead>
-              <TableHead className="text-center min-w-[100px]">Active</TableHead>
-              <TableHead className="w-[100px] sm:w-[120px]">Actions</TableHead>
+              <TableHead className="text-center min-w-[100px]">Hoạt Động</TableHead>
+              <TableHead className="w-[100px] sm:w-[120px]">Thao Tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isFetching ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center">
-                  Loading...
+                  Đang tải...
                 </TableCell>
               </TableRow>
             ) : filteredData.length === 0 ? (
@@ -437,7 +433,7 @@ export default function AdminList() {
                   colSpan={6}
                   className="h-24 text-center text-zinc-500"
                 >
-                  {isError ? "Failed to load admins." : "No admins found."}
+                  {isError ? "Không thể tải quản trị viên." : "Không tìm thấy quản trị viên nào."}
                 </TableCell>
               </TableRow>
             ) : (
@@ -532,7 +528,7 @@ export default function AdminList() {
             </PaginationItem>
             <PaginationItem>
               <span className="px-4 text-sm text-zinc-400">
-                Page {currentPage + 1} of {data?.totalPages ?? 0}
+                Trang {currentPage + 1} / {data?.totalPages ?? 0}
               </span>
             </PaginationItem>
             <PaginationItem>
@@ -602,15 +598,15 @@ export default function AdminList() {
           if (!isUpdating) setConfirmOpen(false);
         }}
         onConfirm={confirmToggle}
-        title="Update admin status?"
+        title="Cập nhật trạng thái quản trị viên?"
         description={
           pendingToggle
             ? pendingToggle.next
-              ? "This will activate the admin account and allow access."
-              : "This will ban/suspend the admin from logging in."
+              ? "Điều này sẽ kích hoạt tài khoản quản trị viên và cho phép truy cập."
+              : "Điều này sẽ cấm/tạm ngưng quản trị viên đăng nhập."
             : undefined
         }
-        confirmText={pendingToggle?.next ? "Set Active" : "Set Banned"}
+        confirmText={pendingToggle?.next ? "Đặt Hoạt Động" : "Đặt Bị Cấm"}
         variant={pendingToggle?.next ? "default" : "destructive"}
         isLoading={isUpdating}
       />
@@ -620,9 +616,9 @@ export default function AdminList() {
         isOpen={deleteId !== null}
         onClose={() => setDeleteId(null)}
         onConfirm={confirmDelete}
-        title="Delete Admin User?"
-        description="This will permanently delete the user. This action cannot be undone."
-        confirmText="Delete User"
+        title="Xóa Quản Trị Viên?"
+        description="Điều này sẽ xóa vĩnh viễn người dùng. Hành động này không thể hoàn tác."
+        confirmText="Xóa Người Dùng"
         variant="destructive"
         isLoading={isDeleting}
       />
@@ -631,10 +627,9 @@ export default function AdminList() {
       <Dialog open={cannotDeleteOpen} onOpenChange={setCannotDeleteOpen}>
         <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-[420px]">
           <DialogHeader>
-            <DialogTitle>Unable to delete admin</DialogTitle>
+            <DialogTitle>Không thể xóa quản trị viên</DialogTitle>
             <DialogDescription className="text-zinc-400">
-              This admin cannot be deleted. Consider disabling the account
-              instead.
+              Quản trị viên này không thể bị xóa. Hãy cân nhắc vô hiệu hóa tài khoản thay vì xóa.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

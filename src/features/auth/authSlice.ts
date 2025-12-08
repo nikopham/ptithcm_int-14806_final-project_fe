@@ -42,7 +42,21 @@ const authSlice = createSlice({
       state.avatarUrl = null;
       state.skipVerify = true; // Đánh dấu đã logout, không gọi verify nữa
       localStorage.removeItem("accessToken");
+      // Hiển thị toast khi người dùng chủ động logout
       toast.success("Logout Successful");
+    },
+    logoutSilent: (state) => {
+      state.id = null;
+      state.isAuth = false;
+      state.roles = [];
+      // Set to failed so RootLayout won't trigger verify again
+      state.status = "failed";
+      state.error = null;
+      state.username = null;
+      state.avatarUrl = null;
+      state.skipVerify = true; // Đánh dấu đã logout, không gọi verify nữa
+      localStorage.removeItem("accessToken");
+      // Không hiển thị toast (dùng cho logout tự động từ axios interceptor)
     },
 
     setRoles: (state, action: PayloadAction<Role[]>) => {
@@ -121,5 +135,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, setRoles, clearAuthError } = authSlice.actions;
+export const { logout, logoutSilent, setRoles, clearAuthError } = authSlice.actions;
 export default authSlice.reducer;

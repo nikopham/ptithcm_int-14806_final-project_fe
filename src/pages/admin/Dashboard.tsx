@@ -50,25 +50,25 @@ const sales = Array.from({ length: 30 }).map((_, i) => ({
 /* ───── mock deals table ───── */
 const deals = [
   {
-    product: "Premium Plan – Annual",
+    product: "Gói Premium – Hàng Năm",
     user: "Niko Nguyen",
     date: "12.05.2025 – 14:32",
     amount: "$119.99",
-    status: "Success",
+    status: "Thành Công",
   },
   {
-    product: "Movie Upload: Oppenheimer",
-    user: "Movie Admin",
+    product: "Tải Phim: Oppenheimer",
+    user: "Quản Trị Phim",
     date: "11.05.2025 – 10:02",
     amount: "-",
-    status: "Published",
+    status: "Đã Xuất Bản",
   },
   {
-    product: "Ro-Coin Top-up • 500K",
+    product: "Nạp Ro-Coin • 500K",
     user: "Bao Tran",
     date: "10.05.2025 – 19:07",
     amount: "₫500,000",
-    status: "Pending",
+    status: "Đang Chờ",
   },
 ];
 
@@ -161,9 +161,9 @@ export default function Dashboard() {
                     <td>
                       <span
                         className={`rounded px-2 py-0.5 text-xs ${
-                          d.status === "Success"
+                          d.status === "Thành Công"
                             ? "bg-emerald-600"
-                            : d.status === "Pending"
+                            : d.status === "Đang Chờ"
                               ? "bg-yellow-500 text-black"
                               : "bg-teal-700"
                         }`}

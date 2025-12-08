@@ -74,7 +74,7 @@
 //     </>
 //   );
 // }
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { GlobalErrorModal } from "@/components/common/GlobalErrorModal";
 import { GlobalLoadingOverlay } from "@/components/common/GlobalLoadingOverlay";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
@@ -85,6 +85,7 @@ import { ChevronUp } from "lucide-react";
 
 export function RootLayout() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const authStatus = useAppSelector((state: RootState) => state.auth.status);
   const location = useLocation();
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -116,6 +117,19 @@ export function RootLayout() {
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Lắng nghe event logout từ axios interceptor để navigate
+  useEffect(() => {
+    const handleLogout = (event: CustomEvent<{ path: string }>) => {
+      const path = event.detail?.path || "/";
+      navigate(path, { replace: true });
+    };
+
+    window.addEventListener("auth:logout", handleLogout as EventListener);
+    return () => {
+      window.removeEventListener("auth:logout", handleLogout as EventListener);
+    };
+  }, [navigate]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });

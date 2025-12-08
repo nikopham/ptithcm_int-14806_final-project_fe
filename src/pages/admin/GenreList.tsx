@@ -112,12 +112,12 @@ export default function GenreList() {
     if (!deleteId) return;
     try {
       await deleteGenre(deleteId).unwrap();
-      toast.success("Genre deleted!");
+      toast.success("Đã xóa thể loại!");
       setConfirmOpen(false);
       setDeleteId(null);
       await refetch();
     } catch {
-      toast.error("Failed to delete genre");
+      toast.error("Không thể xóa thể loại");
     }
   };
   const handleSave = async () => {
@@ -129,17 +129,17 @@ export default function GenreList() {
           id: currentId,
           body: { name: formData.name },
         }).unwrap();
-        toast.success("Genre updated!");
+        toast.success("Đã cập nhật thể loại!");
       } else {
         await createGenre({ name: formData.name }).unwrap();
-        toast.success("Genre created!");
+        toast.success("Đã tạo thể loại!");
         setCurrentPage(0);
       }
       setIsOpen(false);
       setFormData({ name: "" });
       await refetch();
     } catch {
-      toast.error("Failed to save genre");
+      toast.error("Không thể lưu thể loại");
     } finally {
       setIsSaving(false);
     }
@@ -151,11 +151,11 @@ export default function GenreList() {
       {/* ─── Header ─── */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Genres</h1>
-          <p className="text-sm text-zinc-400">Manage movie categories</p>
+          <h1 className="text-2xl font-bold text-white">Thể Loại</h1>
+          <p className="text-sm text-zinc-400">Quản lý danh mục phim</p>
         </div>
         <Button onClick={handleAdd} className="bg-teal-600 hover:bg-teal-700">
-          <Plus className="mr-2 size-4" /> Add Genre
+          <Plus className="mr-2 size-4" /> Thêm Thể Loại
         </Button>
       </div>
 
@@ -163,7 +163,7 @@ export default function GenreList() {
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
         <Input
-          placeholder="Search genres..."
+          placeholder="Tìm kiếm thể loại..."
           className="pl-9 bg-zinc-900 border-zinc-700"
           value={query}
           onChange={handleSearch}
@@ -176,9 +176,9 @@ export default function GenreList() {
           <TableHeader className="bg-zinc-950">
             <TableRow className="hover:bg-zinc-900">
               <TableHead className="w-20">ID</TableHead>
-              <TableHead>Name</TableHead>
+              <TableHead>Tên</TableHead>
               {/* <TableHead>Slug</TableHead> (Tạm ẩn nếu chưa có data) */}
-              <TableHead className="text-right">Movies</TableHead>
+              <TableHead className="text-right">Phim</TableHead>
               <TableHead className="w-20"></TableHead>
             </TableRow>
           </TableHeader>
@@ -195,7 +195,7 @@ export default function GenreList() {
                   colSpan={5}
                   className="h-24 text-center text-zinc-500"
                 >
-                  {isError ? "Failed to load genres." : "No genre found."}
+                  {isError ? "Không thể tải thể loại." : "Không tìm thấy thể loại nào."}
                 </TableCell>
               </TableRow>
             ) : (
@@ -226,7 +226,7 @@ export default function GenreList() {
                           variant="ghost"
                           className="h-8 w-8 p-0 text-zinc-400 hover:text-white"
                         >
-                          <span className="sr-only">Open menu</span>
+                          <span className="sr-only">Mở menu</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -238,13 +238,13 @@ export default function GenreList() {
                           onClick={() => handleEdit({ id: g.id, name: g.name })}
                           className="cursor-pointer hover:bg-zinc-800 focus:bg-zinc-800"
                         >
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                          <Pencil className="mr-2 h-4 w-4" /> Chỉnh Sửa
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(g.id)}
                           className="text-red-500 cursor-pointer hover:bg-red-900/20 focus:bg-red-900/20 hover:text-red-400 focus:text-red-400"
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          <Trash2 className="mr-2 h-4 w-4" /> Xóa
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -272,7 +272,7 @@ export default function GenreList() {
             </PaginationItem>
             <PaginationItem>
               <span className="px-4 text-sm text-zinc-400">
-                Page {currentPage + 1} of {totalPages}
+                Trang {currentPage + 1} / {totalPages}
               </span>
             </PaginationItem>
             <PaginationItem>
@@ -294,17 +294,17 @@ export default function GenreList() {
         <DialogContent className="sm:max-w-[425px] bg-zinc-900 border-zinc-800 text-white">
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? "Edit Genre" : "Add New Genre"}
+              {isEditing ? "Chỉnh Sửa Thể Loại" : "Thêm Thể Loại Mới"}
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
-              {isEditing ? "Update genre details." : "Enter the genre name."}
+              {isEditing ? "Cập nhật thông tin thể loại." : "Nhập tên thể loại."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4 relative">
               <Label htmlFor="name" className="text-right text-zinc-300">
-                Name
+                Tên
               </Label>
               <div className="col-span-3 relative">
                 <Input
@@ -312,7 +312,7 @@ export default function GenreList() {
                   className="bg-zinc-950 border-zinc-700 focus-visible:ring-teal-600"
                   value={formData.name}
                   onChange={(e) => setFormData({ name: e.target.value })}
-                  placeholder="Enter genre name..."
+                  placeholder="Nhập tên thể loại..."
                   autoComplete="off"
                 />
               </div>
@@ -321,7 +321,7 @@ export default function GenreList() {
 
           <DialogFooter>
             <Button variant="secondary" onClick={() => setIsOpen(false)}>
-              Cancel
+              Hủy
             </Button>
             <Button
               onClick={handleSave}
@@ -331,7 +331,7 @@ export default function GenreList() {
               {isSaving ? (
                 <Loader2 className="size-4 animate-spin text-zinc-500" />
               ) : (
-                "Save"
+                "Lưu"
               )}
             </Button>
           </DialogFooter>

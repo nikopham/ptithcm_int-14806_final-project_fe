@@ -162,8 +162,7 @@ export default function CreateAdminDialog(props: Props) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-                <SelectItem value="comment_admin">Comment Admin</SelectItem>
-                <SelectItem value="movie_admin">Movie Admin</SelectItem>
+                <SelectItem value="movie_admin">Quản Trị Phim</SelectItem>
               </SelectContent>
             </Select>
           </div>

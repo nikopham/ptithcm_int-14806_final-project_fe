@@ -208,7 +208,7 @@
 // );
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { store } from "@/app/store";
-import { logout } from "@/features/auth/authSlice";
+import { logoutSilent } from "@/features/auth/authSlice";
 import { showErrorModal } from "@/features/ui/errorModalSlice";
 
 declare module "axios" {
@@ -368,20 +368,15 @@ api.interceptors.response.use(
           // Ignore logout error
         }
 
-        // Dispatch logout action để cập nhật state
-        store.dispatch(logout());
+        // Dispatch logoutSilent action để cập nhật state (không hiển thị toast)
+        store.dispatch(logoutSilent());
 
-        // Redirect về trang chủ
-        window.location.href = "/";
+        // Redirect về trang chủ bằng cách dispatch custom event
+        // RootLayout sẽ lắng nghe event này và navigate bằng React Router
+        window.dispatchEvent(new CustomEvent("auth:logout", { detail: { path: "/" } }));
 
-        // Hiển thị thông báo lỗi
-        store.dispatch(
-          showErrorModal({
-            title: "Phiên hết hạn",
-            message: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
-            code: 401,
-          })
-        );
+        // Không hiển thị error dialog khi logout tự động (refresh token thất bại)
+        // Chỉ redirect về trang chủ im lặng
 
         return Promise.reject(refreshError);
       } finally {

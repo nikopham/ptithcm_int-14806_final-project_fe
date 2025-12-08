@@ -193,8 +193,7 @@ export default function EditAdminDialog(props: Props) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-                  <SelectItem value="comment_admin">Comment Admin</SelectItem>
-                  <SelectItem value="movie_admin">Movie Admin</SelectItem>
+                  <SelectItem value="movie_admin">Quản Trị Phim</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -236,21 +235,12 @@ export default function EditAdminDialog(props: Props) {
           </div>
 
           <div className="flex justify-between rounded-md bg-zinc-950 p-3 text-center border border-zinc-800">
-            {selectedAdmin.role === "movie_admin" ? (
-              <div className="text-center">
-                <p className="text-xs text-zinc-500">Movies Added</p>
-                <p className="text-lg font-bold text-teal-400">
-                  {selectedAdmin.stats?.movies_added || 0}
-                </p>
-              </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-xs text-zinc-500">Comments Moderated</p>
-                <p className="text-lg font-bold text-purple-400">
-                  {selectedAdmin.stats?.comments_moderated || 0}
-                </p>
-              </div>
-            )}
+            <div className="text-center">
+              <p className="text-xs text-zinc-500">Phim Đã Thêm</p>
+              <p className="text-lg font-bold text-teal-400">
+                {selectedAdmin.stats?.movies_added || 0}
+              </p>
+            </div>
           </div>
 
           <div className="space-y-2 rounded-lg border border-zinc-800 p-4">

@@ -30,30 +30,30 @@ type Item = {
 };
 
 const nav: Item[] = [
-  { label: "Dashboard", icon: BarChart2, to: "/admin" },
+  { label: "Bảng Điều Khiển", icon: BarChart2, to: "/admin" },
 
   {
-    label: "Danh sách phim",
+    label: "Quản Lý Phim",
     icon: Film,
     to: "/admin/movies",
-    children: [{ label: "Thêm phim", icon: Plus, to: "/admin/movies/new" }],
+    children: [{ label: "Thêm Phim", icon: Plus, to: "/admin/movies/new" }],
   },
-  { label: "Danh sách Genre", icon: Layers3, to: "/admin/genres" },
-  { label: "Danh sách Movie People", icon: Users2, to: "/admin/movie-people" },
+  { label: "Quản Lý Thể Loại", icon: Layers3, to: "/admin/genres" },
+  { label: "Quản Lý Diễn Viên & Đạo Diễn", icon: Users2, to: "/admin/movie-people" },
 
-  { label: "Danh sách Rating", icon: ShieldCheck, to: "/admin/ratings" },
-  { label: "Danh sách Comment", icon: MessageCircle, to: "/admin/comments" },
-  // { label: "Danh sách các gói subscription", icon: Wallet, to: "/admin/plans" },
+  { label: "Quản Lý Đánh Giá", icon: ShieldCheck, to: "/admin/ratings" },
+  { label: "Quản Lý Bình Luận", icon: MessageCircle, to: "/admin/comments" },
+  // { label: "Quản Lý Gói Đăng Ký", icon: Wallet, to: "/admin/plans" },
   {
-    label: "Danh sách User",
+    label: "Quản Lý Người Dùng",
     icon: Users2,
     // to: "/admin/users",
     children: [
-      { label: "Danh sách Viewer", icon: Users2, to: "/admin/users/viewer" },
-      { label: "Danh sách Admin", icon: UserCog, to: "/admin/users/admin" },
+      { label: "Quản Lý Người Xem", icon: Users2, to: "/admin/users/viewer" },
+      { label: "Quản Lý Quản Trị Viên", icon: UserCog, to: "/admin/users/admin" },
     ],
   },
-  // { label: "Danh sách thanh toán", icon: Wallet, to: "/admin/transactions" },
+  // { label: "Quản Lý Giao Dịch", icon: Wallet, to: "/admin/transactions" },
 ];
 
 /* ───────────────────────────── helper components */
@@ -204,7 +204,7 @@ export default function AdminLayout() {
         >
           {/* mobile top */}
           <div className="mb-4 flex items-center justify-between lg:hidden">
-            <span className="text-sm font-semibold text-white">Admin Menu</span>
+            <span className="text-sm font-semibold text-white">Menu Quản Trị</span>
             <button
               onClick={() => setOpen(false)}
               className="p-1.5 text-zinc-400 hover:text-white transition"
@@ -235,7 +235,7 @@ export default function AdminLayout() {
               />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs sm:text-sm font-medium text-white">
-                  {meLoading ? "Loading..." : me?.username || "Admin"}
+                  {meLoading ? "Đang tải..." : me?.username || "Admin"}
                 </p>
                 <p className="truncate text-[10px] sm:text-xs text-zinc-400">
                   {meLoading ? "..." : me?.email || ""}
@@ -248,7 +248,7 @@ export default function AdminLayout() {
               className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium text-red-400 transition hover:bg-zinc-800 hover:text-red-500"
             >
               <LogOut className="size-3.5 sm:size-4" />
-              <span>Logout</span>
+              <span>Đăng xuất</span>
             </button>
           </div>
         </aside>

@@ -91,16 +91,16 @@ export default function RatingList() {
       {/* ─── Header ─── */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">User Reviews</h1>
+          <h1 className="text-2xl font-bold text-white">Đánh Giá Người Dùng</h1>
           <p className="text-sm text-zinc-400">
-            Monitor user ratings and feedback
+            Theo dõi đánh giá và phản hồi của người dùng
           </p>
         </div>
         {/* Stats Summary (Optional) */}
         <div className="flex gap-4">
           <div className="text-right">
             <p className="text-2xl font-bold text-white">{totalElements}</p>
-            <p className="text-xs text-zinc-500">Total Reviews</p>
+            <p className="text-xs text-zinc-500">Tổng Đánh Giá</p>
           </div>
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function RatingList() {
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
         <Input
-          placeholder="Search movie, user or title..."
+          placeholder="Tìm kiếm phim, người dùng hoặc tiêu đề..."
           className="pl-9 bg-zinc-900 border-zinc-700"
           value={query}
           onChange={(e) => {
@@ -124,12 +124,12 @@ export default function RatingList() {
         <Table>
           <TableHeader className="bg-zinc-950">
             <TableRow className="hover:bg-zinc-900">
-              <TableHead className="min-w-[200px] sm:min-w-[250px]">Movie</TableHead>
-              <TableHead className="hidden sm:table-cell min-w-[150px]">User</TableHead>
-              <TableHead className="w-[100px] sm:w-[120px]">Rating</TableHead>
-              <TableHead className="hidden md:table-cell">Review Title</TableHead>
+              <TableHead className="min-w-[200px] sm:min-w-[250px]">Phim</TableHead>
+              <TableHead className="hidden sm:table-cell min-w-[150px]">Người Dùng</TableHead>
+              <TableHead className="w-[100px] sm:w-[120px]">Đánh Giá</TableHead>
+              <TableHead className="hidden md:table-cell">Tiêu Đề Đánh Giá</TableHead>
               <TableHead className="hidden lg:table-cell text-right min-w-[100px]">
-                Date
+                Ngày
               </TableHead>
               <TableHead className="w-[60px] sm:w-[80px]"></TableHead>
             </TableRow>
@@ -226,7 +226,7 @@ export default function RatingList() {
                   colSpan={6}
                   className="h-20 sm:h-24 text-center text-zinc-500 text-sm"
                 >
-                  Loading reviews...
+                  Đang tải đánh giá...
                 </TableCell>
               </TableRow>
             )}
@@ -236,7 +236,7 @@ export default function RatingList() {
                   colSpan={6}
                   className="h-20 sm:h-24 text-center text-zinc-500 text-sm"
                 >
-                  No reviews found.
+                  Không tìm thấy đánh giá nào.
                 </TableCell>
               </TableRow>
             )}
@@ -246,7 +246,7 @@ export default function RatingList() {
                   colSpan={6}
                   className="h-20 sm:h-24 text-center text-red-400 text-sm"
                 >
-                  Failed to load reviews.
+                  Không thể tải đánh giá.
                 </TableCell>
               </TableRow>
             )}
@@ -271,7 +271,7 @@ export default function RatingList() {
               </PaginationItem>
               <PaginationItem>
                 <span className="px-4 text-sm text-zinc-400">
-                  Page {currentPage} of {totalPages}
+                  Trang {currentPage} / {totalPages}
                 </span>
               </PaginationItem>
               <PaginationItem>
@@ -295,9 +295,9 @@ export default function RatingList() {
           {selectedReview && (
             <>
               <DialogHeader>
-                <DialogTitle>Review Details</DialogTitle>
+                <DialogTitle>Chi Tiết Đánh Giá</DialogTitle>
                 <DialogDescription>
-                  Review ID:{" "}
+                  ID Đánh Giá:{" "}
                   <span className="font-mono text-xs text-zinc-500">
                     {selectedReview.id}
                   </span>
@@ -320,7 +320,7 @@ export default function RatingList() {
                         {selectedReview.movieTitle}
                       </h3>
                       <div className="mt-1 flex items-center gap-2 text-sm text-zinc-400">
-                        <Film className="size-3" /> Movie
+                        <Film className="size-3" /> Phim
                       </div>
                     </div>
 

@@ -311,7 +311,7 @@ export default function MovieList() {
                             variant="ghost"
                             className="h-8 w-8 p-0 text-zinc-400 hover:text-white"
                           >
-                            <span className="sr-only">Open menu</span>
+                            <span className="sr-only">Mở menu</span>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

@@ -227,7 +227,7 @@ export default function MoviePeopleList() {
             {isFetching ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
-                  Loading...
+                  Đang tải...
                 </TableCell>
               </TableRow>
             ) : filteredData.length === 0 ? (
@@ -290,13 +290,13 @@ export default function MoviePeopleList() {
                           onClick={() => handleEditApiPerson(p as ApiPerson)}
                           className="cursor-pointer hover:bg-zinc-800"
                         >
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                          <Pencil className="mr-2 h-4 w-4" /> Chỉnh Sửa
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete((p as ApiPerson).id)}
                           className="text-red-500 cursor-pointer hover:bg-red-900/20 focus:bg-red-900/20 hover:text-red-400 focus:text-red-400"
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          <Trash2 className="mr-2 h-4 w-4" /> Xóa
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

@@ -215,9 +215,9 @@ export default function CommentList() {
       }
       // Refetch to get updated data
       await refetch();
-      toast.success(result.isHidden ? "Comment hidden" : "Comment visible");
+      toast.success(result.isHidden ? "Đã ẩn bình luận" : "Đã hiển thị bình luận");
     } catch (error) {
-      toast.error("Failed to toggle comment visibility");
+      toast.error("Không thể thay đổi trạng thái hiển thị bình luận");
       console.error("Toggle hidden error:", error);
     }
   };
@@ -227,19 +227,19 @@ export default function CommentList() {
     if (score >= 0.3) {
       return (
         <Badge className="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border-emerald-600/50">
-          Positive ({score})
+          Tích Cực ({score})
         </Badge>
       );
     } else if (score <= -0.3) {
       return (
         <Badge className="bg-red-600/20 text-red-400 hover:bg-red-600/30 border-red-600/50">
-          Negative ({score})
+          Tiêu Cực ({score})
         </Badge>
       );
     } else {
       return (
         <Badge variant="outline" className="text-zinc-400 border-zinc-600">
-          Neutral ({score})
+          Trung Tính ({score})
         </Badge>
       );
     }
@@ -256,17 +256,17 @@ export default function CommentList() {
       {/* ─── Header ─── */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Comments Moderation</h1>
+          <h1 className="text-2xl font-bold text-white">Quản Lý Bình Luận</h1>
           <p className="text-sm text-zinc-400">
-            Review and manage viewer discussions
+            Xem xét và quản lý thảo luận của người xem
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm text-zinc-500">
           <AlertCircle className="size-4" />
-          <span>Showing all comments (including hidden)</span>
+          <span>Hiển thị tất cả bình luận (bao gồm ẩn)</span>
           {data && (
             <span className="ml-2 text-xs">
-              (Total: {data.totalElements || 0}, Showing: {comments.length})
+              (Tổng: {data.totalElements || 0}, Đang hiển thị: {comments.length})
             </span>
           )}
         </div>
@@ -275,28 +275,28 @@ export default function CommentList() {
       {/* ─── Search & Filters ─── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <div className="relative max-w-sm w-full sm:w-auto">
-          <Label className="mb-1 block text-xs text-zinc-500">Search</Label>
+          <Label className="mb-1 block text-xs text-zinc-500">Tìm Kiếm</Label>
           
           <Input
-            placeholder="Search content, user or movie..."
+            placeholder="Tìm kiếm nội dung, người dùng hoặc phim..."
             className="pl-9 bg-zinc-900 border-zinc-700"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
         <div className="w-full sm:w-48">
-          <Label className="mb-1 block text-xs text-zinc-500">Visibility</Label>
+          <Label className="mb-1 block text-xs text-zinc-500">Hiển Thị</Label>
           <Select
             value={isHiddenFilter}
             onValueChange={(v) => setIsHiddenFilter(v as any)}
           >
             <SelectTrigger className="bg-zinc-900 border-zinc-700">
-              <SelectValue placeholder="Visibility" />
+              <SelectValue placeholder="Hiển Thị" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-zinc-700">
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="visible">Visible</SelectItem>
-              <SelectItem value="hidden">Hidden</SelectItem>
+              <SelectItem value="all">Tất Cả</SelectItem>
+              <SelectItem value="visible">Hiển Thị</SelectItem>
+              <SelectItem value="hidden">Ẩn</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -306,24 +306,24 @@ export default function CommentList() {
       <div className="rounded-lg border border-zinc-700/50 bg-zinc-900 overflow-hidden">
         {isLoading && (
           <div className="p-8 text-center text-zinc-400">
-            Loading comments...
+            Đang tải bình luận...
           </div>
         )}
         {isError && (
           <div className="p-8 text-center text-red-400">
-            Failed to load comments.
+            Không thể tải bình luận.
           </div>
         )}
         {!isLoading && !isError && (
           <Table>
             <TableHeader className="bg-zinc-950">
               <TableRow className="hover:bg-zinc-900">
-                <TableHead className="w-[60px] sm:w-[80px]">Status</TableHead>
-                <TableHead className="min-w-[150px] sm:min-w-[200px]">User</TableHead>
-                <TableHead className="min-w-[200px]">Comment</TableHead>
-                <TableHead className="hidden md:table-cell min-w-[120px]">Sentiment</TableHead>
+                <TableHead className="w-[60px] sm:w-[80px]">Trạng Thái</TableHead>
+                <TableHead className="min-w-[150px] sm:min-w-[200px]">Người Dùng</TableHead>
+                <TableHead className="min-w-[200px]">Bình Luận</TableHead>
+                <TableHead className="hidden md:table-cell min-w-[120px]">Cảm Xúc</TableHead>
                 <TableHead className="hidden lg:table-cell text-right min-w-[100px]">
-                  Created
+                  Ngày Tạo
                 </TableHead>
                 <TableHead className="w-[60px] sm:w-[80px]"></TableHead>
               </TableRow>
@@ -375,7 +375,7 @@ export default function CommentList() {
                             variant="secondary"
                             className="h-4 sm:h-5 px-1 text-[9px] sm:text-[10px] bg-zinc-800 text-zinc-400"
                           >
-                            <CornerDownRight className="mr-0.5 sm:mr-1 size-2.5 sm:size-3" /> Reply
+                            <CornerDownRight className="mr-0.5 sm:mr-1 size-2.5 sm:size-3" /> Trả Lời
                           </Badge>
                         )}
                         <span className="text-[10px] sm:text-xs font-semibold text-teal-400 flex items-center gap-1">
@@ -416,7 +416,7 @@ export default function CommentList() {
                     colSpan={6}
                     className="h-24 text-center text-zinc-500"
                   >
-                    No comments found.
+                    Không tìm thấy bình luận nào.
                   </TableCell>
                 </TableRow>
               )}
@@ -442,7 +442,7 @@ export default function CommentList() {
               </PaginationItem>
               <PaginationItem>
                 <span className="px-4 text-sm text-zinc-400">
-                  Page {page} of {data.totalPages}
+                  Trang {page} / {data.totalPages}
                 </span>
               </PaginationItem>
               <PaginationItem>
@@ -467,17 +467,17 @@ export default function CommentList() {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center justify-between">
-                  <span>Comment Details</span>
+                  <span>Chi Tiết Bình Luận</span>
                   {selectedComment.is_hidden ? (
                     <Badge
                       variant="destructive"
                       className="bg-red-900/30 text-red-500 border-red-900"
                     >
-                      HIDDEN
+                      ĐÃ ẨN
                     </Badge>
                   ) : (
                     <Badge className="bg-emerald-900/30 text-emerald-500 border-emerald-900">
-                      VISIBLE
+                      HIỂN THỊ
                     </Badge>
                   )}
                 </DialogTitle>
@@ -502,13 +502,13 @@ export default function CommentList() {
                   )}
                   <div className="flex-1 space-y-3">
                     <div>
-                      <p className="text-xs text-zinc-500">Movie</p>
+                      <p className="text-xs text-zinc-500">Phim</p>
                       <p className="font-semibold text-white">
                         {selectedComment.movie.title}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-zinc-500">Author</p>
+                      <p className="text-xs text-zinc-500">Tác Giả</p>
                       <div className="flex items-center gap-2 mt-1">
                         <Avatar className="h-5 w-5">
                           <AvatarImage
@@ -536,7 +536,7 @@ export default function CommentList() {
 
                 {/* Content */}
                 <div className="space-y-2">
-                  <Label className="text-zinc-400">Content</Label>
+                  <Label className="text-zinc-400">Nội Dung</Label>
                   <ScrollArea className="h-[150px] w-full rounded-md border border-zinc-800 bg-zinc-950 p-4">
                     <p className="text-sm leading-relaxed text-zinc-200">
                       {selectedComment.body}
@@ -547,18 +547,18 @@ export default function CommentList() {
                 {/* Status Toggle in Dialog */}
                 <div className="flex items-center justify-between rounded-lg border border-zinc-800 p-4">
                   <div className="space-y-0.5">
-                    <Label className="text-base">Visibility</Label>
+                    <Label className="text-base">Hiển Thị</Label>
                     <p className="text-xs text-zinc-500">
                       {selectedComment.is_hidden
-                        ? "This comment is currently hidden from public view."
-                        : "This comment is visible to everyone."}
+                        ? "Bình luận này hiện đang bị ẩn khỏi công khai."
+                        : "Bình luận này hiển thị cho mọi người."}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-sm font-medium ${selectedComment.is_hidden ? "text-red-500" : "text-emerald-500"}`}
                     >
-                      {selectedComment.is_hidden ? "Hidden" : "Visible"}
+                      {selectedComment.is_hidden ? "Ẩn" : "Hiển Thị"}
                     </span>
                     <Switch
                       checked={!selectedComment.is_hidden}
@@ -575,7 +575,7 @@ export default function CommentList() {
                   onClick={() => setIsDialogOpen(false)}
                   className="w-full bg-zinc-800 hover:bg-zinc-700"
                 >
-                  Close
+                  Đóng
                 </Button>
               </DialogFooter>
             </>

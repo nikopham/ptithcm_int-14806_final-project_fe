@@ -142,9 +142,9 @@ export default function ViewerList() {
       if (selectedViewer?.id === id) {
         setSelectedViewer({ ...selectedViewer, active: next });
       }
-      toast.success(`User status updated to ${next ? "Active" : "Banned"}`);
+      toast.success(`Đã cập nhật trạng thái người dùng thành ${next ? "Hoạt Động" : "Bị Cấm"}`);
     } catch (err: unknown) {
-      let message = "Failed to update user status. Please try again.";
+      let message = "Không thể cập nhật trạng thái người dùng. Vui lòng thử lại.";
       if (typeof err === "object" && err !== null) {
         const e = err as { data?: { message?: string }; message?: string };
         message = e.data?.message ?? e.message ?? message;
@@ -167,15 +167,15 @@ export default function ViewerList() {
       {/* ─── Header ─── */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Viewer Management</h1>
+          <h1 className="text-2xl font-bold text-white">Quản Lý Người Xem</h1>
           <p className="text-sm text-zinc-400">
-            Manage registered users and access
+            Quản lý người dùng đã đăng ký và quyền truy cập
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-md bg-zinc-900 px-3 py-1 border border-zinc-800">
           <UserIcon className="size-4 text-teal-500" />
           <span className="text-sm font-medium text-zinc-300">
-            {viewers.length} Users
+            {viewers.length} Người Dùng
           </span>
         </div>
       </div>
@@ -185,7 +185,7 @@ export default function ViewerList() {
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
           <Input
-            placeholder="Search username or email..."
+            placeholder="Tìm kiếm tên người dùng hoặc email..."
             className="pl-9 bg-zinc-900 border-zinc-700"
             value={query}
             onChange={(e) => {
@@ -203,12 +203,12 @@ export default function ViewerList() {
           }}
         >
           <SelectTrigger className="w-full sm:w-40 bg-zinc-900 border-zinc-700">
-            <SelectValue placeholder="Active" />
+            <SelectValue placeholder="Trạng Thái" />
           </SelectTrigger>
           <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-            <SelectItem value="ALL">All Status</SelectItem>
-            <SelectItem value="TRUE">Active</SelectItem>
-            <SelectItem value="FALSE">Banned</SelectItem>
+            <SelectItem value="ALL">Tất Cả Trạng Thái</SelectItem>
+            <SelectItem value="TRUE">Hoạt Động</SelectItem>
+            <SelectItem value="FALSE">Bị Cấm</SelectItem>
           </SelectContent>
         </Select>
 
@@ -220,12 +220,12 @@ export default function ViewerList() {
           }}
         >
           <SelectTrigger className="w-full sm:w-44 bg-zinc-900 border-zinc-700">
-            <SelectValue placeholder="Verification" />
+            <SelectValue placeholder="Xác Thực" />
           </SelectTrigger>
           <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-            <SelectItem value="ALL">All Emails</SelectItem>
-            <SelectItem value="TRUE">Verified</SelectItem>
-            <SelectItem value="FALSE">Pending</SelectItem>
+            <SelectItem value="ALL">Tất Cả Email</SelectItem>
+            <SelectItem value="TRUE">Đã Xác Thực</SelectItem>
+            <SelectItem value="FALSE">Chờ Xác Thực</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -235,13 +235,13 @@ export default function ViewerList() {
         <Table>
           <TableHeader className="bg-zinc-950">
             <TableRow className="hover:bg-zinc-900">
-              <TableHead className="min-w-[180px] sm:min-w-[250px]">User</TableHead>
-              <TableHead className="hidden sm:table-cell min-w-[200px]">Contact Info</TableHead>
-              <TableHead className="text-center min-w-[100px]">Verified</TableHead>
+              <TableHead className="min-w-[180px] sm:min-w-[250px]">Người Dùng</TableHead>
+              <TableHead className="hidden sm:table-cell min-w-[200px]">Thông Tin Liên Hệ</TableHead>
+              <TableHead className="text-center min-w-[100px]">Xác Thực</TableHead>
               <TableHead className="hidden md:table-cell min-w-[120px]">
-                Joined Date
+                Ngày Tham Gia
               </TableHead>
-              <TableHead className="text-center min-w-[100px]">Active Status</TableHead>
+              <TableHead className="text-center min-w-[100px]">Trạng Thái Hoạt Động</TableHead>
               <TableHead className="w-[60px] sm:w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -287,11 +287,11 @@ export default function ViewerList() {
                   <TableCell className="text-center min-w-[100px]">
                     {v.emailVerified ? (
                       <div className="inline-flex items-center justify-center rounded-full bg-emerald-500/10 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium text-emerald-500 ring-1 ring-inset ring-emerald-500/20">
-                        <ShieldCheck className="mr-0.5 sm:mr-1 size-2.5 sm:size-3" /> <span className="hidden sm:inline">Verified</span>
+                        <ShieldCheck className="mr-0.5 sm:mr-1 size-2.5 sm:size-3" /> <span className="hidden sm:inline">Đã Xác Thực</span>
                       </div>
                     ) : (
                       <div className="inline-flex items-center justify-center rounded-full bg-zinc-500/10 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium text-zinc-400 ring-1 ring-inset ring-zinc-500/20">
-                        <ShieldAlert className="mr-0.5 sm:mr-1 size-2.5 sm:size-3" /> <span className="hidden sm:inline">Pending</span>
+                        <ShieldAlert className="mr-0.5 sm:mr-1 size-2.5 sm:size-3" /> <span className="hidden sm:inline">Chờ Xác Thực</span>
                       </div>
                     )}
                   </TableCell>
@@ -331,7 +331,7 @@ export default function ViewerList() {
                   colSpan={6}
                   className="h-24 text-center text-zinc-500"
                 >
-                  {isFetching ? "Loading..." : "No viewers found."}
+                  {isFetching ? "Đang tải..." : "Không tìm thấy người xem nào."}
                 </TableCell>
               </TableRow>
             )}
@@ -357,7 +357,7 @@ export default function ViewerList() {
             </PaginationItem>
             <PaginationItem>
               <span className="px-4 text-sm text-zinc-400">
-                Page {currentPage + 1} of {totalPages}
+                Trang {currentPage + 1} / {totalPages}
               </span>
             </PaginationItem>
             <PaginationItem>
@@ -384,9 +384,9 @@ export default function ViewerList() {
           {selectedViewer && (
             <>
               <DialogHeader>
-                <DialogTitle>Viewer Profile</DialogTitle>
+                <DialogTitle>Hồ Sơ Người Xem</DialogTitle>
                 <DialogDescription className="text-zinc-400">
-                  Detailed information about this user.
+                  Thông tin chi tiết về người dùng này.
                 </DialogDescription>
               </DialogHeader>
 
@@ -408,7 +408,7 @@ export default function ViewerList() {
                         variant="secondary"
                         className="bg-zinc-800 text-zinc-400 hover:bg-zinc-800"
                       >
-                        Viewer
+                        Người Xem
                       </Badge>
                     </div>
                     <p className="text-sm text-zinc-500">
@@ -417,7 +417,7 @@ export default function ViewerList() {
                     <div className="mt-2 flex gap-2">
                       {selectedViewer.emailVerified && (
                         <span className="text-[10px] flex items-center text-emerald-500">
-                          <ShieldCheck className="size-3 mr-1" /> Email Verified
+                          <ShieldCheck className="size-3 mr-1" /> Email Đã Xác Thực
                         </span>
                       )}
                     </div>
@@ -427,19 +427,19 @@ export default function ViewerList() {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-3 gap-4">
                   <div className="rounded-md bg-zinc-900 p-3 text-center border border-zinc-800">
-                    <p className="text-xs text-zinc-500">Reviews</p>
+                    <p className="text-xs text-zinc-500">Đánh Giá</p>
                     <p className="text-xl font-bold text-white">
                       {selectedViewer.reviewCount ?? "—"}
                     </p>
                   </div>
                   <div className="rounded-md bg-zinc-900 p-3 text-center border border-zinc-800">
-                    <p className="text-xs text-zinc-500">Comments</p>
+                    <p className="text-xs text-zinc-500">Bình Luận</p>
                     <p className="text-xl font-bold text-white">
                       {selectedViewer.commentCount ?? "—"}
                     </p>
                   </div>
                   <div className="rounded-md bg-zinc-900 p-3 text-center border border-zinc-800">
-                    <p className="text-xs text-zinc-500">Joined</p>
+                    <p className="text-xs text-zinc-500">Tham Gia</p>
                     <p className="text-sm font-medium text-white mt-1">
                       {selectedViewer.createdAt
                         ? format(new Date(selectedViewer.createdAt), "MMM yyyy")
@@ -452,7 +452,7 @@ export default function ViewerList() {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between border-b border-zinc-800 pb-2">
                     <span className="text-zinc-400 flex items-center gap-2">
-                      <Calendar className="size-3" /> Created At
+                      <Calendar className="size-3" /> Ngày Tạo
                     </span>
                     <span className="text-white">
                       {selectedViewer.createdAt
@@ -466,19 +466,19 @@ export default function ViewerList() {
                 <div className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950 p-4">
                   <div className="space-y-0.5">
                     <Label className="text-base text-white">
-                      Account Status
+                      Trạng Thái Tài Khoản
                     </Label>
                     <p className="text-xs text-zinc-500">
                       {selectedViewer.active
-                        ? "User can log in and use the platform."
-                        : "User is banned/suspended from logging in."}
+                        ? "Người dùng có thể đăng nhập và sử dụng nền tảng."
+                        : "Người dùng bị cấm/tạm ngưng đăng nhập."}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-sm font-medium ${selectedViewer.active ? "text-emerald-500" : "text-red-500"}`}
                     >
-                      {selectedViewer.active ? "Active" : "Banned"}
+                      {selectedViewer.active ? "Hoạt Động" : "Bị Cấm"}
                     </span>
                     <Switch
                       checked={selectedViewer.active}
@@ -496,7 +496,7 @@ export default function ViewerList() {
                   onClick={() => setIsDialogOpen(false)}
                   className="w-full bg-zinc-800 hover:bg-zinc-700 text-white"
                 >
-                  Close Details
+                  Đóng Chi Tiết
                 </Button>
               </DialogFooter>
             </>
@@ -511,15 +511,15 @@ export default function ViewerList() {
           if (!isUpdating) setConfirmOpen(false);
         }}
         onConfirm={confirmToggle}
-        title="Update user status?"
+        title="Cập nhật trạng thái người dùng?"
         description={
           pendingToggle
             ? pendingToggle.next
-              ? "This will activate the user account and allow access."
-              : "This will ban/suspend the user from logging in."
+              ? "Điều này sẽ kích hoạt tài khoản người dùng và cho phép truy cập."
+              : "Điều này sẽ cấm/tạm ngưng người dùng đăng nhập."
             : undefined
         }
-        confirmText={pendingToggle?.next ? "Set Active" : "Set Banned"}
+        confirmText={pendingToggle?.next ? "Đặt Hoạt Động" : "Đặt Bị Cấm"}
         variant={pendingToggle?.next ? "default" : "destructive"}
         isLoading={isUpdating}
       />
