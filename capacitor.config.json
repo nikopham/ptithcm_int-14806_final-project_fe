@@ -1,0 +1,8 @@
+{
+  "appId": "com.streamify.app",
+  "appName": "Streamify",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

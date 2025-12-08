@@ -2,7 +2,6 @@ import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import PublicLayout from "@/layouts/PublicLayout";
 import { ProtectedRoute } from "./ProtectedRoute";
-import { Role } from "./role";
 import MoviesPage from "@/pages/public/MoviesPage";
 import MovieDetailPage from "@/pages/public/MovieDetailPage";
 import SubscriptionPage from "@/pages/public/SubscriptionPage";

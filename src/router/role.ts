@@ -1,8 +1,7 @@
-import { GlobalConstant } from "@/constants/GlobalConstant";
-
+// Role enum với string literal values (tương thích với GlobalConstant)
 export enum Role {
-  VIEWER = GlobalConstant.ROLE_VIEWER,
-  MOVIE_ADMIN = GlobalConstant.ROLE_MOVIE_ADMIN,
-  COMMENT_ADMIN = GlobalConstant.ROLE_COMMENT_ADMIN,
-  SUPER_ADMIN = GlobalConstant.ROLE_SUPER_ADMIN,
+  VIEWER = "ROLE_VIEWER",
+  MOVIE_ADMIN = "ROLE_MOVIE_ADMIN",
+  COMMENT_ADMIN = "ROLE_COMMENT_ADMIN",
+  SUPER_ADMIN = "ROLE_SUPER_ADMIN",
 }

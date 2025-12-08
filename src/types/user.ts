@@ -8,7 +8,7 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
-export interface Role {
+export interface UserRole {
   id: string;
   code: "ADMIN" | "USER" | "MODERATOR";
   displayName: string;
@@ -20,7 +20,7 @@ export interface User {
   username: string;
   avatarUrl?: string;
 
-  role: Role;
+  role: UserRole;
 
   emailVerified: boolean;
   isActive: boolean;
