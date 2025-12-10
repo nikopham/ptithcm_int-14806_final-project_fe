@@ -177,12 +177,12 @@ export default function MoviePeopleList() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
             <Users2 className="size-6 text-[#C40E61]" />
-            Quản Lý Người
+            Quản Lý Diễn Viên & Đạo Diễn
           </h1>
           <p className="text-sm text-gray-500">Diễn Viên & Đạo Diễn</p>
         </div>
         <Button onClick={handleAdd} className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white">
-          <Plus className="mr-2 size-4" /> Thêm Người
+          <Plus className="mr-2 size-4" /> Thêm Diễn Viên & Đạo Diễn
         </Button>
       </div>
 
