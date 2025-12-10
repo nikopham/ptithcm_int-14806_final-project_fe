@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { AlertTriangle, Code } from "lucide-react";
 
 export function GlobalErrorModal() {
   const dispatch = useDispatch();
@@ -29,22 +30,33 @@ export function GlobalErrorModal() {
         }
       }}
     >
-      <AlertDialogContent>
+      <AlertDialogContent className="bg-white border-gray-300 text-gray-900">
         <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogTitle className="flex items-center gap-2 text-gray-900">
+            <AlertTriangle className="size-5 text-red-600" />
+            {title || "Đã xảy ra lỗi"}
+          </AlertDialogTitle>
 
-          <AlertDialogDescription className="space-y-2 pt-2">
-            <p>{message}</p>
+          <AlertDialogDescription className="space-y-3 pt-2 text-gray-500">
+            <p className="text-base">{message}</p>
             {code && (
-              <p className="text-sm text-muted-foreground">
-                Error Code: <strong>{code}</strong>
-              </p>
+              <div className="flex items-center gap-2 rounded-md bg-red-50 border border-red-200 px-3 py-2">
+                <Code className="size-4 text-red-600" />
+                <p className="text-sm text-red-700">
+                  Mã lỗi: <strong className="font-mono">{code}</strong>
+                </p>
+              </div>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogAction>Get it !</AlertDialogAction>
+          <AlertDialogAction 
+            onClick={handleClose}
+            className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
+          >
+            Đã hiểu
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

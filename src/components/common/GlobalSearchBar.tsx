@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Film, Users, Star } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
-import type { FastSearchResponse } from "@/types/search";
 
 // Shadcn UI Command
 import {
@@ -31,7 +30,7 @@ const HighlightText = ({
   const html = highlight || text;
   return (
     <span
-      className="meili-highlight" // Class để CSS (xem bên dưới)
+      className="meili-highlight [&_em]:font-semibold [&_em]:text-[#C40E61] [&_em]:not-italic [&_em]:bg-[#C40E61]/10 [&_em]:px-0.5 [&_em]:rounded"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -72,28 +71,28 @@ export function GlobalSearchBar() {
     <>
       <Button
         variant="outline"
-        className="w-full md:w-[260px] justify-between text-muted-foreground bg-black-900 border-black-700"
+        className="w-full md:w-[260px] justify-between text-gray-500 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-900"
         onClick={() => setOpen(true)}
       >
         <span className="flex items-center gap-2">
-          <Search className="h-4 w-4" /> Quick Search...
+          <Search className="h-4 w-4 text-[#C40E61]" /> Tìm Kiếm...
         </span>
-        {/* <kbd className="hidden md:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+        {/* <kbd className="hidden md:inline-flex h-5 items-center gap-1 rounded border bg-gray-100 px-1.5 font-mono text-[10px] font-medium opacity-100 text-gray-600">
           <span className="text-xs">⌘</span>K
         </kbd> */}
       </Button>
 
-      <CommandDialog open={open} onOpenChange={setOpen} shouldFilter={false}>
+      <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
-          placeholder="Search movies, actors, directors..."
+          placeholder="Tìm kiếm phim, diễn viên, đạo diễn..."
           value={query}
           onValueChange={setQuery}
         />
 
         <CommandList>
           {isFetching && query.length >= 1 && (
-            <div className="py-6 flex justify-center text-sm text-muted-foreground">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Searching...
+            <div className="py-6 flex justify-center items-center gap-2 text-sm text-gray-500">
+              <Loader2 className="h-4 w-4 animate-spin text-[#C40E61]" /> Đang tìm kiếm...
             </div>
           )}
 
@@ -101,35 +100,42 @@ export function GlobalSearchBar() {
             shouldShowResults &&
             data?.movies.length === 0 &&
             data?.people.length === 0 && (
-              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandEmpty className="text-gray-500">Không tìm thấy kết quả nào.</CommandEmpty>
             )}
 
           {/* GROUP MOVIES */}
           {shouldShowResults && data?.movies && data.movies.length > 0 && (
-            <CommandGroup heading="Movies">
+            <CommandGroup heading={
+              <div className="flex items-center gap-2 text-gray-900">
+                <Film className="size-4 text-[#C40E61]" />
+                Phim
+              </div>
+            }>
               {data.movies.map((movie) => (
                 <CommandItem
                   key={movie.id}
                   value={movie.id + movie.title}
                   onSelect={() => handleSelect(`/movie/detail/${movie.id}`)}
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-3">
                     <img
                       src={movie.poster}
-                      className="h-10 w-7 object-cover rounded"
+                      className="h-10 w-7 object-cover rounded border border-gray-300 shadow-sm"
                       alt={movie.title}
                     />
                     <div className="flex flex-col">
-                      <span className="font-medium text-slate-200">
+                      <span className="font-medium text-gray-900">
                         {/* Render Title có Highlight */}
                         <HighlightText
                           text={movie.title}
                           highlight={movie._formatted?.title}
                         />
                       </span>
-                      <span className="text-xs text-muted-foreground">
-                        {movie.releaseYear} • {movie.rating} ★
+                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                        {movie.releaseYear} • 
+                        <Star className="size-3 fill-yellow-500 text-yellow-500" />
+                        {movie.rating}
                       </span>
                     </div>
                   </div>
@@ -144,16 +150,21 @@ export function GlobalSearchBar() {
 
           {/* GROUP PEOPLE */}
           {shouldShowResults && data?.people && data.people.length > 0 && (
-            <CommandGroup heading="People">
+            <CommandGroup heading={
+              <div className="flex items-center gap-2 text-gray-900">
+                <Users className="size-4 text-[#C40E61]" />
+                Người
+              </div>
+            }>
               {data.people.map((person) => (
                 <CommandItem
                   key={person.id}
                   value={person.id + person.fullName}
                   onSelect={() => handleSelect(`/movie/people/${person.id}`)} // Giả sử bạn có trang people detail
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full overflow-hidden bg-slate-800">
+                    <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-200 border border-gray-300 shadow-sm">
                       <img
                         src={person.profilePath}
                         className="h-full w-full object-cover"
@@ -161,13 +172,13 @@ export function GlobalSearchBar() {
                       />
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-medium text-slate-200">
+                      <span className="font-medium text-gray-900">
                         <HighlightText
                           text={person.fullName}
                           highlight={person._formatted?.fullName}
                         />
                       </span>
-                      <span className="text-xs text-muted-foreground capitalize">
+                      <span className="text-xs text-gray-500 capitalize">
                         {person.job.toLowerCase()}
                       </span>
                     </div>

@@ -8,22 +8,14 @@ interface DeviceCardProps {
 }
 
 const DeviceCard = ({ Icon, title, desc }: DeviceCardProps) => (
-  <div className="group relative overflow-hidden rounded-xl bg-zinc-900 p-8 shadow-lg transition hover:-translate-y-1">
-    {/* subtle radial red glow */}
-    <div
-      className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-      style={{
-        background:
-          "radial-gradient(1000px at 90% 10%, rgba(239,68,68,0.15), transparent 70%)",
-      }}
-    />
+  <div className="group relative overflow-hidden rounded-xl bg-white border border-gray-300 p-8 shadow-lg transition hover:-translate-y-1 hover:bg-gray-50">
     {/* icon */}
-    <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-lg bg-zinc-800">
-      <Icon className="size-7 text-red-600" />
+    <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-lg bg-gray-100">
+      <Icon className="size-7" style={{ color: "#C40E61" }} />
     </div>
 
-    <h3 className="mb-3 text-lg font-semibold text-white">{title}</h3>
-    <p className="text-sm leading-relaxed text-zinc-400">{desc}</p>
+    <h3 className="mb-3 text-lg font-semibold" style={{ color: "#C40E61" }}>{title}</h3>
+    <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
   </div>
 );
 
@@ -43,10 +35,10 @@ export const DeviceSection = () => {
     <section className="mx-auto max-w-7xl px-4 pb-24">
       {/* heading */}
       <div className="mb-14 max-w-3xl">
-        <h2 className="mb-4 text-3xl font-extrabold text-white md:text-4xl">
+        <h2 className="mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl">
           Trải Nghiệm Xem Phim Trên Mọi Thiết Bị
         </h2>
-        <p className="text-zinc-400">
+        <p className="text-gray-500">
           Với Streamify, bạn có thể thưởng thức những bộ phim và chương trình TV yêu thích
           mọi lúc, mọi nơi. Nền tảng của chúng tôi được thiết kế để tương thích với nhiều
           loại thiết bị, đảm bảo bạn không bao giờ bỏ lỡ khoảnh khắc giải trí nào.

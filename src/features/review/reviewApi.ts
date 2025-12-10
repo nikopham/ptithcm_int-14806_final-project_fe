@@ -48,4 +48,4 @@ export const reviewApi = createApi({
   }),
 });
 
-export const { useSearchReviewsQuery, useCreateReviewMutation } = reviewApi;
+export const { useSearchReviewsQuery, useCreateReviewMutation, useUpdateReviewMutation } = reviewApi;

@@ -6,6 +6,8 @@ import {
   MoreHorizontal,
   Loader2,
   Trash2,
+  Tag,
+  Layers3,
 } from "lucide-react";
 import type { Genre } from "@/types/genre";
 import {
@@ -151,30 +153,33 @@ export default function GenreList() {
       {/* ─── Header ─── */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Thể Loại</h1>
-          <p className="text-sm text-zinc-400">Quản lý danh mục phim</p>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <Layers3 className="size-6 text-[#C40E61]" />
+            Thể Loại
+          </h1>
+          <p className="text-sm text-gray-500">Quản lý danh mục phim</p>
         </div>
-        <Button onClick={handleAdd} className="bg-teal-600 hover:bg-teal-700">
+        <Button onClick={handleAdd} className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white">
           <Plus className="mr-2 size-4" /> Thêm Thể Loại
         </Button>
       </div>
 
       {/* ─── Search ─── */}
       <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
         <Input
           placeholder="Tìm kiếm thể loại..."
-          className="pl-9 bg-zinc-900 border-zinc-700"
+          className="pl-9 bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
           value={query}
           onChange={handleSearch}
         />
       </div>
 
       {/* ─── Table ─── */}
-      <div className="rounded-lg border border-zinc-700/50 bg-zinc-900 overflow-hidden">
+      <div className="rounded-lg border border-gray-300 bg-white overflow-hidden">
         <Table>
-          <TableHeader className="bg-zinc-950">
-            <TableRow className="hover:bg-zinc-900">
+          <TableHeader className="bg-gray-100">
+            <TableRow className="hover:bg-gray-50">
               <TableHead className="w-20">ID</TableHead>
               <TableHead>Tên</TableHead>
               {/* <TableHead>Slug</TableHead> (Tạm ẩn nếu chưa có data) */}
@@ -186,14 +191,14 @@ export default function GenreList() {
             {isFetching ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
-                  <Loader2 className="mx-auto size-6 animate-spin text-zinc-500" />
+                  <Loader2 className="mx-auto size-6 animate-spin text-[#C40E61]" />
                 </TableCell>
               </TableRow>
             ) : paged.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="h-24 text-center text-zinc-500"
+                  className="h-24 text-center text-gray-500"
                 >
                   {isError ? "Không thể tải thể loại." : "Không tìm thấy thể loại nào."}
                 </TableCell>
@@ -202,21 +207,22 @@ export default function GenreList() {
               paged.map((g) => (
                 <TableRow
                   key={g.id}
-                  className="hover:bg-zinc-800/50 border-zinc-800"
+                  className="hover:bg-gray-50 border-gray-200"
                 >
-                  <TableCell className="font-mono text-zinc-500">
+                  <TableCell className="font-mono text-gray-500">
                     #{g.id}
                   </TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className="border-zinc-700 text-white hover:bg-zinc-800"
+                      className="border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
                     >
+                      <Tag className="mr-1 size-3 text-[#C40E61]" />
                       {g.name}
                     </Badge>
                   </TableCell>
-                  {/* <TableCell className="text-zinc-400 italic">slug-here</TableCell> */}
-                  <TableCell className="text-right text-zinc-300">
+                  {/* <TableCell className="text-gray-500 italic">slug-here</TableCell> */}
+                  <TableCell className="text-right text-gray-700">
                     {g.movieCount || "0"}
                   </TableCell>
                   <TableCell>
@@ -224,7 +230,7 @@ export default function GenreList() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="h-8 w-8 p-0 text-zinc-400 hover:text-white"
+                          className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                         >
                           <span className="sr-only">Mở menu</span>
                           <MoreHorizontal className="h-4 w-4" />
@@ -232,17 +238,17 @@ export default function GenreList() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="bg-zinc-900 border-zinc-700 text-white"
+                        className="bg-white border-gray-300 text-gray-900"
                       >
                         <DropdownMenuItem
                           onClick={() => handleEdit({ id: g.id, name: g.name })}
-                          className="cursor-pointer hover:bg-zinc-800 focus:bg-zinc-800"
+                          className="cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
                         >
                           <Pencil className="mr-2 h-4 w-4" /> Chỉnh Sửa
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(g.id)}
-                          className="text-red-500 cursor-pointer hover:bg-red-900/20 focus:bg-red-900/20 hover:text-red-400 focus:text-red-400"
+                          className="text-red-600 cursor-pointer hover:bg-red-50 focus:bg-red-50 hover:text-red-700 focus:text-red-700"
                         >
                           <Trash2 className="mr-2 h-4 w-4" /> Xóa
                         </DropdownMenuItem>
@@ -265,13 +271,13 @@ export default function GenreList() {
                 onClick={handlePrev}
                 className={
                   isFetching || currentPage === 0
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
+                    ? "pointer-events-none opacity-50 text-gray-400"
+                    : "cursor-pointer text-gray-700 hover:bg-gray-100"
                 }
               />
             </PaginationItem>
             <PaginationItem>
-              <span className="px-4 text-sm text-zinc-400">
+              <span className="px-4 text-sm text-gray-500">
                 Trang {currentPage + 1} / {totalPages}
               </span>
             </PaginationItem>
@@ -280,8 +286,8 @@ export default function GenreList() {
                 onClick={handleNext}
                 className={
                   isFetching || currentPage >= totalPages - 1
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
+                    ? "pointer-events-none opacity-50 text-gray-400"
+                    : "cursor-pointer text-gray-700 hover:bg-gray-100"
                 }
               />
             </PaginationItem>
@@ -291,25 +297,26 @@ export default function GenreList() {
 
       {/* ─── Add/Edit Dialog (Giữ nguyên UI) ─── */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-zinc-900 border-zinc-800 text-white">
+        <DialogContent className="sm:max-w-[425px] bg-white border-gray-300 text-gray-900">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-gray-900">
+              <Tag className="size-5 text-[#C40E61]" />
               {isEditing ? "Chỉnh Sửa Thể Loại" : "Thêm Thể Loại Mới"}
             </DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogDescription className="text-gray-500">
               {isEditing ? "Cập nhật thông tin thể loại." : "Nhập tên thể loại."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4 relative">
-              <Label htmlFor="name" className="text-right text-zinc-300">
+              <Label htmlFor="name" className="text-right text-gray-900">
                 Tên
               </Label>
               <div className="col-span-3 relative">
                 <Input
                   id="name"
-                  className="bg-zinc-950 border-zinc-700 focus-visible:ring-teal-600"
+                  className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
                   value={formData.name}
                   onChange={(e) => setFormData({ name: e.target.value })}
                   placeholder="Nhập tên thể loại..."
@@ -320,16 +327,23 @@ export default function GenreList() {
           </div>
 
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setIsOpen(false)}>
+            <Button 
+              variant="secondary" 
+              onClick={() => setIsOpen(false)}
+              className="border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
               Hủy
             </Button>
             <Button
               onClick={handleSave}
-              className="bg-teal-600 hover:bg-teal-700"
+              className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
               disabled={isSaving || !formData.name.trim()}
             >
               {isSaving ? (
-                <Loader2 className="size-4 animate-spin text-zinc-500" />
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Đang lưu...
+                </>
               ) : (
                 "Lưu"
               )}

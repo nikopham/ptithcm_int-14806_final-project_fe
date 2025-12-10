@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { Search, Eye, Plus, Trash2 } from "lucide-react";
+import { Search, Eye, Plus, Trash2, Shield, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -323,19 +323,19 @@ export default function AdminList() {
   const RoleBadge = ({ role }: { role: AdminRole }) => {
     if (role === "movie_admin") {
       return (
-        <Badge className="bg-teal-600/20 text-teal-400 border-teal-600/50">
+        <Badge className="bg-blue-50 text-blue-700 border-blue-300">
           Quản Trị Phim
         </Badge>
       );
     }
     if (role === "super_admin") {
       return (
-        <Badge className="bg-red-600/20 text-red-400 border-red-600/50">
+        <Badge className="bg-red-50 text-red-700 border-red-300">
           Quản Trị Tối Cao
         </Badge>
       );
     }
-    return <Badge variant="secondary">{role}</Badge>;
+    return <Badge variant="secondary" className="bg-gray-100 text-gray-700 border-gray-300">{role}</Badge>;
   };
 
   return (
@@ -343,14 +343,17 @@ export default function AdminList() {
       {/* ─── Header ─── */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Quản Lý Quản Trị Viên</h1>
-          <p className="text-sm text-zinc-400">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <Shield className="size-6 text-[#C40E61]" />
+            Quản Lý Quản Trị Viên
+          </h1>
+          <p className="text-sm text-gray-500">
             Quản lý vai trò và quyền truy cập của nhân viên nội bộ
           </p>
         </div>
         <Button
           onClick={handleOpenCreate}
-          className="bg-teal-600 hover:bg-teal-700"
+          className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
         >
           <Plus className="mr-2 size-4" /> Thêm Quản Trị Viên
         </Button>
@@ -359,10 +362,10 @@ export default function AdminList() {
       {/* ─── Filters ─── */}
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
           <Input
             placeholder="Tìm kiếm tên người dùng hoặc email..."
-            className="pl-9 bg-zinc-900 border-zinc-700"
+            className="pl-9 bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -378,10 +381,10 @@ export default function AdminList() {
             setCurrentPage(0);
           }}
         >
-          <SelectTrigger className="w-full sm:w-44 bg-zinc-900 border-zinc-700">
+          <SelectTrigger className="w-full sm:w-44 bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
             <SelectValue placeholder="Vai Trò" />
           </SelectTrigger>
-          <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
+          <SelectContent className="bg-white border-gray-300 text-gray-900">
             <SelectItem value="ALL">Tất Cả Vai Trò</SelectItem>
             <SelectItem value="movie_admin">Quản Trị Phim</SelectItem>
           </SelectContent>
@@ -394,10 +397,10 @@ export default function AdminList() {
             setCurrentPage(0);
           }}
         >
-          <SelectTrigger className="w-full sm:w-40 bg-zinc-900 border-zinc-700">
+          <SelectTrigger className="w-full sm:w-40 bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
             <SelectValue placeholder="Trạng Thái" />
           </SelectTrigger>
-          <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
+          <SelectContent className="bg-white border-gray-300 text-gray-900">
             <SelectItem value="ALL">Tất Cả Trạng Thái</SelectItem>
             <SelectItem value="TRUE">Hoạt Động</SelectItem>
             <SelectItem value="FALSE">Bị Cấm</SelectItem>
@@ -406,10 +409,10 @@ export default function AdminList() {
       </div>
 
       {/* ─── Table ─── */}
-      <div className="rounded-lg border border-zinc-700/50 bg-zinc-900 overflow-hidden">
+      <div className="rounded-lg border border-gray-300 bg-white overflow-hidden">
         <Table>
-          <TableHeader className="bg-zinc-950">
-            <TableRow className="hover:bg-zinc-900">
+          <TableHeader className="bg-gray-100">
+            <TableRow className="hover:bg-gray-50">
               <TableHead className="min-w-[180px] sm:min-w-[250px]">Quản Trị Viên</TableHead>
               <TableHead className="hidden sm:table-cell min-w-[200px]">Email</TableHead>
               <TableHead className="min-w-[120px]">Vai Trò</TableHead>
@@ -423,7 +426,7 @@ export default function AdminList() {
           <TableBody>
             {isFetching ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={6} className="h-24 text-center text-gray-500">
                   Đang tải...
                 </TableCell>
               </TableRow>
@@ -431,7 +434,7 @@ export default function AdminList() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="h-24 text-center text-zinc-500"
+                  className="h-24 text-center text-gray-500"
                 >
                   {isError ? "Không thể tải quản trị viên." : "Không tìm thấy quản trị viên nào."}
                 </TableCell>
@@ -440,27 +443,27 @@ export default function AdminList() {
               filteredData.map((a) => (
                 <TableRow
                   key={a.id}
-                  className="hover:bg-zinc-800/50 border-zinc-800"
+                  className="hover:bg-gray-50 border-gray-200"
                 >
                   {/* Admin Info - Combined with email on mobile */}
                   <TableCell className="min-w-[180px] sm:min-w-[250px]">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0">
+                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 border border-gray-300">
                         <AvatarImage src={a.avatar_url} />
-                        <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xs sm:text-sm">
+                        <AvatarFallback className="bg-[#C40E61] text-white text-xs sm:text-sm">
                           {a.username.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm font-medium text-white truncate">{a.username}</p>
+                        <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{a.username}</p>
                         {/* Show email on mobile */}
-                        <p className="text-[10px] text-zinc-400 truncate sm:hidden mt-0.5">{a.email}</p>
+                        <p className="text-[10px] text-gray-500 truncate sm:hidden mt-0.5">{a.email}</p>
                       </div>
                     </div>
                   </TableCell>
 
                   {/* Email - Hidden on mobile */}
-                  <TableCell className="hidden sm:table-cell text-zinc-300 text-xs sm:text-sm min-w-[200px]">
+                  <TableCell className="hidden sm:table-cell text-gray-600 text-xs sm:text-sm min-w-[200px]">
                     <span className="truncate block">{a.email}</span>
                   </TableCell>
                   
@@ -469,8 +472,11 @@ export default function AdminList() {
                   </TableCell>
                   
                   {/* Join Date - Hidden on mobile/tablet */}
-                  <TableCell className="hidden md:table-cell text-zinc-400 text-xs sm:text-sm min-w-[120px]">
-                    {format(new Date(a.created_at), "MMM dd, yyyy")}
+                  <TableCell className="hidden md:table-cell text-gray-500 text-xs sm:text-sm min-w-[120px]">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="size-3" />
+                      {format(new Date(a.created_at), "MMM dd, yyyy")}
+                    </div>
                   </TableCell>
 
                   {/* Status Switch */}
@@ -478,7 +484,7 @@ export default function AdminList() {
                     <Switch
                       checked={a.is_active}
                       onCheckedChange={() => requestToggle(a.id, !a.is_active)}
-                      className="data-[state=checked]:bg-teal-600"
+                      className="data-[state=checked]:bg-[#C40E61]"
                     />
                   </TableCell>
 
@@ -489,7 +495,7 @@ export default function AdminList() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleView(a)}
-                        className="h-7 w-7 sm:h-8 sm:w-8 text-zinc-400 hover:text-white"
+                        className="h-7 w-7 sm:h-8 sm:w-8 text-gray-600 hover:text-[#C40E61] hover:bg-[#C40E61]/10"
                       >
                         <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
@@ -497,7 +503,7 @@ export default function AdminList() {
                         variant="ghost"
                         size="icon"
                         onClick={() => openDeleteConfirm(a.id)}
-                        className="h-7 w-7 sm:h-8 sm:w-8 text-zinc-400 hover:text-red-500"
+                        className="h-7 w-7 sm:h-8 sm:w-8 text-gray-600 hover:text-red-600 hover:bg-red-50"
                       >
                         <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
@@ -521,13 +527,13 @@ export default function AdminList() {
                 }
                 className={
                   isFetching || currentPage === 0
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
+                    ? "pointer-events-none opacity-50 text-gray-400"
+                    : "cursor-pointer text-gray-700 hover:bg-gray-100"
                 }
               />
             </PaginationItem>
             <PaginationItem>
-              <span className="px-4 text-sm text-zinc-400">
+              <span className="px-4 text-sm text-gray-500">
                 Trang {currentPage + 1} / {data?.totalPages ?? 0}
               </span>
             </PaginationItem>
@@ -540,8 +546,8 @@ export default function AdminList() {
                 }
                 className={
                   isFetching || currentPage >= (data?.totalPages ?? 0) - 1
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
+                    ? "pointer-events-none opacity-50 text-gray-400"
+                    : "cursor-pointer text-gray-700 hover:bg-gray-100"
                 }
               />
             </PaginationItem>
@@ -625,17 +631,20 @@ export default function AdminList() {
 
       {/* ─── Cannot Delete Advisory Dialog ─── */}
       <Dialog open={cannotDeleteOpen} onOpenChange={setCannotDeleteOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-[420px]">
+        <DialogContent className="bg-white border-gray-300 text-gray-900 sm:max-w-[420px]">
           <DialogHeader>
-            <DialogTitle>Không thể xóa quản trị viên</DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogTitle className="flex items-center gap-2 text-gray-900">
+              <Shield className="size-5 text-[#C40E61]" />
+              Không thể xóa quản trị viên
+            </DialogTitle>
+            <DialogDescription className="text-gray-500">
               Quản trị viên này không thể bị xóa. Hãy cân nhắc vô hiệu hóa tài khoản thay vì xóa.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               onClick={() => setCannotDeleteOpen(false)}
-              className="bg-zinc-800 hover:bg-zinc-700 text-white"
+              className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
             >
               OK
             </Button>

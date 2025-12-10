@@ -18,7 +18,7 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import { X, Trash2, Loader2 } from "lucide-react";
+import { X, Trash2, Loader2, Image, Calendar, Clock, Film, Users, FileText, Globe, Tag } from "lucide-react";
 import type { Person } from "@/types/person";
 import { PersonJob } from "@/types/person";
 import { useSearchPeopleQuery } from "@/features/person/personApi";
@@ -217,13 +217,16 @@ export function MovieAddForm({
       <div className="space-y-6">
         {/* POSTER */}
         <div className="space-y-2">
-          <Label>Poster (Dọc)</Label>
-          <div className="overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900/50">
+          <Label className="flex items-center gap-2 text-gray-900">
+            <Image className="size-4 text-[#C40E61]" />
+            Poster (Dọc)
+          </Label>
+          <div className="overflow-hidden rounded-lg border border-gray-300 bg-white shadow-sm">
             <Dropzone
               accept={{ "image/*": [] }}
               maxFiles={1}
               onDrop={(files) => update("poster", files[0])}
-              className={`relative aspect-2/3 w-full cursor-pointer transition hover:bg-zinc-800/50 ${
+              className={`relative aspect-2/3 w-full cursor-pointer transition hover:bg-gray-50 ${
                 isLoading ? "opacity-50 pointer-events-none" : ""
               }`}
             >
@@ -249,13 +252,16 @@ export function MovieAddForm({
         </div>
         {/* BACKDROP */}
         <div className="space-y-2">
-          <Label>Backdrop (Ngang)</Label>
-          <div className="overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900/50">
+          <Label className="flex items-center gap-2 text-gray-900">
+            <Image className="size-4 text-[#C40E61]" />
+            Backdrop (Ngang)
+          </Label>
+          <div className="overflow-hidden rounded-lg border border-gray-300 bg-white shadow-sm">
             <Dropzone
               accept={{ "image/*": [] }}
               maxFiles={1}
               onDrop={(files) => update("backdrop", files[0])}
-              className={`relative aspect-video w-full cursor-pointer transition hover:bg-zinc-800/50 ${
+              className={`relative aspect-video w-full cursor-pointer transition hover:bg-gray-50 ${
                 isLoading ? "opacity-50 pointer-events-none" : ""
               }`}
             >
@@ -284,16 +290,23 @@ export function MovieAddForm({
         <div className="grid gap-4 sm:grid-cols-2">
           {/* Original Title & Release */}
           <div>
-            <Label>Tiêu Đề Gốc</Label>
+            <Label className="flex items-center gap-2 text-gray-900">
+              <Film className="size-4 text-[#C40E61]" />
+              Tiêu Đề Gốc
+            </Label>
             <Input
               value={form.originalTitle}
               onChange={(e) => update("originalTitle", e.target.value)}
               disabled={isLoading}
               placeholder="Nhập tiêu đề gốc"
+              className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
             />
           </div>
           <div>
-            <Label>Năm Phát Hành</Label>
+            <Label className="flex items-center gap-2 text-gray-900">
+              <Calendar className="size-4 text-[#C40E61]" />
+              Năm Phát Hành
+            </Label>
             <Input
               type="number"
               inputMode="numeric"
@@ -327,22 +340,30 @@ export function MovieAddForm({
                 if (yr > max) update("release", String(max));
               }}
               disabled={isLoading}
+              className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
             />
           </div>
 
           {/* Title */}
           <div className="col-span-2">
-            <Label>Tiêu Đề Hiển Thị</Label>
+            <Label className="flex items-center gap-2 text-gray-900">
+              <Film className="size-4 text-[#C40E61]" />
+              Tiêu Đề Hiển Thị
+            </Label>
             <Input
               value={form.title}
               onChange={(e) => update("title", e.target.value)}
               disabled={isLoading}
+              className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
             />
           </div>
 
           {/* Duration */}
           <div>
-            <Label>Thời Lượng (phút)</Label>
+            <Label className="flex items-center gap-2 text-gray-900">
+              <Clock className="size-4 text-[#C40E61]" />
+              Thời Lượng (phút)
+            </Label>
             <Input
               type="number"
               inputMode="numeric"
@@ -364,21 +385,25 @@ export function MovieAddForm({
                 }
               }}
               disabled={isLoading}
+              className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
             />
           </div>
 
           {/* Age Rating */}
           <div>
-            <Label>Xếp Hạng Độ Tuổi</Label>
+            <Label className="flex items-center gap-2 text-gray-900">
+              <Tag className="size-4 text-[#C40E61]" />
+              Xếp Hạng Độ Tuổi
+            </Label>
             <Select
               value={form.age}
               onValueChange={(val) => update("age", val)}
               disabled={isLoading}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
                 <SelectValue placeholder="Chọn xếp hạng" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border-gray-300 text-gray-900">
                 {ageRatings.map((rating) => (
                   <SelectItem key={rating.value} value={rating.value}>
                     {rating.label}
@@ -390,16 +415,16 @@ export function MovieAddForm({
 
           {/* Status */}
           <div>
-            <Label>Trạng Thái</Label>
+            <Label className="text-gray-900">Trạng Thái</Label>
             <Select
               value={form.status}
               onValueChange={(val) => update("status", val)}
               disabled={isLoading}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
                 <SelectValue placeholder="Chọn trạng thái" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border-gray-300 text-gray-900">
                 {statusOptions.map((s) => (
                   <SelectItem key={s.value} value={s.value}>
                     <div className="flex items-center gap-2">
@@ -435,26 +460,29 @@ export function MovieAddForm({
         />
 
         <div className="relative">
-          <Label>Đạo Diễn</Label>
+          <Label className="flex items-center gap-2 text-gray-900">
+            <Users className="size-4 text-[#C40E61]" />
+            Đạo Diễn
+          </Label>
           {form.director ? (
-            <div className="mt-2 flex items-center justify-between rounded-md border border-zinc-700 bg-zinc-900 p-2 pr-3">
+            <div className="mt-2 flex items-center justify-between rounded-md border border-gray-300 bg-white p-2 pr-3 shadow-sm">
               <div className="flex items-center gap-3">
                 <img
                   src={getProfileUrl(form.director)}
                   alt={form.director.fullName}
-                  className="h-10 w-10 rounded-full object-cover"
+                  className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
                 />
                 <div>
-                  <p className="text-sm font-medium text-white">
+                  <p className="text-sm font-medium text-gray-900">
                     {form.director.fullName}
                   </p>
-                  <p className="text-xs text-zinc-400">Đạo Diễn</p>
+                  <p className="text-xs text-gray-500">Đạo Diễn</p>
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-zinc-400 hover:text-red-400"
+                className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
                 onClick={() => update("director", null)}
                 disabled={isLoading}
               >
@@ -471,6 +499,7 @@ export function MovieAddForm({
                 setDirectorPage(0);
               }}
               disabled={isLoading}
+              className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
             />
           )}
           <PersonSelectDialog
@@ -501,9 +530,12 @@ export function MovieAddForm({
 
         {/* Actors (reusable) */}
         <div className="relative">
-          <Label className="flex items-center justify-between">
-            Diễn Viên{" "}
-            <span className="text-xs text-zinc-400">
+          <Label className="flex items-center justify-between text-gray-900">
+            <span className="flex items-center gap-2">
+              <Users className="size-4 text-[#C40E61]" />
+              Diễn Viên
+            </span>
+            <span className="text-xs text-gray-500">
               {form.actors.length} đã chọn
             </span>
           </Label>
@@ -511,25 +543,25 @@ export function MovieAddForm({
             {form.actors.map((a: Person) => (
               <div
                 key={a.id}
-                className="flex items-center justify-between rounded-md border border-zinc-700 bg-zinc-900 p-2 pr-3"
+                className="flex items-center justify-between rounded-md border border-gray-300 bg-white p-2 pr-3 shadow-sm"
               >
                 <div className="flex items-center gap-3">
                   <img
                     src={getProfileUrl(a)}
                     alt={a.fullName}
-                    className="h-10 w-10 rounded-full object-cover"
+                    className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
                   />
                   <div>
-                    <p className="text-sm font-medium text-white">
+                    <p className="text-sm font-medium text-gray-900">
                       {a.fullName}
                     </p>
-                    <p className="text-xs text-zinc-400">Diễn Viên</p>
+                    <p className="text-xs text-gray-500">Diễn Viên</p>
                   </div>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-zinc-400 hover:text-red-400"
+                  className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
                   onClick={() =>
                     update(
                       "actors",
@@ -552,6 +584,7 @@ export function MovieAddForm({
               setActorPage(0);
             }}
             disabled={isLoading}
+            className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
           />
           <PersonSelectDialog
             label="Tìm Diễn Viên"
@@ -582,12 +615,16 @@ export function MovieAddForm({
 
         {/* Description */}
         <div>
-          <Label>Mô Tả</Label>
+          <Label className="flex items-center gap-2 text-gray-900">
+            <FileText className="size-4 text-[#C40E61]" />
+            Mô Tả
+          </Label>
           <Textarea
             rows={4}
             value={form.description}
             onChange={(e) => update("description", e.target.value)}
             disabled={isLoading}
+            className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
           />
         </div>
 
@@ -597,7 +634,7 @@ export function MovieAddForm({
             <Button
               type="button"
               variant="outline"
-              className="w-full sm:w-40 border-zinc-600 hover:bg-zinc-800"
+              className="w-full sm:w-40 border-gray-300 text-gray-700 hover:bg-gray-100"
               onClick={handleReset}
               disabled={isLoading}
             >
@@ -605,7 +642,7 @@ export function MovieAddForm({
             </Button>
           )} */}
           <Button
-            className="w-full bg-teal-600 py-6 text-lg font-bold hover:bg-teal-700 sm:flex-1"
+            className="w-full bg-[#C40E61] py-6 text-lg font-bold hover:bg-[#C40E61]/90 text-white sm:flex-1"
             onClick={handleSubmit}
             disabled={isLoading}
           >

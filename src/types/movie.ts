@@ -121,6 +121,7 @@ export interface EpisodeDto {
   synopsis: string;
   stillPath: string;
   airDate: string;
+  currentSecond?: number | null; // Vị trí đang xem (resume position)
 }
 
 export interface SeasonDto {
@@ -170,4 +171,12 @@ export interface VideoStatusResponse {
   pctComplete: number | string;
   readyToStream: boolean;
   streamUrl?: string; 
+}
+
+export interface WatchProgressRequest {
+  movieId: string;
+  episodeId?: string | null;
+  currentSecond: number;
+  totalSeconds: number;
+  watchedDelta: number;
 }

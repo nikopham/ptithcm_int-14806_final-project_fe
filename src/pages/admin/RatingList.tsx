@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Eye, Search, Star, MessageSquareQuote, Film } from "lucide-react";
+import { Eye, Search, Star, MessageSquareQuote, Film, Star as StarIcon, Award, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -62,7 +62,7 @@ export default function RatingList() {
             className={`${sizeClass} ${
               star <= rating
                 ? "fill-yellow-500 text-yellow-500"
-                : "fill-zinc-800 text-zinc-700"
+                : "fill-gray-300 text-gray-300"
             }`}
           />
         ))}
@@ -91,26 +91,32 @@ export default function RatingList() {
       {/* ─── Header ─── */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Đánh Giá Người Dùng</h1>
-          <p className="text-sm text-zinc-400">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <Award className="size-6 text-[#C40E61]" />
+            Đánh Giá Người Dùng
+          </h1>
+          <p className="text-sm text-gray-500">
             Theo dõi đánh giá và phản hồi của người dùng
           </p>
         </div>
         {/* Stats Summary (Optional) */}
         <div className="flex gap-4">
           <div className="text-right">
-            <p className="text-2xl font-bold text-white">{totalElements}</p>
-            <p className="text-xs text-zinc-500">Tổng Đánh Giá</p>
+            <p className="flex items-center justify-end gap-2 text-2xl font-bold text-gray-900">
+              <StarIcon className="size-6 text-[#C40E61]" />
+              {totalElements}
+            </p>
+            <p className="text-xs text-gray-500">Tổng Đánh Giá</p>
           </div>
         </div>
       </div>
 
       {/* ─── Search ─── */}
       <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
         <Input
           placeholder="Tìm kiếm phim, người dùng hoặc tiêu đề..."
-          className="pl-9 bg-zinc-900 border-zinc-700"
+          className="pl-9 bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -120,10 +126,10 @@ export default function RatingList() {
       </div>
 
       {/* ─── Table ─── */}
-      <div className="rounded-lg border border-zinc-700/50 bg-zinc-900 overflow-hidden">
+      <div className="rounded-lg border border-gray-300 bg-white overflow-hidden">
         <Table>
-          <TableHeader className="bg-zinc-950">
-            <TableRow className="hover:bg-zinc-900">
+          <TableHeader className="bg-gray-100">
+            <TableRow className="hover:bg-gray-50">
               <TableHead className="min-w-[200px] sm:min-w-[250px]">Phim</TableHead>
               <TableHead className="hidden sm:table-cell min-w-[150px]">Người Dùng</TableHead>
               <TableHead className="w-[100px] sm:w-[120px]">Đánh Giá</TableHead>
@@ -138,7 +144,7 @@ export default function RatingList() {
             {reviews.map((r) => (
               <TableRow
                 key={r.id}
-                className="hover:bg-zinc-800/50 border-zinc-800"
+                className="hover:bg-gray-50 border-gray-200"
               >
                 {/* Movie Info - Combined with User on mobile */}
                 <TableCell className="min-w-[200px] sm:min-w-[250px]">
@@ -146,21 +152,21 @@ export default function RatingList() {
                     <img
                       src={r.moviePosterUrl || ""}
                       alt={r.movieTitle}
-                      className="h-10 w-7 sm:h-12 sm:w-8 rounded bg-zinc-800 object-cover shrink-0"
+                      className="h-10 w-7 sm:h-12 sm:w-8 rounded bg-gray-200 border border-gray-300 object-cover shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <span className="text-xs sm:text-sm font-medium text-white line-clamp-1 block">
+                      <span className="text-xs sm:text-sm font-medium text-gray-900 line-clamp-1 block">
                         {r.movieTitle}
                       </span>
                       {/* Show user on mobile */}
                       <div className="flex items-center gap-1.5 sm:hidden mt-1">
-                        <Avatar className="h-4 w-4">
+                        <Avatar className="h-4 w-4 border border-gray-300">
                           <AvatarImage src={r.userAvatar} />
-                          <AvatarFallback className="text-[8px] bg-teal-800 text-teal-200">
+                          <AvatarFallback className="text-[8px] bg-[#C40E61] text-white">
                             {getInitials(r.username)}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-[10px] text-zinc-400 truncate">
+                        <span className="text-[10px] text-gray-500 truncate">
                           {r.username}
                         </span>
                       </div>
@@ -171,14 +177,14 @@ export default function RatingList() {
                 {/* User Info - Hidden on mobile */}
                 <TableCell className="hidden sm:table-cell min-w-[150px]">
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-5 w-5 sm:h-6 sm:w-6 shrink-0">
+                    <Avatar className="h-5 w-5 sm:h-6 sm:w-6 shrink-0 border border-gray-300">
                       <AvatarImage src={r.userAvatar} />
-                      <AvatarFallback className="text-[9px] sm:text-[10px] bg-teal-800 text-teal-200">
+                      <AvatarFallback className="text-[9px] sm:text-[10px] bg-[#C40E61] text-white">
                         {getInitials(r.username)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs sm:text-sm text-zinc-200 truncate">
+                      <span className="text-xs sm:text-sm text-gray-900 truncate">
                         {r.username}
                       </span>
                     </div>
@@ -194,17 +200,17 @@ export default function RatingList() {
                 {/* Review Title - Hidden on mobile/tablet */}
                 <TableCell className="hidden md:table-cell">
                   <div className="flex flex-col gap-1">
-                    <span className="text-xs sm:text-sm font-medium text-white line-clamp-1">
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 line-clamp-1">
                       {r.title}
                     </span>
-                    <span className="text-[10px] sm:text-xs text-zinc-500 line-clamp-1">
+                    <span className="text-[10px] sm:text-xs text-gray-500 line-clamp-1">
                       {r.body}
                     </span>
                   </div>
                 </TableCell>
 
                 {/* Date - Hidden on mobile/tablet */}
-                <TableCell className="hidden lg:table-cell text-right text-zinc-400 text-xs min-w-[100px]">
+                <TableCell className="hidden lg:table-cell text-right text-gray-500 text-xs min-w-[100px]">
                   {new Date(r.createdAt).toLocaleDateString("en-GB")}
                 </TableCell>
 
@@ -212,7 +218,7 @@ export default function RatingList() {
                 <TableCell className="w-[60px] sm:w-[80px]">
                   <Button
                     variant="ghost"
-                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-zinc-400 hover:text-teal-400 hover:bg-teal-400/10"
+                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-gray-600 hover:text-[#C40E61] hover:bg-[#C40E61]/10"
                     onClick={() => handleView(r)}
                   >
                     <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -224,7 +230,7 @@ export default function RatingList() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="h-20 sm:h-24 text-center text-zinc-500 text-sm"
+                  className="h-20 sm:h-24 text-center text-gray-500 text-sm"
                 >
                   Đang tải đánh giá...
                 </TableCell>
@@ -234,7 +240,7 @@ export default function RatingList() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="h-20 sm:h-24 text-center text-zinc-500 text-sm"
+                  className="h-20 sm:h-24 text-center text-gray-500 text-sm"
                 >
                   Không tìm thấy đánh giá nào.
                 </TableCell>
@@ -244,7 +250,7 @@ export default function RatingList() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="h-20 sm:h-24 text-center text-red-400 text-sm"
+                  className="h-20 sm:h-24 text-center text-red-600 text-sm"
                 >
                   Không thể tải đánh giá.
                 </TableCell>
@@ -264,13 +270,13 @@ export default function RatingList() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   className={
                     isFetching || currentPage <= 1
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
+                      ? "pointer-events-none opacity-50 text-gray-400"
+                      : "cursor-pointer text-gray-700 hover:bg-gray-100"
                   }
                 />
               </PaginationItem>
               <PaginationItem>
-                <span className="px-4 text-sm text-zinc-400">
+                <span className="px-4 text-sm text-gray-500">
                   Trang {currentPage} / {totalPages}
                 </span>
               </PaginationItem>
@@ -279,8 +285,8 @@ export default function RatingList() {
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   className={
                     isFetching || currentPage >= totalPages
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
+                      ? "pointer-events-none opacity-50 text-gray-400"
+                      : "cursor-pointer text-gray-700 hover:bg-gray-100"
                   }
                 />
               </PaginationItem>
@@ -291,14 +297,17 @@ export default function RatingList() {
 
       {/* ─── Detail Dialog ─── */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-[600px]">
+        <DialogContent className="bg-white border-gray-300 text-gray-900 sm:max-w-[600px]">
           {selectedReview && (
             <>
               <DialogHeader>
-                <DialogTitle>Chi Tiết Đánh Giá</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="flex items-center gap-2 text-gray-900">
+                  <MessageSquareQuote className="size-5 text-[#C40E61]" />
+                  Chi Tiết Đánh Giá
+                </DialogTitle>
+                <DialogDescription className="text-gray-500">
                   ID Đánh Giá:{" "}
-                  <span className="font-mono text-xs text-zinc-500">
+                  <span className="font-mono text-xs text-gray-400">
                     {selectedReview.id}
                   </span>
                 </DialogDescription>
@@ -306,33 +315,35 @@ export default function RatingList() {
 
               <div className="grid gap-6 py-4">
                 {/* Top Section: User & Movie Context */}
-                <div className="flex flex-col gap-4 rounded-lg border border-zinc-800 bg-zinc-950 p-4 sm:flex-row">
+                <div className="flex flex-col gap-4 rounded-lg border border-gray-300 bg-gradient-to-br from-white to-gray-50 p-4 shadow-sm sm:flex-row">
                   {/* Movie Poster */}
                   <img
                     src={selectedReview.moviePosterUrl || ""}
                     alt="poster"
-                    className="h-32 w-24 shrink-0 rounded object-cover"
+                    className="h-32 w-24 shrink-0 rounded object-cover border border-gray-300 shadow-sm"
                   />
 
                   <div className="flex flex-1 flex-col justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <Film className="size-4 text-[#C40E61]" />
                         {selectedReview.movieTitle}
                       </h3>
-                      <div className="mt-1 flex items-center gap-2 text-sm text-zinc-400">
-                        <Film className="size-3" /> Phim
+                      <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+                        Phim
                       </div>
                     </div>
 
-                    <div className="mt-4 flex items-center gap-3 border-t border-zinc-800 pt-3">
-                      <Avatar className="h-8 w-8">
+                    <div className="mt-4 flex items-center gap-3 border-t border-gray-300 pt-3">
+                      <Avatar className="h-8 w-8 border-2 border-gray-300">
                         <AvatarImage src={selectedReview.userAvatar} />
-                        <AvatarFallback className="bg-teal-900 text-teal-200">
+                        <AvatarFallback className="bg-[#C40E61] text-white">
                           {getInitials(selectedReview.username)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-medium text-white">
+                        <p className="flex items-center gap-2 text-sm font-medium text-gray-900">
+                          <User className="size-4 text-[#C40E61]" />
                           {selectedReview.username}
                         </p>
                       </div>
@@ -343,11 +354,13 @@ export default function RatingList() {
                   <div className="flex flex-col items-end justify-start">
                     <Badge
                       variant="outline"
-                      className="border-yellow-600/50 bg-yellow-900/20 text-yellow-500 text-lg font-bold px-3 py-1"
+                      className="border-yellow-400 bg-yellow-50 text-yellow-700 text-lg font-bold px-3 py-1"
                     >
+                      <StarIcon className="mr-1 size-4 fill-yellow-500 text-yellow-500" />
                       {selectedReview.rating} / 5
                     </Badge>
-                    <span className="mt-2 text-xs text-zinc-500 text-right">
+                    <span className="mt-2 flex items-center gap-1 text-xs text-gray-500 text-right">
+                      <Calendar className="size-3" />
                       {format(new Date(selectedReview.createdAt), "PPP")}
                     </span>
                   </div>
@@ -355,14 +368,14 @@ export default function RatingList() {
 
                 {/* Review Content */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-teal-400">
+                  <div className="flex items-center gap-2 text-[#C40E61]">
                     <MessageSquareQuote className="size-5" />
-                    <h4 className="font-semibold text-lg text-white">
+                    <h4 className="font-semibold text-lg text-gray-900">
                       "{selectedReview.title}"
                     </h4>
                   </div>
 
-                  <ScrollArea className="h-[200px] rounded-md border border-zinc-800 bg-zinc-950/50 p-4 text-zinc-300 leading-relaxed">
+                  <ScrollArea className="h-[200px] rounded-md border border-gray-300 bg-white p-4 text-gray-600 leading-relaxed">
                     {selectedReview.body}
                   </ScrollArea>
                 </div>

@@ -27,9 +27,10 @@ const NavControl = ({
       onClick={prev}
       disabled={page === 0}
       className={clsx(
-        "grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-md bg-zinc-800 text-white transition",
-        page === 0 ? "opacity-40 cursor-not-allowed" : "hover:bg-zinc-700"
+        "grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-md text-white transition",
+        page === 0 ? "opacity-40 cursor-not-allowed bg-gray-300" : "hover:opacity-90"
       )}
+      style={page !== 0 ? { backgroundColor: "#C40E61" } : undefined}
       aria-label="Previous page"
     >
       <ArrowLeft className="size-3.5 sm:size-4" />
@@ -40,8 +41,9 @@ const NavControl = ({
           key={i}
           className={clsx(
             "h-1 w-4 sm:w-5 rounded-full transition",
-            i === page ? "bg-red-500" : "bg-zinc-600"
+            i === page ? "" : "bg-gray-300"
           )}
+          style={i === page ? { backgroundColor: "#C40E61" } : undefined}
         />
       ))}
     </div>
@@ -49,9 +51,10 @@ const NavControl = ({
       onClick={next}
       disabled={page === total - 1}
       className={clsx(
-        "grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-md bg-zinc-800 text-white transition",
-        page === total - 1 ? "opacity-40 cursor-not-allowed" : "hover:bg-zinc-700"
+        "grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-md text-white transition",
+        page === total - 1 ? "opacity-40 cursor-not-allowed bg-gray-300" : "hover:opacity-90"
       )}
+      style={page !== total - 1 ? { backgroundColor: "#C40E61" } : undefined}
       aria-label="Next page"
     >
       <ArrowRight className="size-3.5 sm:size-4" />
@@ -62,9 +65,10 @@ const NavControl = ({
 const TvThumb = ({ m }: { m: MovieShort }) => (
   <Link
     to={`/movie/detail/${m.id}`}
-    className="group block overflow-hidden rounded-lg bg-zinc-900 transition-all duration-200 hover:-translate-y-1 hover:bg-zinc-800 hover:shadow-lg"
+    className="group block transform transition-all duration-200 hover:scale-105 hover:z-10"
   >
-    <div className="relative overflow-hidden">
+    {/* poster */}
+    <div className="relative overflow-hidden rounded-lg bg-white border border-gray-300">
       <img
         src={
           typeof m.posterUrl === "string" && m.posterUrl
@@ -75,11 +79,16 @@ const TvThumb = ({ m }: { m: MovieShort }) => (
         className="w-full aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-110"
         loading="lazy"
       />
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
     </div>
-    <div className="px-2 sm:px-3 py-2">
-      <p className="text-xs sm:text-sm text-white line-clamp-2 group-hover:text-red-500 transition-colors">
+
+    {/* titles */}
+    <div className="mt-2 space-y-1">
+      <p className="truncate text-sm font-medium transition-colors" style={{ color: "#C40E61" }}>
         {m.title}
+      </p>
+      <p className="truncate text-xs text-gray-500">
+        {m.originalTitle}
       </p>
     </div>
   </Link>
@@ -103,7 +112,7 @@ const GenreRow = ({
   return (
     <div className="mb-12 sm:mb-16">
       <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-        <h2 className="text-xl sm:text-2xl font-extrabold text-white">{title}</h2>
+        <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">{title}</h2>
         <NavControl
           page={page}
           total={total}
@@ -135,7 +144,7 @@ const SectionTrending = () => {
   return (
     <div className="mb-12 sm:mb-16">
       <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-        <h2 className="text-xl sm:text-2xl font-extrabold text-white">Đang Thịnh Hành</h2>
+        <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">Đang Thịnh Hành</h2>
         <NavControl
           page={page}
           total={total}
@@ -144,10 +153,10 @@ const SectionTrending = () => {
         />
       </div>
       {isLoading && (
-        <div className="text-sm text-zinc-400">Đang tải phim thịnh hành...</div>
+        <div className="text-sm text-gray-500">Đang tải phim thịnh hành...</div>
       )}
       {!!error && !isLoading && (
-        <div className="text-sm text-red-400">Không thể tải phim thịnh hành.</div>
+        <div className="text-sm" style={{ color: "#C40E61" }}>Không thể tải phim thịnh hành.</div>
       )}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
         {slice.map((m) => (
@@ -171,15 +180,15 @@ export const SerieShowcase = () => {
 
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 pb-16 sm:pb-24 mt-8 sm:mt-12">
-      <span className="mb-4 sm:mb-6 inline-block rounded-md bg-red-600 px-4 sm:px-5 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-white">
+      <span className="mb-4 sm:mb-6 inline-block rounded-md px-4 sm:px-5 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-white" style={{ backgroundColor: "#C40E61" }}>
         Phim Bộ
       </span>
 
       {isLoading && (
-        <div className="mb-8 text-sm text-zinc-400">Đang tải thể loại...</div>
+        <div className="mb-8 text-sm text-gray-500">Đang tải thể loại...</div>
       )}
       {!!error && !isLoading && (
-        <div className="mb-8 text-sm text-red-400">Không thể tải thể loại.</div>
+        <div className="mb-8 text-sm" style={{ color: "#C40E61" }}>Không thể tải thể loại.</div>
       )}
 
       {(featured || []).map((g: GenreWithMovies) => (

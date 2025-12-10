@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Play,
-  Plus,
   ThumbsUp,
-  Volume2,
-  VolumeX,
   ChevronLeft,
   ChevronRight,
   Facebook,
@@ -49,6 +46,7 @@ interface Props {
   episodeId?: string; // episode ID for TV series
   episodeInfo?: EpisodeInfo | null; // episode information for display
   onPlayMain?: () => void; // callback when main movie is played
+  currentSecond?: number | null; // Vị trí đang xem để resume
 }
 
 export const MovieDetailHero = ({
@@ -61,6 +59,7 @@ export const MovieDetailHero = ({
   episodeId,
   episodeInfo,
   onPlayMain,
+  currentSecond,
 }: Props) => {
   const [idx, setIdx] = useState(0);
   const [liked, setLiked] = useState<boolean>(isLiked);
@@ -86,22 +85,6 @@ export const MovieDetailHero = ({
   }, [isLiked]);
 
   const isHLSUrl = Boolean(streamUrl && streamUrl.includes(".m3u8"));
-  const cloudflareUIDFromManifest = (() => {
-    if (!streamUrl) return "";
-    try {
-      const u = new URL(streamUrl);
-      const parts = u.pathname.split("/").filter(Boolean);
-      const idx = parts.indexOf("manifest");
-      if (idx > 0) {
-        return parts[idx - 1] || "";
-      }
-      // if format like /<uid>/manifest/video.m3u8
-      if (parts.length >= 1) return parts[0];
-      return "";
-    } catch {
-      return "";
-    }
-  })();
 
   // Sử dụng Cloudflare Stream React, không cần HLS/video element tùy chỉnh
 
@@ -198,13 +181,13 @@ export const MovieDetailHero = ({
         {/* Player title - shown above player when playing */}
         {showPlayer && (
           <div className="mb-3 px-2">
-            <h2 className="text-lg font-semibold text-white md:text-xl">
+            <h2 className="text-lg font-semibold text-gray-900 md:text-xl">
               {episodeInfo
                 ? `${title}: Tập ${episodeInfo.episodeNumber} Mùa ${episodeInfo.seasonNumber}`
                 : title}
             </h2>
             {episodeInfo && (
-              <p className="mt-1 text-sm text-zinc-400">{episodeInfo.episodeTitle}</p>
+              <p className="mt-1 text-sm text-gray-500">{episodeInfo.episodeTitle}</p>
             )}
           </div>
         )}
@@ -233,6 +216,7 @@ export const MovieDetailHero = ({
                     poster={img}
                     movieId={id}
                     episodeId={episodeId}
+                    currentSecond={currentSecond}
                     className="w-full h-full"
                   />
                 ) : (
@@ -261,7 +245,8 @@ export const MovieDetailHero = ({
               {/* action row */}
               <div className="flex flex-wrap items-center justify-center gap-4">
                 <button
-                  className="inline-flex h-11 items-center gap-2 rounded-md bg-red-600 px-6 text-sm font-medium text-white transition hover:bg-red-700"
+                  className="inline-flex h-11 items-center gap-2 rounded-md px-6 text-sm font-medium text-white transition hover:opacity-90"
+                  style={{ backgroundColor: "#C40E61" }}
                   onClick={() => {
                     if (!isAuth) {
                       setAuthOpen(true);
@@ -286,13 +271,13 @@ export const MovieDetailHero = ({
 
                 <button
                   className={clsx(
-                    "grid h-11 w-11 place-items-center rounded-md border text-white transition",
+                    "grid h-11 w-11 place-items-center rounded-md border-2 transition-all duration-200",
                     liked
-                      ? "bg-red-600 border-red-600 hover:bg-red-700"
-                      : "border-zinc-600 bg-zinc-800 hover:bg-zinc-700"
+                      ? "bg-[#C40E61] border-[#C40E61] hover:opacity-90 shadow-lg"
+                      : "bg-white/90 backdrop-blur-sm border-[#C40E61] hover:bg-white hover:shadow-lg hover:scale-105"
                   )}
-                  title={liked ? "Unlike" : "Like"}
-                  aria-label={liked ? "Unlike movie" : "Like movie"}
+                  title={liked ? "Bỏ thích" : "Thích"}
+                  aria-label={liked ? "Bỏ thích phim" : "Thích phim"}
                   disabled={toggling}
                   onClick={async () => {
                     if (!isAuth) {
@@ -304,19 +289,19 @@ export const MovieDetailHero = ({
                       setLiked((v) => {
                         const next = !v;
                         toast.success(
-                          next ? "Added to Likes" : "Removed from Likes"
+                          next ? "Đã thêm vào yêu thích" : "Đã xóa khỏi yêu thích"
                         );
                         return next;
                       });
                     } catch {
-                      // silently fail or add toast if available
+                      toast.error("Không thể cập nhật trạng thái yêu thích");
                     }
                   }}
                 >
                   <ThumbsUp
                     className={clsx(
-                      "size-4",
-                      liked ? "text-white" : "text-white"
+                      "size-4 transition-colors",
+                      liked ? "text-white" : "text-[#C40E61]"
                     )}
                   />
                 </button>
@@ -329,13 +314,13 @@ export const MovieDetailHero = ({
             <>
               <button
                 onClick={prev}
-                className="absolute left-6 top-1/2 -translate-y-1/2 rounded-md bg-zinc-900/70 p-2 text-white transition hover:bg-zinc-900"
+                className="absolute left-6 top-1/2 -translate-y-1/2 rounded-md bg-white/80 p-2 text-gray-900 transition hover:bg-white"
               >
                 <ChevronLeft className="size-5" />
               </button>
               <button
                 onClick={next}
-                className="absolute right-6 top-1/2 -translate-y-1/2 rounded-md bg-zinc-900/70 p-2 text-white transition hover:bg-zinc-900"
+                className="absolute right-6 top-1/2 -translate-y-1/2 rounded-md bg-white/80 p-2 text-gray-900 transition hover:bg-white"
               >
                 <ChevronRight className="size-5" />
               </button>
@@ -347,8 +332,9 @@ export const MovieDetailHero = ({
                     key={i}
                     className={clsx(
                       "h-1 w-8 rounded-full transition",
-                      i === idx ? "bg-red-500" : "bg-zinc-600"
+                      i === idx ? "" : "bg-white/50"
                     )}
+                    style={i === idx ? { backgroundColor: "#C40E61" } : undefined}
                   />
                 ))}
               </div>
@@ -364,13 +350,13 @@ export const MovieDetailHero = ({
           )}>
             <button
               className={clsx(
-                "inline-flex h-9 items-center gap-2 rounded-md border px-4 text-xs font-medium text-white transition",
+                "inline-flex h-9 items-center gap-2 rounded-md border-2 px-4 text-xs font-medium transition-all duration-200",
                 liked
-                  ? "bg-red-600 border-red-600 hover:bg-red-700"
-                  : "border-zinc-600 bg-zinc-800 hover:bg-zinc-700"
+                  ? "bg-[#C40E61] border-[#C40E61] text-white hover:opacity-90 shadow-lg"
+                  : "bg-white border-[#C40E61] text-[#C40E61] hover:bg-gray-50 hover:shadow-lg hover:scale-105"
               )}
-              title={liked ? "Unlike" : "Like"}
-              aria-label={liked ? "Unlike movie" : "Like movie"}
+              title={liked ? "Bỏ thích" : "Thích"}
+              aria-label={liked ? "Bỏ thích phim" : "Thích phim"}
               disabled={toggling}
               onClick={async () => {
                 if (!isAuth) {
@@ -385,7 +371,7 @@ export const MovieDetailHero = ({
                     return next;
                   });
                 } catch {
-                  // optionally show error toast
+                  toast.error("Không thể cập nhật trạng thái yêu thích");
                 }
               }}
             >
@@ -394,7 +380,7 @@ export const MovieDetailHero = ({
             </button>
 
             <button
-              className="inline-flex h-9 items-center gap-2 rounded-md border border-zinc-600 bg-zinc-800 px-4 text-xs font-medium text-white transition hover:bg-zinc-700"
+              className="inline-flex h-9 items-center gap-2 rounded-md border border-gray-300 bg-white px-4 text-xs font-medium text-gray-700 transition hover:bg-gray-100"
               onClick={() => setTheaterMode((v) => !v)}
               aria-pressed={theaterMode}
               title="Chuyển Chế Độ Rạp"
@@ -403,7 +389,7 @@ export const MovieDetailHero = ({
             </button>
 
             <button
-              className="inline-flex h-9 items-center gap-2 rounded-md border border-zinc-600 bg-zinc-800 px-4 text-xs font-medium text-white transition hover:bg-zinc-700"
+              className="inline-flex h-9 items-center gap-2 rounded-md border border-gray-300 bg-white px-4 text-xs font-medium text-gray-700 transition hover:bg-gray-100"
               onClick={() => setShareOpen(true)}
               title="Chia Sẻ"
             >
@@ -421,17 +407,17 @@ export const MovieDetailHero = ({
       </div>
       {/* Share dialog */}
       <AlertDialog open={shareOpen} onOpenChange={setShareOpen}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+        <AlertDialogContent className="bg-white border-gray-300">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Chia Sẻ Phim Này</AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-400">
+            <AlertDialogTitle className="text-gray-900">Chia Sẻ Phim Này</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500">
               Chia sẻ với bạn bè trên mạng xã hội
             </AlertDialogDescription>
           </AlertDialogHeader>
           {isShortening ? (
             <div className="flex flex-col items-center justify-center gap-3 py-8">
-              <Loader2 className="size-8 animate-spin text-zinc-400" />
-              <p className="text-sm text-zinc-400">Đang chuẩn bị liên kết chia sẻ...</p>
+              <Loader2 className="size-8 animate-spin" style={{ color: "#C40E61" }} />
+              <p className="text-sm text-gray-500">Đang chuẩn bị liên kết chia sẻ...</p>
             </div>
           ) : (
             <div className="flex flex-wrap items-center justify-center gap-4 py-4">
@@ -470,7 +456,7 @@ export const MovieDetailHero = ({
 
               <button
                 onClick={() => handleShare("email")}
-                className="flex flex-col items-center gap-2 rounded-lg bg-zinc-700 p-4 text-white transition hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex flex-col items-center gap-2 rounded-lg bg-gray-100 p-4 text-gray-700 transition hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Share via Email"
                 aria-label="Share via Email"
                 disabled={!shortUrl && !currentPageUrl}
@@ -481,7 +467,7 @@ export const MovieDetailHero = ({
 
               <button
                 onClick={handleCopyLink}
-                className="flex flex-col items-center gap-2 rounded-lg bg-zinc-700 p-4 text-white transition hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex flex-col items-center gap-2 rounded-lg bg-gray-100 p-4 text-gray-700 transition hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Copy link"
                 aria-label="Copy link to clipboard"
                 disabled={!shortUrl && !currentPageUrl}
@@ -492,7 +478,7 @@ export const MovieDetailHero = ({
             </div>
           )}
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 text-white hover:bg-zinc-700">
+            <AlertDialogCancel className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
               Đóng
             </AlertDialogCancel>
           </AlertDialogFooter>

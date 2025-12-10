@@ -2,27 +2,28 @@ import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import defaultAvatar from "@/assets/default-avatar.jpg";
 import type { Comment } from "@/types/comment";
+import { MessageCircle, Reply, Edit, Send, X, Loader2, User } from "lucide-react";
 // Simple role -> label + style mapping for compact badges
 const roleMap: Record<string, { label: string; className: string }> = {
   super_admin: {
     label: "Super Admin",
     className:
-      "text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/15 text-yellow-300 border border-yellow-500/30",
+      "text-[10px] px-1.5 py-0.5 rounded bg-yellow-50 text-yellow-700 border border-yellow-300",
   },
   movie_admin: {
     label: "Movie Admin",
     className:
-      "text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30",
+      "text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-300",
   },
   comment_admin: {
     label: "Comment Admin",
     className:
-      "text-[10px] px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30",
+      "text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-300",
   },
   viewer: {
     label: "Viewer",
     className:
-      "text-[10px] px-1.5 py-0.5 rounded bg-zinc-700/30 text-zinc-300 border border-zinc-600/40",
+      "text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 border border-gray-300",
   },
 };
 
@@ -84,25 +85,26 @@ export const ThreadedComments = ({
         <div key={p.id} className="space-y-2">
           <div
             className={
-              `rounded-lg p-4 space-y-4 border bg-zinc-950 ` +
+              `rounded-xl p-4 space-y-4 border bg-white shadow-sm ` +
               (isAuth && p.userId === currentUserId
-                ? "border-zinc-700 bg-red-500/5 relative pl-5"
-                : "border-zinc-800")
+                ? "border-[#C40E61] bg-[#C40E61]/5 relative pl-5"
+                : "border-gray-300")
             }
           >
             {isAuth && p.userId === currentUserId && (
-              <span className="absolute left-0 top-0 h-full w-1 bg-red-500/60 rounded-l" />
+              <span className="absolute left-0 top-0 h-full w-1 bg-[#C40E61] rounded-l" />
             )}
             <div className="mb-2 flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <img
                   src={p.userAvatar || defaultAvatar}
                   alt={p.username}
-                  className="h-8 w-8 rounded-full object-cover"
+                  className="h-8 w-8 rounded-full object-cover border-2 border-gray-200"
                   loading="lazy"
                 />
                 <div>
-                  <p className="text-sm font-medium text-white flex items-center gap-2">
+                  <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                    <User className="size-3 text-gray-500" />
                     {p.username}
                     {p.userRole && roleMap[p.userRole] && (
                       <span className={roleMap[p.userRole].className}>
@@ -110,49 +112,52 @@ export const ThreadedComments = ({
                       </span>
                     )}
                     {isAuth && p.userId === currentUserId && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30">
-                        You
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#C40E61]/20 text-[#C40E61] border border-[#C40E61]/30">
+                        Bạn
                       </span>
                     )}
                   </p>
-                  <p className="text-[10px] text-zinc-400">
+                  <p className="text-[10px] text-gray-500 mt-0.5">
                     {new Date(p.createdAt).toLocaleString()}{" "}
-                    {p.isEdited ? "· edited" : ""}
+                    {p.isEdited && <span className="text-gray-400">· đã chỉnh sửa</span>}
                   </p>
                 </div>
               </div>
               {typeof p.replyCount === "number" && p.replyCount > 0 && (
-                <span className="text-[10px] text-zinc-400">
-                  {p.replyCount} repl{p.replyCount === 1 ? "y" : "ies"}
+                <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                  <MessageCircle className="size-3" />
+                  {p.replyCount} trả lời
                 </span>
               )}
             </div>
-            <p className="text-sm text-zinc-300 whitespace-pre-wrap">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">
               {p.body}
             </p>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 px-2 text-[11px] border-zinc-700"
+                className="h-7 px-2 text-[11px] border-gray-300 text-gray-700 hover:bg-gray-100"
                 onClick={() => {
                   setActiveReplyId(activeReplyId === p.id ? null : p.id);
                 }}
               >
-                {activeReplyId === p.id ? "Cancel" : "Reply"}
+                <Reply className="mr-1 size-3" />
+                {activeReplyId === p.id ? "Hủy" : "Trả lời"}
               </Button>
               {isAuth && p.userId == currentUserId && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 px-2 text-[11px] border-zinc-700"
+                  className="h-7 px-2 text-[11px] border-gray-300 text-gray-700 hover:bg-gray-100"
                   onClick={() => {
                     setActiveEditId(activeEditId === p.id ? null : p.id);
                     if (!editBodies[p.id])
                       setEditBodies((m) => ({ ...m, [p.id]: p.body }));
                   }}
                 >
-                  {activeEditId === p.id ? "Cancel" : "Edit"}
+                  <Edit className="mr-1 size-3" />
+                  {activeEditId === p.id ? "Hủy" : "Chỉnh sửa"}
                 </Button>
               )}
             </div>
@@ -163,25 +168,37 @@ export const ThreadedComments = ({
                   onChange={(e) =>
                     setEditBodies((m) => ({ ...m, [p.id]: e.target.value }))
                   }
-                  placeholder="Edit your comment..."
-                  className="bg-zinc-800 border-zinc-700 min-h-20 text-xs"
+                  placeholder="Chỉnh sửa bình luận của bạn..."
+                  className="bg-white border-gray-300 text-gray-900 min-h-20 text-xs focus-visible:ring-[#C40E61]"
                   disabled={editingComment}
                 />
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 px-2 text-[11px] border-zinc-700"
+                    className="h-7 px-2 text-[11px] border-gray-300 text-gray-700 hover:bg-gray-100"
                     onClick={() => setActiveEditId(null)}
                   >
-                    Cancel
+                    <X className="mr-1 size-3" />
+                    Hủy
                   </Button>
                   <Button
                     size="sm"
+                    className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
                     disabled={!editBodies[p.id]?.trim() || editingComment}
                     onClick={() => onSubmitEdit(p.id)}
                   >
-                    {editingComment ? "Saving..." : "Save"}
+                    {editingComment ? (
+                      <>
+                        <Loader2 className="mr-1 size-3 animate-spin" />
+                        Đang lưu...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-1 size-3" />
+                        Lưu
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -193,13 +210,14 @@ export const ThreadedComments = ({
                   onChange={(e) =>
                     setReplyBodies((m) => ({ ...m, [p.id]: e.target.value }))
                   }
-                  placeholder="Write a reply..."
-                  className="bg-zinc-800 border-zinc-700 min-h-20 text-xs"
+                  placeholder="Viết trả lời..."
+                  className="bg-white border-gray-300 text-gray-900 min-h-20 text-xs focus-visible:ring-[#C40E61]"
                   disabled={submittingReply}
                 />
                 <div className="flex justify-end">
                   <Button
                     size="sm"
+                    className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
                     disabled={!replyBodies[p.id]?.trim() || submittingReply}
                     onClick={() => {
                       if (!isAuth) {
@@ -209,14 +227,24 @@ export const ThreadedComments = ({
                       onSubmitReply(p.id);
                     }}
                   >
-                    {submittingReply ? "Posting..." : "Post Reply"}
+                    {submittingReply ? (
+                      <>
+                        <Loader2 className="mr-1 size-3 animate-spin" />
+                        Đang gửi...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-1 size-3" />
+                        Gửi trả lời
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
             )}
           </div>
           {repliesMap[p.id] && (
-            <div className="ml-6 space-y-2 border-l border-zinc-800 pl-4">
+            <div className="ml-6 space-y-2 border-l-2 border-gray-300 pl-4">
               {repliesMap[p.id]
                 .sort(
                   (a, b) =>
@@ -227,24 +255,25 @@ export const ThreadedComments = ({
                   <div
                     key={r.id}
                     className={
-                      `rounded-md p-3 border bg-zinc-950/80 ` +
+                      `rounded-lg p-3 border bg-white shadow-sm ` +
                       (isAuth && r.userId === currentUserId
-                        ? "border-zinc-700 bg-red-500/5 relative pl-5"
-                        : "border-zinc-800")
+                        ? "border-[#C40E61] bg-[#C40E61]/5 relative pl-5"
+                        : "border-gray-300")
                     }
                   >
                     {isAuth && r.userId === currentUserId && (
-                      <span className="absolute left-0 top-0 h-full w-1 bg-red-500/60 rounded-l" />
+                      <span className="absolute left-0 top-0 h-full w-1 bg-[#C40E61] rounded-l" />
                     )}
                     <div className="mb-1 flex items-start gap-3">
                       <img
                         src={r.userAvatar || defaultAvatar}
                         alt={r.username}
-                        className="h-7 w-7 rounded-full object-cover"
+                        className="h-7 w-7 rounded-full object-cover border-2 border-gray-200"
                         loading="lazy"
                       />
                       <div className="flex-1">
-                        <p className="text-xs font-medium text-white flex items-center gap-2">
+                        <p className="text-xs font-medium text-gray-900 flex items-center gap-2">
+                          <User className="size-3 text-gray-500" />
                           {r.username}
                           {r.userRole && roleMap[r.userRole] && (
                             <span className={roleMap[r.userRole].className}>
@@ -252,39 +281,40 @@ export const ThreadedComments = ({
                             </span>
                           )}
                           {isAuth && r.userId === currentUserId && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30">
-                              You
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#C40E61]/20 text-[#C40E61] border border-[#C40E61]/30">
+                              Bạn
                             </span>
                           )}
-                          <span className="ml-1 text-[10px] text-zinc-400">
+                          <span className="ml-1 text-[10px] text-gray-500">
                             {new Date(r.createdAt).toLocaleString()}{" "}
-                            {r.isEdited ? "· edited" : ""}
+                            {r.isEdited && <span className="text-gray-400">· đã chỉnh sửa</span>}
                           </span>
                         </p>
-                        <p className="text-[10px] text-zinc-400 italic">
+                        <p className="text-[10px] text-gray-500 italic mt-0.5">
                           Đang trả lời @ {p.username}
                         </p>
-                        <p className="mt-1 text-xs text-zinc-300 whitespace-pre-wrap">
+                        <p className="mt-1 text-xs text-gray-700 whitespace-pre-wrap">
                           {r.body}
                         </p>
                         <div className="mt-2 flex gap-2">
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 px-2 text-[11px] border-zinc-700"
+                            className="h-7 px-2 text-[11px] border-gray-300 text-gray-700 hover:bg-gray-100"
                             onClick={() => {
                               setActiveReplyId(
                                 activeReplyId === r.id ? null : r.id
                               );
                             }}
                           >
-                            {activeReplyId === r.id ? "Cancel" : "Reply"}
+                            <Reply className="mr-1 size-3" />
+                            {activeReplyId === r.id ? "Hủy" : "Trả lời"}
                           </Button>
                           {isAuth && r.userId === currentUserId && (
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-7 px-2 text-[11px] border-zinc-700"
+                              className="h-7 px-2 text-[11px] border-gray-300 text-gray-700 hover:bg-gray-100"
                               onClick={() => {
                                 setActiveEditId(
                                   activeEditId === r.id ? null : r.id
@@ -296,7 +326,8 @@ export const ThreadedComments = ({
                                   }));
                               }}
                             >
-                              {activeEditId === r.id ? "Cancel" : "Edit"}
+                              <Edit className="mr-1 size-3" />
+                              {activeEditId === r.id ? "Hủy" : "Chỉnh sửa"}
                             </Button>
                           )}
                         </div>
@@ -310,13 +341,14 @@ export const ThreadedComments = ({
                                   [r.id]: e.target.value,
                                 }))
                               }
-                              placeholder="Write a reply..."
-                              className="bg-zinc-800 border-zinc-700 min-h-20 text-xs"
+                              placeholder="Viết trả lời..."
+                              className="bg-white border-gray-300 text-gray-900 min-h-20 text-xs focus-visible:ring-[#C40E61]"
                               disabled={submittingReply}
                             />
                             <div className="flex justify-end">
                               <Button
                                 size="sm"
+                                className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
                                 disabled={
                                   !replyBodies[r.id]?.trim() || submittingReply
                                 }
@@ -328,7 +360,17 @@ export const ThreadedComments = ({
                                   onSubmitReply(r.id);
                                 }}
                               >
-                                {submittingReply ? "Posting..." : "Post Reply"}
+                                {submittingReply ? (
+                                  <>
+                                    <Loader2 className="mr-1 size-3 animate-spin" />
+                                    Đang gửi...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Send className="mr-1 size-3" />
+                                    Gửi trả lời
+                                  </>
+                                )}
                               </Button>
                             </div>
                           </div>
@@ -343,27 +385,39 @@ export const ThreadedComments = ({
                                   [r.id]: e.target.value,
                                 }))
                               }
-                              placeholder="Edit your reply..."
-                              className="bg-zinc-800 border-zinc-700 min-h-20 text-xs"
+                              placeholder="Chỉnh sửa trả lời của bạn..."
+                              className="bg-white border-gray-300 text-gray-900 min-h-20 text-xs focus-visible:ring-[#C40E61]"
                               disabled={editingComment}
                             />
                             <div className="flex justify-end gap-2">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-7 px-2 text-[11px] border-zinc-700"
+                                className="h-7 px-2 text-[11px] border-gray-300 text-gray-700 hover:bg-gray-100"
                                 onClick={() => setActiveEditId(null)}
                               >
-                                Cancel
+                                <X className="mr-1 size-3" />
+                                Hủy
                               </Button>
                               <Button
                                 size="sm"
+                                className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
                                 disabled={
                                   !editBodies[r.id]?.trim() || editingComment
                                 }
                                 onClick={() => onSubmitEdit(r.id)}
                               >
-                                {editingComment ? "Saving..." : "Save"}
+                                {editingComment ? (
+                                  <>
+                                    <Loader2 className="mr-1 size-3 animate-spin" />
+                                    Đang lưu...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Send className="mr-1 size-3" />
+                                    Lưu
+                                  </>
+                                )}
                               </Button>
                             </div>
                           </div>
@@ -381,11 +435,21 @@ export const ThreadedComments = ({
           <Button
             variant="outline"
             size="sm"
-            className="border-zinc-700 text-zinc-200"
+            className="border-gray-300 text-gray-700 hover:bg-gray-100"
             disabled={loading}
             onClick={onLoadMore}
           >
-            {loading ? "Loading..." : "Load more"}
+            {loading ? (
+              <>
+                <Loader2 className="mr-1 size-3 animate-spin" />
+                Đang tải...
+              </>
+            ) : (
+              <>
+                <MessageCircle className="mr-1 size-3" />
+                Tải thêm
+              </>
+            )}
           </Button>
         </div>
       )}

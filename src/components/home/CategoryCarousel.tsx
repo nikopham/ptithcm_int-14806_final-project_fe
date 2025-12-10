@@ -230,10 +230,10 @@ export const CategoryCarousel = ({
       {/* header row -------------------------------------------------- */}
       <div className="mb-8 flex flex-wrap items-center justify-between gap-6">
         <div>
-          <h2 className="mb-2 text-3xl font-extrabold text-white md:text-4xl">
+          <h2 className="mb-2 text-3xl font-extrabold text-gray-900 md:text-4xl">
             Khám Phá Đa Dạng Thể Loại
           </h2>
-          <p className="max-w-2xl text-zinc-400">
+          <p className="max-w-2xl text-gray-500">
             Dù bạn đang tìm kiếm một bộ phim hài để cười, một bộ phim chính kịch để suy ngẫm,
             hay một bộ phim tài liệu để học hỏi điều gì đó mới mẻ
           </p>
@@ -245,9 +245,12 @@ export const CategoryCarousel = ({
             onClick={prev}
             disabled={page === 0}
             className={clsx(
-              "grid h-10 w-10 place-items-center rounded-md border border-zinc-700 bg-zinc-800",
-              page === 0 ? "cursor-not-allowed opacity-40" : "hover:bg-zinc-700"
+              "grid h-10 w-10 place-items-center rounded-md",
+              page === 0 
+                ? "cursor-not-allowed opacity-40 bg-gray-300" 
+                : "bg-[#C40E61] hover:opacity-90"
             )}
+            style={page !== 0 ? { backgroundColor: "#C40E61" } : undefined}
           >
             <ArrowLeft className="size-4 text-white" />
           </button>
@@ -258,8 +261,9 @@ export const CategoryCarousel = ({
                 key={i}
                 className={clsx(
                   "h-1.5 w-6 rounded-full",
-                  i === page ? "bg-red-500" : "bg-zinc-600"
+                  i === page ? "bg-[#C40E61]" : "bg-gray-300"
                 )}
+                style={i === page ? { backgroundColor: "#C40E61" } : undefined}
               />
             ))}
           </div>
@@ -268,11 +272,12 @@ export const CategoryCarousel = ({
             onClick={next}
             disabled={page === totalPages - 1}
             className={clsx(
-              "grid h-10 w-10 place-items-center rounded-md border border-zinc-700 bg-zinc-800",
+              "grid h-10 w-10 place-items-center rounded-md",
               page === totalPages - 1
-                ? "cursor-not-allowed opacity-40"
-                : "hover:bg-zinc-700"
+                ? "cursor-not-allowed opacity-40 bg-gray-300"
+                : "bg-[#C40E61] hover:opacity-90"
             )}
+            style={page !== totalPages - 1 ? { backgroundColor: "#C40E61" } : undefined}
           >
             <ArrowRight className="size-4 text-white" />
           </button>
@@ -281,17 +286,17 @@ export const CategoryCarousel = ({
 
       {/* card grid --------------------------------------------------- */}
       {isLoading && (
-        <div className="text-sm text-zinc-400">Đang tải thể loại...</div>
+        <div className="text-sm text-gray-500">Đang tải thể loại...</div>
       )}
       {!!error && !isLoading && apiCategories.length === 0 && (
-        <div className="text-sm text-red-400">Không thể tải thể loại.</div>
+        <div className="text-sm" style={{ color: "#C40E61" }}>Không thể tải thể loại.</div>
       )}
       <div className="grid gap-6 md:grid-cols-5 sm:grid-cols-2">
         {slice.map((cat) => (
           <Link
             key={cat.id}
             to={`/filter?genre=${cat.id}`}
-            className="rounded-xl bg-zinc-800 p-4 transition hover:-translate-y-1 hover:bg-zinc-700"
+            className="rounded-xl bg-white border border-gray-300 p-4 transition hover:-translate-y-1 hover:bg-gray-50"
           >
             {/* poster 2×2 */}
             <div className="grid grid-cols-2 gap-2 pb-4">
@@ -307,8 +312,8 @@ export const CategoryCarousel = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="font-medium text-white">{cat.name}</span>
-              <ArrowRight className="size-4 text-zinc-400 transition group-hover:translate-x-1 group-hover:text-white" />
+              <span className="font-medium" style={{ color: "#C40E61" }}>{cat.name}</span>
+              <ArrowRight className="size-4 transition group-hover:translate-x-1" style={{ color: "#C40E61" }} />
             </div>
           </Link>
         ))}

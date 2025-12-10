@@ -1,5 +1,5 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { useAppSelector } from "@/app/hooks";
 import type { RootState } from "@/app/store";
 
@@ -22,8 +22,14 @@ function useAnyApiLoading() {
         Object.values(slice.queries).some((q: any) => q?.status === "pending");
       const mutationsPending =
         slice.mutations &&
-        Object.values(slice.mutations).some(
-          (m: any) => m?.status === "pending"
+        Object.entries(slice.mutations).some(
+          ([mutationKey, m]: [string, any]) => {
+         
+            if (mutationKey.startsWith("saveProgress(") || mutationKey === "saveProgress") {
+              return false;
+            }
+            return m?.status === "pending";
+          }
         );
       return queriesPending || mutationsPending;
     });
@@ -35,10 +41,21 @@ export function GlobalLoadingOverlay() {
   if (!loading) return null;
   return (
     <Dialog open>
-      <DialogContent className="bg-transparent border-none shadow-none p-0 flex items-center justify-center">
-        <div className="flex flex-col items-center rounded-lg bg-zinc-900/80 px-8 py-10 backdrop-blur-sm min-w-[220px]">
-          <Loader2 className="h-12 w-12 animate-spin text-teal-400" />
-          <p className="mt-5 text-sm text-zinc-300">Đang tải dữ liệu...</p>
+      <DialogContent className="bg-black/20 backdrop-blur-sm border-none shadow-none p-0 flex items-center justify-center">
+        <div className="flex flex-col items-center rounded-xl bg-white border border-gray-300 px-10 py-12 min-w-[240px] shadow-xl">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full bg-[#C40E61]/10 animate-ping"></div>
+            <div className="relative">
+              <Loader2 className="h-14 w-14 animate-spin text-[#C40E61]" />
+            </div>
+          </div>
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4 text-[#C40E61] animate-spin" />
+              <p className="text-base font-medium text-gray-900">Đang tải dữ liệu...</p>
+            </div>
+            <p className="text-xs text-gray-500">Vui lòng đợi trong giây lát</p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

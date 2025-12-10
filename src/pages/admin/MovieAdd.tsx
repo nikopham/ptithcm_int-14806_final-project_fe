@@ -325,9 +325,14 @@ export default function MovieAdd() {
   };
 
   return (
-    <section className="mx-auto max-w-4xl space-y-8 pb-20">
+    <section className="mx-auto max-w-4xl space-y-8 pb-20 bg-white">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => navigate(-1)}
+          className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+        >
           <ArrowLeft className="size-5" />
         </Button>
         <div className="flex-1">

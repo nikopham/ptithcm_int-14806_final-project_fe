@@ -17,8 +17,8 @@ const Section = ({
   label: string;
   children: React.ReactNode;
 }) => (
-  <div className="border-b border-zinc-800 py-3 text-sm">
-    <span className="inline-block w-28 shrink-0 text-zinc-400">{label}</span>
+  <div className="border-b border-gray-300 py-3 text-sm">
+    <span className="inline-block w-28 shrink-0 text-gray-900 font-medium">{label}</span>
     <div className="flex flex-wrap gap-2">{children}</div>
   </div>
 );
@@ -35,11 +35,12 @@ const Chip = ({
   <button
     onClick={onClick}
     className={clsx(
-      "rounded  px-2 py-0.5 text-xs transition",
+      "rounded px-2 py-0.5 text-xs transition",
       active
-        ? "bg-red-600 text-white"
-        : " bg-zinc-800 text-zinc-300 hover:bg-zinc-700/60 hover:text-white"
+        ? "text-white"
+        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
     )}
+    style={active ? { backgroundColor: "#C40E61" } : undefined}
   >
     {children}
   </button>
@@ -195,21 +196,21 @@ export default function MovieFilter({
           animate={{ height: "auto" }}
           exit={{ height: 0 }}
           transition={{ duration: 0.4, ease: "easeInOut" }}
-          className="overflow-hidden rounded-xl border border-dashed border-zinc-600 bg-zinc-900/60 backdrop-blur"
+          className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg"
         >
           {/* close btn */}
-          <div className="flex justify-between border-b border-zinc-800 px-4 py-3">
-            <span className="text-sm font-semibold text-yellow-400"></span>
+          <div className="flex justify-between border-b border-gray-300 px-4 py-3">
+            <span className="text-sm font-semibold text-gray-900">Bộ Lọc</span>
             <button
               onClick={onClose}
-              className="text-zinc-400 transition hover:text-white"
+              className="text-gray-500 transition hover:text-gray-900"
             >
               <X className="size-4" />
             </button>
           </div>
 
           {/* sections */}
-          <div className="divide-y divide-zinc-800 px-4">
+          <div className="divide-y divide-gray-300 px-4">
             {/* Thể loại (đa chọn) */}
             <Section label="Thể loại:">
               <Chip
@@ -280,7 +281,8 @@ export default function MovieFilter({
                   type="number"
                   inputMode="numeric"
                   placeholder="Năm..."
-                  className="w-24 rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-200 outline-none ring-1 ring-inset ring-zinc-700 focus:ring-zinc-500"
+                  className="w-24 rounded bg-white border border-gray-300 px-2 py-1 text-xs text-gray-900 outline-none focus:ring-2"
+                  style={{ "--tw-ring-color": "#C40E61" } as React.CSSProperties}
                   value={yearInput}
                   onChange={(e) => {
                     const v = e.target.value;
@@ -360,13 +362,13 @@ export default function MovieFilter({
             <div className="flex items-center justify-end gap-3 py-4">
               <button
                 onClick={resetFilters}
-                className="rounded border border-zinc-600 px-4 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/40"
+                className="rounded border border-gray-300 px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
               >
                 Đặt Lại
               </button>
               <button
                 onClick={onClose}
-                className="rounded border border-zinc-600 px-4 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/40"
+                className="rounded border border-gray-300 px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition"
               >
                 Đóng
               </button>
@@ -374,11 +376,12 @@ export default function MovieFilter({
                 onClick={applyAndClose}
                 disabled={!hasChanges}
                 className={clsx(
-                  "rounded px-4 py-1.5 text-sm font-medium transition",
+                  "rounded px-4 py-1.5 text-sm font-medium transition text-white",
                   hasChanges
-                    ? "bg-red-500 text-black hover:bg-red-600"
-                    : "bg-zinc-700 text-zinc-400 cursor-not-allowed"
+                    ? "hover:opacity-90"
+                    : "bg-gray-300 cursor-not-allowed"
                 )}
+                style={hasChanges ? { backgroundColor: "#C40E61" } : undefined}
               >
                 Lọc kết quả →
               </button>

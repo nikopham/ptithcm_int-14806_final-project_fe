@@ -5,11 +5,11 @@ export const Footer = () => {
   const year = new Date().getFullYear();
 
   const colCls = "space-y-2 text-sm leading-6";
-  const headCls = "mb-4 text-base font-semibold text-white";
-  const linkCls = "block transition-colors duration-200 hover:text-white";
+  const headCls = "mb-4 text-base font-semibold text-gray-900";
+  const linkCls = "block text-gray-500 transition-colors duration-200 hover:text-[#C40E61]";
 
   return (
-    <footer className="mt-20  px-4 text-zinc-400">
+    <footer className="mt-20 bg-white px-4 text-gray-500">
       {/* top columns ---------------------------------------------------- */}
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-y-10 gap-x-8 py-14 md:grid-cols-6">
         {/* Home */}
@@ -86,7 +86,16 @@ export const Footer = () => {
               <a
                 key={i}
                 href="#"
-                className="grid h-9 w-9 place-items-center rounded-md bg-zinc-800 text-zinc-200 transition hover:bg-red-600 hover:text-white"
+                className="grid h-9 w-9 place-items-center rounded-md bg-gray-100 transition hover:opacity-90"
+                style={{ color: "#C40E61" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#C40E61";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f3f4f6";
+                  e.currentTarget.style.color = "#C40E61";
+                }}
               >
                 <Icon className="size-4" />
               </a>
@@ -96,21 +105,21 @@ export const Footer = () => {
       </div>
 
       {/* divider line --------------------------------------------------- */}
-      <div className="mx-auto h-px max-w-7xl bg-zinc-700/60" />
+      <div className="mx-auto h-px max-w-7xl bg-gray-300" />
 
       {/* bottom bar ----------------------------------------------------- */}
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 py-6 text-xs md:flex-row">
         <p>©{year} Streamify, Bảo Lưu Mọi Quyền</p>
 
-        <nav className="flex flex-wrap items-center gap-4 text-zinc-300">
+        <nav className="flex flex-wrap items-center gap-4">
           <Link to="/terms" className={linkCls}>
             Điều Khoản Sử Dụng
           </Link>
-          <span className="hidden select-none text-zinc-600 md:inline">│</span>
+          <span className="hidden select-none text-gray-300 md:inline">│</span>
           <Link to="/privacy" className={linkCls}>
             Chính Sách Bảo Mật
           </Link>
-          <span className="hidden select-none text-zinc-600 md:inline">│</span>
+          <span className="hidden select-none text-gray-300 md:inline">│</span>
           <Link to="/cookies" className={linkCls}>
             Chính Sách Cookie
           </Link>

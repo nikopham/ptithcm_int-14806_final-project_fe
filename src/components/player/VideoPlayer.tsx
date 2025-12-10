@@ -9,18 +9,19 @@ interface VideoPlayerProps {
   className?: string;
   movieId: string;
   episodeId?: string;
+  currentSecond?: number | null; // Vị trí đang xem để resume
 }
 
-export const VideoPlayer = ({ src,movieId, episodeId, poster, className }: VideoPlayerProps) => {
+export const VideoPlayer = ({ src, movieId, episodeId, poster, className, currentSecond }: VideoPlayerProps) => {
   const artRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Artplayer | null>(null);
   const isInitializingRef = useRef<boolean>(false);
 
   const [saveProgress] = useSaveProgressMutation();
-  console.log(movieId);
   
 
   const lastUpdateRef = useRef<number>(0);
+  const lastSavedTimeRef = useRef<number>(0); 
   const saveProgressRef = useRef(saveProgress);
   const movieIdRef = useRef(movieId);
   const episodeIdRef = useRef(episodeId);
@@ -30,6 +31,9 @@ export const VideoPlayer = ({ src,movieId, episodeId, poster, className }: Video
     saveProgressRef.current = saveProgress;
     movieIdRef.current = movieId;
     episodeIdRef.current = episodeId;
+    // Reset tracking khi movieId hoặc episodeId thay đổi
+    lastUpdateRef.current = 0;
+    lastSavedTimeRef.current = 0;
   }, [saveProgress, movieId, episodeId]);
 
   useEffect(() => {
@@ -162,12 +166,19 @@ export const VideoPlayer = ({ src,movieId, episodeId, poster, className }: Video
       // Chỉ gửi nếu duration hợp lệ
       if (!duration || duration <= 0) return;
 
+      // Tính toán watchedDelta: thời gian đã xem từ lần lưu trước
+      const watchedDelta = Math.max(0, Math.floor(currentTime - lastSavedTimeRef.current));
+      
+      // Cập nhật thời gian đã lưu
+      lastSavedTimeRef.current = Math.floor(currentTime);
+
       try {
         await saveProgressRef.current({
           movieId: movieIdRef.current,
           episodeId: episodeIdRef.current || null,
-          watchedSeconds: Math.floor(currentTime),
-          totalSeconds: Math.floor(duration)
+          currentSecond: Math.floor(currentTime),
+          totalSeconds: Math.floor(duration),
+          watchedDelta: watchedDelta
         }).unwrap();
       } catch (error) {
         // Silently fail - this is background saving, don't interrupt user experience
@@ -180,8 +191,8 @@ export const VideoPlayer = ({ src,movieId, episodeId, poster, className }: Video
       const currentTime = art.video.currentTime;
       const duration = art.video.duration;
 
-      // Cứ mỗi 15 giây gửi API một lần (Throttling)
-      if (currentTime - lastUpdateRef.current > 15) {
+      // Cứ mỗi 10 giây gửi API một lần (Throttling)
+      if (currentTime - lastUpdateRef.current >= 10) {
         handleSave(currentTime, duration);
         lastUpdateRef.current = currentTime;
       }
@@ -211,6 +222,30 @@ export const VideoPlayer = ({ src,movieId, episodeId, poster, className }: Video
 
     // Lắng nghe video pause event trực tiếp từ video element
     art.on('ready', () => {
+      // Khởi tạo lastSavedTimeRef khi video ready
+      if (art.video) {
+        // Nếu có currentSecond, seek đến vị trí đó để resume
+        if (currentSecond != null && currentSecond > 0) {
+          // Đợi video load metadata trước khi seek
+          const seekToPosition = () => {
+            if (art && art.video && art.video.duration > 0) {
+              // Set currentTime trực tiếp
+              art.video.currentTime = currentSecond;
+              lastSavedTimeRef.current = Math.floor(currentSecond);
+              lastUpdateRef.current = currentSecond;
+            } else if (art && art.video) {
+              // Nếu chưa có duration, đợi thêm một chút
+              setTimeout(seekToPosition, 100);
+            }
+          };
+          // Đợi một chút để video sẵn sàng
+          setTimeout(seekToPosition, 200);
+        } else {
+          lastSavedTimeRef.current = Math.floor(art.video.currentTime);
+          lastUpdateRef.current = art.video.currentTime;
+        }
+      }
+
       art.play().catch(() => {
         // Autoplay may be blocked by browser, user can click play manually
       });
@@ -264,7 +299,7 @@ export const VideoPlayer = ({ src,movieId, episodeId, poster, className }: Video
         artRef.current.innerHTML = '';
       }
     };
-  }, [src, movieId, episodeId, poster]);
+  }, [src, movieId, episodeId, poster, currentSecond]);
 
   return (
     <div

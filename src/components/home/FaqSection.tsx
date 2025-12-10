@@ -36,10 +36,10 @@ export const FaqSection = () => {
       {/* heading row */}
       <div className="mb-12 flex flex-wrap items-center justify-between gap-6">
         <div>
-          <h2 className="mb-3 text-3xl font-extrabold text-white md:text-4xl">
+          <h2 className="mb-3 text-3xl font-extrabold text-gray-900 md:text-4xl">
             Câu Hỏi Thường Gặp
           </h2>
-          <p className="max-w-2xl text-zinc-400">
+          <p className="max-w-2xl text-gray-500">
             Có câu hỏi? Chúng tôi có câu trả lời! Xem phần FAQ của chúng tôi để tìm
             câu trả lời cho các câu hỏi phổ biến nhất về Streamify.
           </p>
@@ -47,7 +47,8 @@ export const FaqSection = () => {
 
         <Link
           to="/contact"
-          className="inline-flex h-11 items-center rounded-md bg-red-600 px-6 text-sm font-medium text-white transition hover:bg-red-700"
+          className="inline-flex h-11 items-center rounded-md px-6 text-sm font-medium text-white transition hover:opacity-90"
+          style={{ backgroundColor: "#C40E61" }}
         >
           Đặt Câu Hỏi
         </Link>
@@ -61,9 +62,10 @@ export const FaqSection = () => {
             <div
               key={item.id}
               className={clsx(
-                "border-b border-zinc-700/40 pb-6",
-                isOpen && "border-red-600/60"
+                "border-b border-gray-300 pb-6",
+                isOpen && "border-[#C40E61]"
               )}
+              style={isOpen ? { borderColor: "#C40E61" } : undefined}
             >
               <button
                 onClick={() => toggle(item.id)}
@@ -71,7 +73,10 @@ export const FaqSection = () => {
               >
                 {/* number badge */}
                 <div className="flex-shrink-0">
-                  <div className="grid h-12 w-12 place-items-center rounded-md bg-zinc-800">
+                  <div 
+                    className="grid h-12 w-12 place-items-center rounded-md"
+                    style={{ backgroundColor: "#C40E61" }}
+                  >
                     <span className="font-medium text-white">
                       {item.id.toString().padStart(2, "0")}
                     </span>
@@ -80,11 +85,11 @@ export const FaqSection = () => {
 
                 {/* question + answer */}
                 <div className="flex-1">
-                  <h3 className="mb-2 text-base font-semibold text-white">
+                  <h3 className="mb-2 text-base font-semibold" style={{ color: "#C40E61" }}>
                     {item.q}
                   </h3>
                   {isOpen && item.a && (
-                    <p className="text-sm leading-relaxed text-zinc-400">
+                    <p className="text-sm leading-relaxed text-gray-500">
                       {item.a}
                     </p>
                   )}
@@ -92,9 +97,9 @@ export const FaqSection = () => {
 
                 {/* icon */}
                 {isOpen ? (
-                  <Minus className="mt-1 size-4 flex-shrink-0 text-white" />
+                  <Minus className="mt-1 size-4 flex-shrink-0" style={{ color: "#C40E61" }} />
                 ) : (
-                  <Plus className="mt-1 size-4 flex-shrink-0 text-white" />
+                  <Plus className="mt-1 size-4 flex-shrink-0" style={{ color: "#C40E61" }} />
                 )}
               </button>
             </div>

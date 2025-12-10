@@ -130,11 +130,11 @@ export default function AccountPage() {
   };
 
   return (
-    <section className="mx-auto max-w-3xl space-y-10">
+    <section className="mx-auto max-w-3xl px-10 py-10 space-y-10 min-h-full">
       {/* heading */}
       <div>
-        <h1 className="mb-1 text-2xl font-bold text-white">Tài Khoản</h1>
-        <p className="text-sm text-zinc-400">Cập nhật thông tin tài khoản của bạn</p>
+        <h1 className="mb-1 text-2xl font-bold text-gray-900">Tài Khoản</h1>
+        <p className="text-sm text-gray-500">Cập nhật thông tin tài khoản của bạn</p>
       </div>
 
       {/* ---------- form body ---------- */}
@@ -143,21 +143,22 @@ export default function AccountPage() {
         <form onSubmit={handleUpdateProfile} className="space-y-6">
           {/* email */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-300">Email</label>
-            <Input value={me?.email || ""} type="email" disabled />
+            <label className="text-sm font-medium text-gray-900">Email</label>
+            <Input value={me?.email || ""} type="email" disabled className="bg-gray-100 border-gray-300 text-gray-900" />
           </div>
 
           {/* display name */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-300">
+            <label className="text-sm font-medium text-gray-900">
               Tên Hiển Thị
             </label>
             <Input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              className="bg-white border-gray-300 text-gray-900"
             />
             {usernameError && (
-              <p className="text-xs text-red-400">{usernameError}</p>
+              <p className="text-xs" style={{ color: "#C40E61" }}>{usernameError}</p>
             )}
           </div>
 
@@ -165,20 +166,21 @@ export default function AccountPage() {
           <Button
             type="submit"
             disabled={isUpdating || isMeLoading}
-            className="bg-teal-500 text-black hover:bg-teal-600"
+            className="text-white hover:opacity-90"
+            style={{ backgroundColor: "#C40E61" }}
           >
             {isUpdating ? "Đang cập nhật..." : "Cập Nhật Hồ Sơ"}
           </Button>
 
           {/* change password */}
-          <div className="mt-8 space-y-4 rounded-lg border border-zinc-700/50 bg-zinc-900 p-4">
-            <h2 className="text-sm font-semibold text-white">
+          <div className="mt-8 space-y-4 rounded-lg border border-gray-300 bg-white p-6 shadow-sm">
+            <h2 className="text-sm font-semibold text-gray-900">
               Đổi Mật Khẩu
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {hasPassword && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-300">
+                  <label className="text-sm font-medium text-gray-900">
                     Mật Khẩu Hiện Tại
                   </label>
                   <div className="relative">
@@ -186,7 +188,7 @@ export default function AccountPage() {
                       type={showOldPwd ? "text" : "password"}
                       value={oldPassword}
                       onChange={(e) => setOldPassword(e.target.value)}
-                      className="pr-10"
+                      className="pr-10 bg-white border-gray-300 text-gray-900"
                     />
                     <button
                       type="button"
@@ -195,7 +197,7 @@ export default function AccountPage() {
                       }
                       title={showOldPwd ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                       onClick={() => setShowOldPwd((v) => !v)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900"
                     >
                       {showOldPwd ? (
                         <EyeOff className="h-4 w-4" />
@@ -211,7 +213,7 @@ export default function AccountPage() {
                   hasPassword ? "space-y-4" : "sm:col-span-2 space-y-2"
                 }
               >
-                <label className="text-sm font-medium text-zinc-300">
+                <label className="text-sm font-medium text-gray-900">
                   Mật Khẩu Mới
                 </label>
                 <div className="relative">
@@ -219,14 +221,14 @@ export default function AccountPage() {
                     type={showNewPwd ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="pr-10"
+                    className="pr-10 bg-white border-gray-300 text-gray-900"
                   />
                   <button
                     type="button"
                     aria-label={showNewPwd ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                     title={showNewPwd ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                     onClick={() => setShowNewPwd((v) => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900"
                   >
                     {showNewPwd ? (
                       <EyeOff className="h-4 w-4" />
@@ -237,7 +239,7 @@ export default function AccountPage() {
                 </div>
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <label className="text-sm font-medium text-zinc-300">
+                <label className="text-sm font-medium text-gray-900">
                   Xác Nhận Mật Khẩu Mới
                 </label>
                 <div className="relative">
@@ -245,7 +247,7 @@ export default function AccountPage() {
                     type={showConfirmPwd ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pr-10"
+                    className="pr-10 bg-white border-gray-300 text-gray-900"
                   />
                   <button
                     type="button"
@@ -254,7 +256,7 @@ export default function AccountPage() {
                     }
                     title={showConfirmPwd ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                     onClick={() => setShowConfirmPwd((v) => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900"
                   >
                     {showConfirmPwd ? (
                       <EyeOff className="h-4 w-4" />
@@ -266,7 +268,7 @@ export default function AccountPage() {
               </div>
             </div>
             {passwordError && (
-              <p className="text-xs text-red-400">{passwordError}</p>
+              <p className="text-xs" style={{ color: "#C40E61" }}>{passwordError}</p>
             )}
             <div className="flex justify-end">
               <Button
@@ -274,7 +276,7 @@ export default function AccountPage() {
                 disabled={isChangingPwd || isMeLoading}
                 onClick={handleChangePassword}
                 variant="outline"
-                className="border-zinc-700 text-zinc-200"
+                className="border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 {isChangingPwd ? "Đang đổi..." : "Đổi Mật Khẩu"}
               </Button>
@@ -286,10 +288,10 @@ export default function AccountPage() {
         <div className="flex flex-col items-center gap-3 md:pt-2">
           <img
             src={avatarPreview}
-            className="h-32 w-32 rounded-full border-2 border-zinc-600 object-cover"
+            className="h-32 w-32 rounded-full border-2 border-gray-300 object-cover"
           />
           <div className="flex items-center gap-2">
-            <label className="cursor-pointer rounded border border-zinc-700 px-3 py-1 text-xs text-zinc-300 hover:bg-zinc-800">
+            <label className="cursor-pointer rounded border border-gray-300 px-3 py-1 text-xs text-gray-700 hover:bg-gray-100 bg-white">
               Chọn Ảnh Đại Diện
               <input
                 type="file"
@@ -301,14 +303,14 @@ export default function AccountPage() {
             {avatarFile && (
               <Button
                 variant="ghost"
-                className="text-xs text-zinc-400 hover:text-red-400"
+                className="text-xs text-gray-500 hover:text-[#C40E61]"
                 onClick={() => setAvatarFile(null)}
               >
                 Xóa
               </Button>
             )}
           </div>
-          <span className="text-xs text-zinc-500">JPG, PNG tối đa 5MB</span>
+          <span className="text-xs text-gray-500">JPG, PNG tối đa 5MB</span>
         </div>
       </div>
     </section>

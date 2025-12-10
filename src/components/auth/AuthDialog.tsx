@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
 import { AnimatePresence, motion } from "framer-motion";
-import { Lock, Mail, Eye, EyeOff, Loader2, User } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, Loader2, User, LogIn, UserPlus, KeyRound, AlertCircle, CheckCircle2 } from "lucide-react";
 
 import {
   Dialog,
@@ -294,20 +294,25 @@ export function AuthDialog({
     if (!message.text) return null;
     return (
       <div
-        className={`p-2 rounded text-sm mb-4 ${
+        className={`flex items-center gap-2 p-3 rounded-lg text-sm mb-4 border ${
           message.type === "error"
-            ? "bg-red-900 text-red-100"
-            : "bg-green-900 text-green-100"
+            ? "bg-red-50 text-red-700 border-red-200"
+            : "bg-green-50 text-green-700 border-green-200"
         }`}
       >
-        {message.text}
+        {message.type === "error" ? (
+          <AlertCircle className="size-4 flex-shrink-0" style={{ color: "#C40E61" }} />
+        ) : (
+          <CheckCircle2 className="size-4 flex-shrink-0" style={{ color: "#C40E61" }} />
+        )}
+        <span>{message.text}</span>
       </div>
     );
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-zinc-900 border-zinc-800 text-white p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[450px] bg-white border-gray-200 text-gray-900 p-0 overflow-hidden shadow-xl">
         <Tabs
           value={activeTab}
           onValueChange={(value) => {
@@ -324,25 +329,27 @@ export function AuthDialog({
           }}
           className="w-full"
         >
-          <TabsList className="grid w-3/4 grid-cols-3 h-10 bg-zinc-950/50">
-            {/* ... TabsTrigger (không đổi) ... */}
+          <TabsList className="grid w-full grid-cols-3 h-12 bg-gray-50 border-b border-gray-200 rounded-none">
             <TabsTrigger
               value="login"
-              className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white text-zinc-300"
+              className="data-[state=active]:bg-white data-[state=active]:text-[#C40E61] data-[state=active]:border-b-2 data-[state=active]:border-[#C40E61] text-gray-600 font-medium transition-all duration-200"
             >
-              Login
+              <LogIn className="size-4 mr-2" />
+              Đăng Nhập
             </TabsTrigger>
             <TabsTrigger
               value="register"
-              className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white text-zinc-300"
+              className="data-[state=active]:bg-white data-[state=active]:text-[#C40E61] data-[state=active]:border-b-2 data-[state=active]:border-[#C40E61] text-gray-600 font-medium transition-all duration-200"
             >
-              Register
+              <UserPlus className="size-4 mr-2" />
+              Đăng Ký
             </TabsTrigger>
             <TabsTrigger
               value="forgot"
-              className="data-[state=active]:bg-zinc-700 data-[state=active]:text-white text-zinc-300"
+              className="data-[state=active]:bg-white data-[state=active]:text-[#C40E61] data-[state=active]:border-b-2 data-[state=active]:border-[#C40E61] text-gray-600 font-medium transition-all duration-200"
             >
-              Reset
+              <KeyRound className="size-4 mr-2" />
+              Đặt Lại
             </TabsTrigger>
           </TabsList>
 
@@ -352,25 +359,29 @@ export function AuthDialog({
               {activeTab === "login" && (
                 <TabsContent value="login" forceMount>
                   <motion.div {...tabAnimation}>
-                    <DialogHeader className="text-left mb-4">
-                      {/* ... Header (không đổi) ... */}
-                      <DialogTitle>Welcome Back</DialogTitle>
-                      <DialogDescription className="text-zinc-400">
-                        Sign in to access your account.
+                    <DialogHeader className="text-left mb-6">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 rounded-lg" style={{ backgroundColor: "#C40E61" }}>
+                          <LogIn className="size-5 text-white" />
+                        </div>
+                        <DialogTitle className="text-xl font-bold text-gray-900">Chào Mừng Trở Lại</DialogTitle>
+                      </div>
+                      <DialogDescription className="text-gray-600">
+                        Đăng nhập để truy cập tài khoản của bạn.
                       </DialogDescription>
                     </DialogHeader>
                     {renderMessage()}
                     <form onSubmit={handleLogin} className="space-y-4">
                       {/* ... Input Email ... */}
                       <div className="space-y-2">
-                        <Label htmlFor="login-email">Email</Label>
+                        <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">Email</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                           <Input
                             id="login-email"
                             type="email"
                             placeholder="you@example.com"
-                            className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            className="pl-10 bg-white border-gray-300 text-gray-900 focus:border-[#C40E61] focus:ring-[#C40E61]"
                             value={email}
                             onChange={(e) => {
                               setEmail(e.target.value);
@@ -382,27 +393,29 @@ export function AuthDialog({
                         </div>
                         {/* Hiển thị lỗi validation */}
                         {errors.email && (
-                          <p className="text-xs text-red-500">{errors.email}</p>
+                          <p className="text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="size-3" />
+                            {errors.email}
+                          </p>
                         )}
                       </div>
                       {/* ... Input Password (Không đổi) ... */}
                       <div className="space-y-2">
-                        <Label htmlFor="login-password">Password</Label>
+                        <Label htmlFor="login-password" className="text-sm font-medium text-gray-700">Mật Khẩu</Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                           <Input
                             id="login-password"
                             type={showPassword ? "text" : "password"}
                             placeholder="••••••••"
-                            className="pl-10 pr-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            className="pl-10 pr-10 bg-white border-gray-300 text-gray-900 focus:border-[#C40E61] focus:ring-[#C40E61]"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                           />
-                          {/* ... Nút ẩn/hiện (không đổi) ... */}
                           <button
                             type="button"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                             onClick={() => setShowPassword(!showPassword)}
                             aria-label={
                               showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
@@ -419,22 +432,29 @@ export function AuthDialog({
 
                       <Button
                         type="submit"
-                        className="w-full text-white bg-red-600 hover:bg-red-700"
+                        className="w-full text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                        style={{ backgroundColor: "#C40E61" }}
                         disabled={isLoginLoading}
                       >
                         {isLoginLoading ? (
-                          <Loader2 className="animate-spin" />
+                          <>
+                            <Loader2 className="animate-spin mr-2 size-4" />
+                            Đang đăng nhập...
+                          </>
                         ) : (
-                          "Login"
+                          <>
+                            <LogIn className="mr-2 size-4" />
+                            Đăng Nhập
+                          </>
                         )}
                       </Button>
                       <div className="relative">
                         <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t border-zinc-700" />
+                          <span className="w-full border-t border-gray-300" />
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-zinc-900 px-2 text-zinc-400">
-                            Or continue with
+                          <span className="bg-white px-3 text-gray-500 font-medium">
+                            Hoặc tiếp tục với
                           </span>
                         </div>
                       </div>
@@ -442,13 +462,17 @@ export function AuthDialog({
                       <Button
                         type="button"
                         variant="outline"
-                        className="w-full border-zinc-700 hover:bg-zinc-800 hover:text-white"
+                        className="w-full border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
                         disabled={status === "loading"}
                         onClick={() => googleLogin()}
                       >
-                        {/* (Optional) Thêm icon Google nếu muốn */}
-                        {/* <FcGoogle className="mr-2 h-4 w-4" /> */}
-                        Google Login
+                        <svg className="mr-2 size-4" viewBox="0 0 24 24">
+                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Đăng nhập với Google
                       </Button>
                     </form>
                   </motion.div>
@@ -460,24 +484,28 @@ export function AuthDialog({
                 <TabsContent value="register" forceMount>
                   {/* Bỏ AnimatePresence lồng nhau vì không còn step */}
                   <motion.div {...tabAnimation}>
-                    <DialogHeader className="text-left mb-4">
-                      {/* ... Header (không đổi) ... */}
-                      <DialogTitle>Create Account</DialogTitle>
-                      <DialogDescription className="text-zinc-400">
-                        Get started by creating a new account.
+                    <DialogHeader className="text-left mb-6">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 rounded-lg" style={{ backgroundColor: "#C40E61" }}>
+                          <UserPlus className="size-5 text-white" />
+                        </div>
+                        <DialogTitle className="text-xl font-bold text-gray-900">Tạo Tài Khoản</DialogTitle>
+                      </div>
+                      <DialogDescription className="text-gray-600">
+                        Bắt đầu bằng cách tạo tài khoản mới.
                       </DialogDescription>
                     </DialogHeader>
                     {renderMessage()}
                     <form onSubmit={handleRegister} className="space-y-4">
                       {/* ... Input Username ... */}
                       <div className="space-y-2">
-                        <Label htmlFor="reg-username">Username</Label>
+                        <Label htmlFor="reg-username" className="text-sm font-medium text-gray-700">Tên Hiển Thị</Label>
                         <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                           <Input
                             id="reg-username"
                             placeholder="your_username"
-                            className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            className="pl-10 bg-white border-gray-300 text-gray-900 focus:border-[#C40E61] focus:ring-[#C40E61]"
                             value={username}
                             onChange={(e) => {
                               setUsername(e.target.value);
@@ -489,21 +517,22 @@ export function AuthDialog({
                         </div>
                         {/* Hiển thị lỗi validation */}
                         {errors.username && (
-                          <p className="text-xs text-red-500">
+                          <p className="text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="size-3" />
                             {errors.username}
                           </p>
                         )}
                       </div>
                       {/* ... Input Email ... */}
                       <div className="space-y-2">
-                        <Label htmlFor="reg-email">Email</Label>
+                        <Label htmlFor="reg-email" className="text-sm font-medium text-gray-700">Email</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                           <Input
                             id="reg-email"
                             type="email"
                             placeholder="you@example.com"
-                            className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            className="pl-10 bg-white border-gray-300 text-gray-900 focus:border-[#C40E61] focus:ring-[#C40E61]"
                             value={email}
                             onChange={(e) => {
                               setEmail(e.target.value);
@@ -515,19 +544,22 @@ export function AuthDialog({
                         </div>
                         {/* Hiển thị lỗi validation */}
                         {errors.email && (
-                          <p className="text-xs text-red-500">{errors.email}</p>
+                          <p className="text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="size-3" />
+                            {errors.email}
+                          </p>
                         )}
                       </div>
                       {/* ... Input Password ... */}
                       <div className="space-y-2">
-                        <Label htmlFor="reg-password">Password</Label>
+                        <Label htmlFor="reg-password" className="text-sm font-medium text-gray-700">Mật Khẩu</Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                           <Input
                             id="reg-password"
                             type={showRegPassword ? "text" : "password"}
-                            placeholder="Min. 8 characters"
-                            className="pl-10 pr-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            placeholder="Tối thiểu 8 ký tự"
+                            className="pl-10 pr-10 bg-white border-gray-300 text-gray-900 focus:border-[#C40E61] focus:ring-[#C40E61]"
                             value={password}
                             onChange={(e) => {
                               setPassword(e.target.value);
@@ -538,7 +570,7 @@ export function AuthDialog({
                           />
                           <button
                             type="button"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                             onClick={() => setShowRegPassword(!showRegPassword)}
                             aria-label={
                               showRegPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
@@ -553,21 +585,22 @@ export function AuthDialog({
                         </div>
                         {/* Hiển thị lỗi validation */}
                         {errors.password && (
-                          <p className="text-xs text-red-500">
+                          <p className="text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="size-3" />
                             {errors.password}
                           </p>
                         )}
                         <div className="space-y-2">
-                          <Label htmlFor="reg-repassword">
-                            Confirm Password
+                          <Label htmlFor="reg-repassword" className="text-sm font-medium text-gray-700">
+                            Xác Nhận Mật Khẩu
                           </Label>
                           <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                             <Input
                               id="reg-repassword"
                               type={showRegRepassword ? "text" : "password"}
-                              placeholder="Repeat your password"
-                              className="pl-10 pr-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                              placeholder="Nhập lại mật khẩu"
+                              className="pl-10 pr-10 bg-white border-gray-300 text-gray-900 focus:border-[#C40E61] focus:ring-[#C40E61]"
                               value={repassword}
                               onChange={(e) => {
                                 setRepassword(e.target.value);
@@ -578,7 +611,7 @@ export function AuthDialog({
                             />
                             <button
                               type="button"
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                               onClick={() =>
                                 setShowRegRepassword(!showRegRepassword)
                               }
@@ -597,7 +630,8 @@ export function AuthDialog({
                           </div>
                           {/* Hiển thị lỗi validation */}
                           {errors.repassword && (
-                            <p className="text-xs text-red-500">
+                            <p className="text-xs text-red-600 flex items-center gap-1">
+                              <AlertCircle className="size-3" />
                               {errors.repassword}
                             </p>
                           )}
@@ -606,13 +640,20 @@ export function AuthDialog({
 
                       <Button
                         type="submit"
-                        className="w-full bg-red-600 hover:bg-red-700 text-white"
+                        className="w-full text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                        style={{ backgroundColor: "#C40E61" }}
                         disabled={localLoading}
                       >
                         {localLoading ? (
-                          <Loader2 className="animate-spin" />
+                          <>
+                            <Loader2 className="animate-spin mr-2 size-4" />
+                            Đang xử lý...
+                          </>
                         ) : (
-                          "Continue"
+                          <>
+                            <UserPlus className="mr-2 size-4" />
+                            Tạo Tài Khoản
+                          </>
                         )}
                       </Button>
                     </form>
@@ -625,24 +666,28 @@ export function AuthDialog({
                 <TabsContent value="forgot" forceMount>
                   {/* Bỏ AnimatePresence lồng nhau vì không còn step */}
                   <motion.div {...tabAnimation}>
-                    <DialogHeader className="text-left mb-4">
-                      {/* ... Header (không đổi) ... */}
-                      <DialogTitle>Reset Password</DialogTitle>
-                      <DialogDescription className="text-zinc-400">
-                        We'll send a password reset code to your email.
+                    <DialogHeader className="text-left mb-6">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 rounded-lg" style={{ backgroundColor: "#C40E61" }}>
+                          <KeyRound className="size-5 text-white" />
+                        </div>
+                        <DialogTitle className="text-xl font-bold text-gray-900">Đặt Lại Mật Khẩu</DialogTitle>
+                      </div>
+                      <DialogDescription className="text-gray-600">
+                        Chúng tôi sẽ gửi mã đặt lại mật khẩu đến email của bạn.
                       </DialogDescription>
                     </DialogHeader>
                     {renderMessage()}
                     <form onSubmit={handleForgot} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="forgot-email">Email</Label>
+                        <Label htmlFor="forgot-email" className="text-sm font-medium text-gray-700">Email</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                           <Input
                             id="forgot-email"
                             type="email"
-                            placeholder="Enter your registered email"
-                            className="pl-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                            placeholder="Nhập email đã đăng ký"
+                            className="pl-10 bg-white border-gray-300 text-gray-900 focus:border-[#C40E61] focus:ring-[#C40E61]"
                             value={email}
                             onChange={(e) => {
                               setEmail(e.target.value);
@@ -654,19 +699,29 @@ export function AuthDialog({
                         </div>
                         {/* Hiển thị lỗi validation */}
                         {errors.email && (
-                          <p className="text-xs text-red-500">{errors.email}</p>
+                          <p className="text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="size-3" />
+                            {errors.email}
+                          </p>
                         )}
                       </div>
 
                       <Button
                         type="submit"
-                        className="w-full bg-red-600 hover:bg-red-700 text-white"
+                        className="w-full text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                        style={{ backgroundColor: "#C40E61" }}
                         disabled={localLoading}
                       >
                         {localLoading ? (
-                          <Loader2 className="animate-spin" />
+                          <>
+                            <Loader2 className="animate-spin mr-2 size-4" />
+                            Đang gửi...
+                          </>
                         ) : (
-                          "Send Reset Code"
+                          <>
+                            <KeyRound className="mr-2 size-4" />
+                            Gửi Mã Đặt Lại
+                          </>
                         )}
                       </Button>
                     </form>

@@ -33,7 +33,7 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone"; // Giả định bạn có component này
-import { X, Trash2, Loader2 } from "lucide-react";
+import { X, Trash2, Loader2, Image, Calendar, Clock, Film, Users, FileText, Globe, Tag, Tv } from "lucide-react";
 import type { Person } from "@/types/person";
 import { PersonJob } from "@/types/person";
 import { useSearchPeopleQuery } from "@/features/person/personApi";
@@ -218,13 +218,16 @@ export function TvAddForm({
       {/* LEFT COLUMN: uploads */}
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label>Ảnh Bìa (Dọc)</Label>
-          <div className="overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900/50">
+          <Label className="flex items-center gap-2 text-gray-900">
+            <Image className="size-4 text-[#C40E61]" />
+            Ảnh Bìa (Dọc)
+          </Label>
+          <div className="overflow-hidden rounded-lg border border-gray-300 bg-white shadow-sm">
             <Dropzone
               accept={{ "image/*": [] }}
               maxFiles={1}
               onDrop={(files) => update("poster", files[0])}
-              className={`relative aspect-2/3 w-full cursor-pointer transition hover:bg-zinc-800/50 ${
+              className={`relative aspect-2/3 w-full cursor-pointer transition hover:bg-gray-50 ${
                 isLoading ? "opacity-50 pointer-events-none" : ""
               }`}
             >
@@ -249,13 +252,16 @@ export function TvAddForm({
           </div>
         </div>
         <div className="space-y-2">
-          <Label>Ảnh Nền (Ngang)</Label>
-          <div className="overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900/50">
+          <Label className="flex items-center gap-2 text-gray-900">
+            <Image className="size-4 text-[#C40E61]" />
+            Ảnh Nền (Ngang)
+          </Label>
+          <div className="overflow-hidden rounded-lg border border-gray-300 bg-white shadow-sm">
             <Dropzone
               accept={{ "image/*": [] }}
               maxFiles={1}
               onDrop={(files) => update("backdrop", files[0])}
-              className={`relative aspect-video w-full cursor-pointer transition hover:bg-zinc-800/50 ${
+              className={`relative aspect-video w-full cursor-pointer transition hover:bg-gray-50 ${
                 isLoading ? "opacity-50 pointer-events-none" : ""
               }`}
             >
@@ -284,7 +290,10 @@ export function TvAddForm({
         {/* Basic Info */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label>Tiêu Đề Gốc</Label>
+            <Label className="flex items-center gap-2 text-gray-900">
+              <Film className="size-4 text-[#C40E61]" />
+              Tiêu Đề Gốc
+            </Label>
             <Input
               value={form.originalTitle ?? ""}
               onChange={(e) =>
@@ -292,10 +301,14 @@ export function TvAddForm({
               }
               disabled={isLoading}
               placeholder="Nhập tiêu đề gốc"
+              className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
             />
           </div>
           <div>
-            <Label>Năm Phát Hành</Label>
+            <Label className="flex items-center gap-2 text-gray-900">
+              <Calendar className="size-4 text-[#C40E61]" />
+              Năm Phát Hành
+            </Label>
             <Input
               type="number"
               inputMode="numeric"
@@ -329,28 +342,36 @@ export function TvAddForm({
                 if (yr > max) update("release", String(max));
               }}
               disabled={isLoading}
+              className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
             />
           </div>
 
           <div className="col-span-2">
-            <Label>Tiêu Đề Hiển Thị</Label>
+            <Label className="flex items-center gap-2 text-gray-900">
+              <Tv className="size-4 text-[#C40E61]" />
+              Tiêu Đề Hiển Thị
+            </Label>
             <Input
               value={form.title}
               onChange={(e) => update("title", e.target.value)}
               disabled={isLoading}
+              className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
             />
           </div>
           <div>
-            <Label>Xếp Hạng Độ Tuổi</Label>
+            <Label className="flex items-center gap-2 text-gray-900">
+              <Tag className="size-4 text-[#C40E61]" />
+              Xếp Hạng Độ Tuổi
+            </Label>
             <Select
               value={form.age}
               onValueChange={(val) => update("age", val)}
               disabled={isLoading}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
                 <SelectValue placeholder="Chọn xếp hạng" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border-gray-300 text-gray-900">
                 {ageRatings.map((rating) => (
                   <SelectItem key={rating.value} value={rating.value}>
                     {rating.label}
@@ -360,16 +381,16 @@ export function TvAddForm({
             </Select>
           </div>
           <div>
-            <Label>Trạng Thái</Label>
+            <Label className="text-gray-900">Trạng Thái</Label>
             <Select
               value={form.status}
               onValueChange={(val) => update("status", val)}
               disabled={isLoading}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
                 <SelectValue placeholder="Chọn trạng thái" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border-gray-300 text-gray-900">
                 {statusOptions.map((s) => (
                   <SelectItem key={s.value} value={s.value}>
                     <div className="flex items-center gap-2">
@@ -405,27 +426,31 @@ export function TvAddForm({
         />
 
         {/* Seasons summary + sheet trigger */}
-        <div className="border-t border-zinc-800 pt-4">
+        <div className="border-t border-gray-300 pt-4">
           <div className="flex items-center justify-between">
-            <Label>Mùa tùy chỉnh (bản nháp)</Label>
+            <Label className="flex items-center gap-2 text-gray-900">
+              <Tv className="size-4 text-[#C40E61]" />
+              Mùa tùy chỉnh (bản nháp)
+            </Label>
             <Button
               type="button"
               size="sm"
               onClick={() => setSeasonSheetOpen(true)}
+              className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
             >
               Quản Lý Mùa
             </Button>
           </div>
-          <p className="mt-1 text-xs text-zinc-400">
+          <p className="mt-1 text-xs text-gray-500">
             {form.seasonDrafts?.length || 0} mùa đã cấu hình
           </p>
           <div className="mt-2 space-y-2">
             {(form.seasonDrafts || []).map((s, idx) => (
-              <div key={idx} className="rounded border border-zinc-800 p-2">
-                <div className="text-sm text-white">
+              <div key={idx} className="rounded border border-gray-300 bg-white p-2 shadow-sm">
+                <div className="text-sm text-gray-900 font-medium">
                   Mùa {s.seasonNumber} {s.title ? `- ${s.title}` : ""}
                 </div>
-                <div className="text-xs text-zinc-400">
+                <div className="text-xs text-gray-500">
                   {s.episodes?.length || 0} tập
                 </div>
               </div>
@@ -435,9 +460,12 @@ export function TvAddForm({
 
         {/* Director */}
         <div className="relative">
-          <Label>Đạo Diễn</Label>
+          <Label className="flex items-center gap-2 text-gray-900">
+            <Users className="size-4 text-[#C40E61]" />
+            Đạo Diễn
+          </Label>
           {form.director ? (
-            <div className="mt-2 flex items-center justify-between rounded-md border border-zinc-700 bg-zinc-900 p-2 pr-3">
+            <div className="mt-2 flex items-center justify-between rounded-md border border-gray-300 bg-white p-2 pr-3 shadow-sm">
               <div className="flex items-center gap-3">
                 <img
                   src={
@@ -445,19 +473,19 @@ export function TvAddForm({
                     "https://via.placeholder.com/48x48.png?text=?"
                   }
                   alt={form.director.fullName}
-                  className="h-10 w-10 rounded-full object-cover"
+                  className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
                 />
                 <div>
-                  <p className="text-sm font-medium text-white">
+                  <p className="text-sm font-medium text-gray-900">
                     {form.director.fullName}
                   </p>
-                  <p className="text-xs text-zinc-400">Đạo Diễn</p>
+                  <p className="text-xs text-gray-500">Đạo Diễn</p>
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-zinc-400 hover:text-red-400"
+                className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
                 onClick={() => update("director", null)}
                 disabled={isLoading}
               >
@@ -474,6 +502,7 @@ export function TvAddForm({
                 setDirectorPage(0);
               }}
               disabled={isLoading}
+              className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
             />
           )}
           <PersonSelectDialog
@@ -504,9 +533,12 @@ export function TvAddForm({
 
         {/* Actors */}
         <div className="relative">
-          <Label className="flex items-center justify-between">
-            Diễn Viên{" "}
-            <span className="text-xs text-zinc-400">
+          <Label className="flex items-center justify-between text-gray-900">
+            <span className="flex items-center gap-2">
+              <Users className="size-4 text-[#C40E61]" />
+              Diễn Viên
+            </span>
+            <span className="text-xs text-gray-500">
               {(form.actors || []).length} đã chọn
             </span>
           </Label>
@@ -514,7 +546,7 @@ export function TvAddForm({
             {(form.actors || []).map((a: Person) => (
               <div
                 key={a.id}
-                className="flex items-center justify-between rounded-md border border-zinc-700 bg-zinc-900 p-2 pr-3"
+                className="flex items-center justify-between rounded-md border border-gray-300 bg-white p-2 pr-3 shadow-sm"
               >
                 <div className="flex items-center gap-3">
                   <img
@@ -523,19 +555,19 @@ export function TvAddForm({
                       "https://via.placeholder.com/48x48.png?text=?"
                     }
                     alt={a.fullName}
-                    className="h-10 w-10 rounded-full object-cover"
+                    className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
                   />
                   <div>
-                    <p className="text-sm font-medium text-white">
+                    <p className="text-sm font-medium text-gray-900">
                       {a.fullName}
                     </p>
-                    <p className="text-xs text-zinc-400">Diễn Viên</p>
+                    <p className="text-xs text-gray-500">Diễn Viên</p>
                   </div>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-zinc-400 hover:text-red-400"
+                  className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
                   onClick={() =>
                     update(
                       "actors",
@@ -558,6 +590,7 @@ export function TvAddForm({
               setActorPage(0);
             }}
             disabled={isLoading}
+            className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
           />
           <PersonSelectDialog
             label="Tìm Diễn Viên"
@@ -587,12 +620,16 @@ export function TvAddForm({
 
         {/* Description */}
         <div>
-          <Label>Mô Tả</Label>
+          <Label className="flex items-center gap-2 text-gray-900">
+            <FileText className="size-4 text-[#C40E61]" />
+            Mô Tả
+          </Label>
           <Textarea
             rows={4}
             value={form.description}
             onChange={(e) => update("description", e.target.value)}
             disabled={isLoading}
+            className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
           />
         </div>
 
@@ -601,7 +638,7 @@ export function TvAddForm({
           {/* <Button
             type="button"
             variant="outline"
-            className="w-full sm:w-40 border-zinc-600 hover:bg-zinc-800"
+            className="w-full sm:w-40 border-gray-300 text-gray-700 hover:bg-gray-100"
             disabled={isLoading}
             onClick={() => {
               if (isLoading) return;
@@ -624,7 +661,7 @@ export function TvAddForm({
             Đặt Lại Form
           </Button> */}
           <Button
-            className="w-full bg-teal-600 py-6 text-lg font-bold hover:bg-teal-700 sm:flex-1"
+            className="w-full bg-[#C40E61] py-6 text-lg font-bold hover:bg-[#C40E61]/90 text-white sm:flex-1"
             disabled={isLoading}
             onClick={(e) => {
               e.preventDefault();
@@ -1052,13 +1089,13 @@ function SeasonsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="bg-zinc-950 text-white border-zinc-800 w-[95vw] sm:max-w-2xl">
+      <SheetContent className="bg-white text-gray-900 border-gray-300 w-[95vw] sm:max-w-2xl">
         <SheetHeader>
-          <SheetTitle>Quản Lý Mùa & Tập</SheetTitle>
+          <SheetTitle className="text-gray-900">Quản Lý Mùa & Tập</SheetTitle>
         </SheetHeader>
         <div className="mt-4 space-y-6 overflow-y-auto pr-2 max-h-[85vh]">
           {(hasAnyDuplicates || hasInvalid) && (
-            <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-400 space-y-1">
+            <div className="rounded-md border border-red-300 bg-red-50 p-3 text-xs text-red-600 space-y-1">
               {hasAnyDuplicates && (
                 <p>
                   Phát hiện số trùng lặp: đảm bảo mỗi số mùa là duy nhất và số tập trong mỗi mùa là duy nhất.
@@ -1072,12 +1109,12 @@ function SeasonsSheet({
             </div>
           )}
           {(drafts || []).map((s, si) => (
-            <div key={si} className="rounded-lg border border-zinc-800 p-3">
+            <div key={si} className="rounded-lg border border-gray-300 bg-white p-3 shadow-sm">
               <div className="flex items-center gap-2">
                 <Label className="w-28">Số mùa</Label>
                 <div className="flex flex-col">
                   <Input
-                    className={`w-24 ${seasonDuplicateSet.has(s.seasonNumber) || seasonInvalidSet.has(si) ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    className={`w-24 bg-white border-gray-300 text-gray-900 ${seasonDuplicateSet.has(s.seasonNumber) || seasonInvalidSet.has(si) ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                     type="number"
                     value={s.seasonNumber}
                     onChange={(e) =>
@@ -1101,13 +1138,13 @@ function SeasonsSheet({
                 <Input
                   value={s.title ?? ""}
                   onChange={(e) => updateSeason(si, { title: e.target.value })}
-                  className={`${seasonInvalidSet.has(si) && !s.title?.trim() ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                  className={`bg-white border-gray-300 text-gray-900 ${seasonInvalidSet.has(si) && !s.title?.trim() ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                   disabled={disabled}
                 />
                 <Button
                   type="button"
                   variant="ghost"
-                  className="ml-auto text-red-400"
+                  className="ml-auto text-red-600 hover:bg-red-50"
                   onClick={() => removeSeason(si)}
                   disabled={disabled}
                 >
@@ -1134,17 +1171,17 @@ function SeasonsSheet({
                   return (
                     <div
                       key={ei}
-                      className="rounded-md border border-zinc-800 bg-zinc-900/40 p-3 space-y-3"
+                      className="rounded-md border border-gray-300 bg-gray-50 p-3 space-y-3"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-white">
+                        <span className="text-sm font-medium text-gray-900">
                           Tập #{ei + 1}
                         </span>
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="text-red-400"
+                          className="text-red-600 hover:bg-red-50"
                           onClick={() => removeEpisode(si, ei)}
                           disabled={disabled}
                         >
@@ -1165,7 +1202,7 @@ function SeasonsSheet({
                                   episodeNumber: Number(e.target.value),
                                 })
                               }
-                              className={`${episodeDuplicateSet.has(ep.episodeNumber) || (isEpisodeInvalid && (!ep.episodeNumber || ep.episodeNumber <= 0)) ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                              className={`bg-white border-gray-300 text-gray-900 ${episodeDuplicateSet.has(ep.episodeNumber) || (isEpisodeInvalid && (!ep.episodeNumber || ep.episodeNumber <= 0)) ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                               disabled={disabled}
                             />
                             {episodeDuplicateSet.has(ep.episodeNumber) && (
@@ -1190,7 +1227,7 @@ function SeasonsSheet({
                             onChange={(e) =>
                               updateEpisode(si, ei, { title: e.target.value })
                             }
-                            className={`${isEpisodeInvalid && !ep.title?.trim() ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                            className={`bg-white border-gray-300 text-gray-900 ${isEpisodeInvalid && !ep.title?.trim() ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                             disabled={disabled}
                           />
                         </div>
@@ -1207,7 +1244,7 @@ function SeasonsSheet({
                                 durationMin: Number(e.target.value),
                               })
                             }
-                            className={`${isEpisodeInvalid && (!ep.durationMin || ep.durationMin <= 0) ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                            className={`bg-white border-gray-300 text-gray-900 ${isEpisodeInvalid && (!ep.durationMin || ep.durationMin <= 0) ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                             disabled={disabled}
                           />
                         </div>
@@ -1224,10 +1261,10 @@ function SeasonsSheet({
                             }
                             disabled={disabled}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
                               <SelectValue placeholder="Năm" />
                             </SelectTrigger>
-                            <SelectContent className="max-h-72 overflow-y-auto">
+                            <SelectContent className="bg-white border-gray-300 text-gray-900 max-h-72 overflow-y-auto">
                               {years.map((y) => (
                                 <SelectItem key={y} value={y}>
                                   {y}
@@ -1252,7 +1289,7 @@ function SeasonsSheet({
                           onChange={(e) =>
                             updateEpisode(si, ei, { synopsis: e.target.value })
                           }
-                          className={`${isEpisodeInvalid && !ep.synopsis?.trim() ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                          className={`bg-white border-gray-300 text-gray-900 ${isEpisodeInvalid && !ep.synopsis?.trim() ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                           disabled={disabled}
                         />
                       </div>
@@ -1265,6 +1302,7 @@ function SeasonsSheet({
                   size="sm"
                   onClick={() => addEpisode(si)}
                   disabled={disabled}
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100"
                 >
                   Thêm tập
                 </Button>
@@ -1277,6 +1315,7 @@ function SeasonsSheet({
             variant="secondary"
             onClick={addSeason}
             disabled={disabled}
+            className="bg-gray-100 text-gray-900 hover:bg-gray-200"
           >
             Thêm mùa
           </Button>
@@ -1284,7 +1323,7 @@ function SeasonsSheet({
         <SheetFooter className="mt-4">
           <Button
             type="button"
-            className="bg-teal-600 hover:bg-teal-700"
+            className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
             onClick={() => {
               update("seasonDrafts", drafts || []);
               onOpenChange(false);

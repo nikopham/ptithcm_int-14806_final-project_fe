@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown, ChevronUp, Play } from "lucide-react";
+import { ChevronDown, ChevronUp, Play, Tv, Clock, Film } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import clsx from "clsx";
@@ -73,31 +73,33 @@ export const SeasonsAccordion = ({ seasons, onEpisodePlay, currentEpisodeId }: S
   };
 
   return (
-    <div className="rounded-lg bg-zinc-900 p-6">
-      <h3 className="mb-6 text-sm font-semibold text-zinc-400">
-        Seasons and Episodes
+    <div className="rounded-xl border border-gray-300 bg-white p-6 shadow-sm">
+      <h3 className="mb-6 flex items-center gap-2 text-base font-bold text-gray-900">
+        <Tv className="size-5 text-[#C40E61]" />
+        Mùa và Tập Phim
       </h3>
 
       <div className="space-y-4">
         {seasons.map((season) => {
           const open = openId === season.id;
           return (
-            <div key={season.id} className="rounded-lg bg-zinc-800">
+            <div key={season.id} className="rounded-lg border border-gray-300 bg-white shadow-sm">
               {/* season header */}
               <button
                 onClick={() => toggle(season.id)}
-                className="flex w-full items-center justify-between px-5 py-4 text-left"
+                className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors rounded-t-lg"
               >
-                <span className="font-medium text-white">
+                <span className="font-medium text-gray-900 flex items-center gap-2">
+                  <Film className="size-4 text-[#C40E61]" />
                   {season.name}{" "}
-                  <span className="text-xs font-normal text-zinc-400">
-                    {season.episodes.length} Episodes
+                  <span className="text-xs font-normal text-gray-500">
+                    {season.episodes.length} Tập
                   </span>
                 </span>
                 {open ? (
-                  <ChevronUp className="size-5 text-white transition-transform duration-300 rotate-180" />
+                  <ChevronUp className="size-5 text-gray-600 transition-transform duration-300" />
                 ) : (
-                  <ChevronDown className="size-5 text-white transition-transform duration-300" />
+                  <ChevronDown className="size-5 text-gray-600 transition-transform duration-300" />
                 )}
               </button>
               <AnimatePresence initial={false}>
@@ -112,7 +114,7 @@ export const SeasonsAccordion = ({ seasons, onEpisodePlay, currentEpisodeId }: S
                     className="overflow-hidden"
                   >
                     {" "}
-                    <ul className="divide-y divide-zinc-700 px-5 pb-4">
+                    <ul className="divide-y divide-gray-200 px-5 pb-4">
                       {season.episodes.map((e, idx) => {
                         const isActive = currentEpisodeId === e.id;
                         return (
@@ -122,11 +124,14 @@ export const SeasonsAccordion = ({ seasons, onEpisodePlay, currentEpisodeId }: S
                             if (el) episodeRefs.current.set(e.id, el);
                           }}
                           className={clsx(
-                            "flex gap-4 py-4 first:pt-0 last:pb-0 transition-colors",
-                            isActive && "bg-red-600/20 rounded-lg -mx-2 px-2 border-l-2 border-red-600"
+                            "flex gap-4 py-4 first:pt-0 last:pb-0 transition-colors rounded-lg",
+                            isActive && "bg-[#C40E61]/10 rounded-lg -mx-2 px-2 border-l-4 border-[#C40E61]"
                           )}
                         >
-                          <span className="mt-2 w-6 shrink-0 text-sm font-semibold text-zinc-300">
+                          <span className={clsx(
+                            "mt-2 w-6 shrink-0 text-sm font-semibold",
+                            isActive ? "text-[#C40E61]" : "text-gray-500"
+                          )}>
                             {String(idx + 1).padStart(2, "0")}
                           </span>
 
@@ -139,40 +144,43 @@ export const SeasonsAccordion = ({ seasons, onEpisodePlay, currentEpisodeId }: S
                           <div className="flex-1">
                             <h4 className={clsx(
                               "text-sm font-medium",
-                              isActive ? "text-white font-semibold" : "text-white"
+                              isActive ? "text-[#C40E61] font-semibold" : "text-gray-900"
                             )}>
                               {e.title}
                               {isActive && (
-                                <span className="ml-2 text-xs text-red-400 font-normal">
-                                  (Now Playing)
+                                <span className="ml-2 text-xs text-[#C40E61] font-normal">
+                                  (Đang phát)
                                 </span>
                               )}
                             </h4>
-                            <p className="line-clamp-2 text-xs text-zinc-400">
+                            <p className="line-clamp-2 text-xs text-gray-500 mt-1">
                               {e.overview}
                             </p>
                           </div>
 
                           <div className="flex items-center gap-2">
                             <span className={clsx(
-                              "mt-2 inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px]",
-                              isActive ? "bg-red-600/30 text-red-200" : "bg-zinc-700 text-zinc-200"
+                              "mt-2 inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium",
+                              isActive 
+                                ? "bg-[#C40E61]/20 text-[#C40E61] border border-[#C40E61]/30" 
+                                : "bg-gray-100 text-gray-600 border border-gray-300"
                             )}>
+                              <Clock className="size-3" />
                               {e.runtime}
                             </span>
                             <button
                               onClick={() => handleEpisodePlay(e)}
                               className={clsx(
-                                "mt-2 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed",
+                                "mt-2 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
                                 isActive 
-                                  ? "bg-red-700 hover:bg-red-800" 
-                                  : "bg-red-600 hover:bg-red-700"
+                                  ? "bg-[#C40E61] hover:bg-[#C40E61]/90 shadow-md" 
+                                  : "bg-[#C40E61] hover:bg-[#C40E61]/90 hover:shadow-sm"
                               )}
-                              title={e.videoUrl ? "Play episode" : "No video available"}
+                              title={e.videoUrl ? "Phát tập phim" : "Không có video"}
                               disabled={!e.videoUrl}
                             >
                               <Play className="size-3.5 fill-white" />
-                              {isActive ? "Playing" : "Play"}
+                              {isActive ? "Đang phát" : "Phát"}
                             </button>
                           </div>
                         </li>

@@ -6,6 +6,11 @@ import {
   MoreHorizontal,
   User,
   Trash2,
+  Users2,
+  Film,
+  Image as ImageIcon,
+  UserCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -170,10 +175,13 @@ export default function MoviePeopleList() {
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Quản Lý Người</h1>
-          <p className="text-sm text-zinc-400">Diễn Viên & Đạo Diễn</p>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <Users2 className="size-6 text-[#C40E61]" />
+            Quản Lý Người
+          </h1>
+          <p className="text-sm text-gray-500">Diễn Viên & Đạo Diễn</p>
         </div>
-        <Button onClick={handleAdd} className="bg-teal-600 hover:bg-teal-700">
+        <Button onClick={handleAdd} className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white">
           <Plus className="mr-2 size-4" /> Thêm Người
         </Button>
       </div>
@@ -181,10 +189,10 @@ export default function MoviePeopleList() {
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
           <Input
             placeholder="Tìm kiếm tên..."
-            className="pl-9 bg-zinc-900 border-zinc-700"
+            className="pl-9 bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -200,10 +208,10 @@ export default function MoviePeopleList() {
             setCurrentPage(0);
           }}
         >
-          <SelectTrigger className="w-full sm:w-40 bg-zinc-900 border-zinc-700">
+          <SelectTrigger className="w-full sm:w-40 bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
             <SelectValue placeholder="Vai Trò" />
           </SelectTrigger>
-          <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
+          <SelectContent className="bg-white border-gray-300 text-gray-900">
             <SelectItem value="ALL">Tất Cả Vai Trò</SelectItem>
             <SelectItem value="ACTOR">Diễn Viên</SelectItem>
             <SelectItem value="DIRECTOR">Đạo Diễn</SelectItem>
@@ -212,10 +220,10 @@ export default function MoviePeopleList() {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-zinc-700/50 bg-zinc-900 overflow-hidden">
+      <div className="rounded-lg border border-gray-300 bg-white overflow-hidden">
         <Table>
-          <TableHeader className="bg-zinc-950">
-            <TableRow className="hover:bg-zinc-900">
+          <TableHeader className="bg-gray-100">
+            <TableRow className="hover:bg-gray-50">
               <TableHead className="w-20">Hình Ảnh</TableHead>
               <TableHead>Tên</TableHead>
               <TableHead>Vai Trò</TableHead>
@@ -227,14 +235,17 @@ export default function MoviePeopleList() {
             {isFetching ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
-                  Đang tải...
+                  <div className="flex items-center justify-center gap-2 text-gray-500">
+                    <Loader2 className="size-5 animate-spin text-[#C40E61]" />
+                    Đang tải...
+                  </div>
                 </TableCell>
               </TableRow>
             ) : filteredData.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={5}
-                  className="h-24 text-center text-zinc-500"
+                  className="h-24 text-center text-gray-500"
                 >
                   {isError ? "Không thể tải danh sách người." : "Không tìm thấy kết quả."}
                 </TableCell>
@@ -243,33 +254,35 @@ export default function MoviePeopleList() {
               filteredData.map((p) => (
                 <TableRow
                   key={p.id}
-                  className="hover:bg-zinc-800/50 border-zinc-800"
+                  className="hover:bg-gray-50 border-gray-200"
                 >
                   <TableCell>
                     <img
                       src={p.profilePath || getProfileUrl(p as ApiPerson)}
                       alt={(p as ApiPerson).fullName}
-                      className="h-10 w-10 rounded-full object-cover bg-zinc-800"
+                      className="h-10 w-10 rounded-full object-cover bg-gray-200 border-2 border-gray-300"
                       loading="lazy"
                     />
                   </TableCell>
                   <TableCell>
-                    <span className="font-medium text-white">
+                    <span className="font-medium text-gray-900">
                       {(p as ApiPerson).fullName}
                     </span>
                   </TableCell>
                   <TableCell>
                     {(p as ApiPerson).job === PersonJob.DIRECTOR ? (
-                      <Badge className="bg-purple-600/20 text-purple-400 border-purple-600/50 hover:bg-purple-600/30">
+                      <Badge className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200">
+                        <Film className="mr-1 size-3" />
                         DIRECTOR
                       </Badge>
                     ) : (
-                      <Badge className="bg-teal-600/20 text-teal-400 border-teal-600/50 hover:bg-teal-600/30">
+                      <Badge className="bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200">
+                        <User className="mr-1 size-3" />
                         ACTOR
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-right text-zinc-300">
+                  <TableCell className="text-right text-gray-700">
                     {p.movieCount || 0}
                   </TableCell>
                   <TableCell>
@@ -277,24 +290,24 @@ export default function MoviePeopleList() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="h-8 w-8 p-0 text-zinc-400 hover:text-white"
+                          className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="bg-zinc-900 border-zinc-700 text-white"
+                        className="bg-white border-gray-300 text-gray-900"
                       >
                         <DropdownMenuItem
                           onClick={() => handleEditApiPerson(p as ApiPerson)}
-                          className="cursor-pointer hover:bg-zinc-800"
+                          className="cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
                         >
                           <Pencil className="mr-2 h-4 w-4" /> Chỉnh Sửa
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete((p as ApiPerson).id)}
-                          className="text-red-500 cursor-pointer hover:bg-red-900/20 focus:bg-red-900/20 hover:text-red-400 focus:text-red-400"
+                          className="text-red-600 cursor-pointer hover:bg-red-50 focus:bg-red-50 hover:text-red-700 focus:text-red-700"
                         >
                           <Trash2 className="mr-2 h-4 w-4" /> Xóa
                         </DropdownMenuItem>
@@ -319,13 +332,13 @@ export default function MoviePeopleList() {
                 }
                 className={
                   isFetching || currentPage === 0
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
+                    ? "pointer-events-none opacity-50 text-gray-400"
+                    : "cursor-pointer text-gray-700 hover:bg-gray-100"
                 }
               />
             </PaginationItem>
             <PaginationItem>
-              <span className="px-4 text-sm text-zinc-400">
+              <span className="px-4 text-sm text-gray-500">
                 Trang {currentPage + 1} / {totalPages}
               </span>
             </PaginationItem>
@@ -338,8 +351,8 @@ export default function MoviePeopleList() {
                 }
                 className={
                   isFetching || currentPage >= totalPages - 1
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
+                    ? "pointer-events-none opacity-50 text-gray-400"
+                    : "cursor-pointer text-gray-700 hover:bg-gray-100"
                 }
               />
             </PaginationItem>
@@ -349,19 +362,20 @@ export default function MoviePeopleList() {
 
       {/* Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-[500px]">
+        <DialogContent className="bg-white border-gray-300 text-gray-900 sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-gray-900">
+              <UserCircle className="size-5 text-[#C40E61]" />
               {isEditing ? "Chỉnh Sửa Người" : "Thêm Người Mới"}
             </DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogDescription className="text-gray-500">
               Quản lý thông tin diễn viên hoặc đạo diễn.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="flex justify-center">
-              <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-zinc-700 bg-zinc-800">
+              <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-gray-300 bg-gray-100 shadow-sm">
                 {formData.img ? (
                   <img
                     src={
@@ -372,42 +386,62 @@ export default function MoviePeopleList() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <User className="h-full w-full p-4 text-zinc-500" />
+                  <User className="h-full w-full p-4 text-gray-400" />
                 )}
               </div>
             </div>
 
             <div className="grid gap-2">
-              <Label>Họ Tên</Label>
+              <Label className="flex items-center gap-2 text-gray-900">
+                <User className="size-4 text-[#C40E61]" />
+                Họ Tên
+              </Label>
               <Input
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="bg-zinc-950 border-zinc-700"
+                className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
+                placeholder="Nhập họ tên..."
               />
             </div>
 
             <div className="grid gap-2">
-              <Label>Vai Trò Chính</Label>
+              <Label className="flex items-center gap-2 text-gray-900">
+                <Film className="size-4 text-[#C40E61]" />
+                Vai Trò Chính
+              </Label>
               <Select
                 value={formData.job}
                 onValueChange={(v) =>
                   setFormData({ ...formData, job: v as JobType })
                 }
               >
-                <SelectTrigger className="bg-zinc-950 border-zinc-700">
+                <SelectTrigger className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
-                  <SelectItem value="ACTOR">Diễn Viên</SelectItem>
-                  <SelectItem value="DIRECTOR">Đạo Diễn</SelectItem>
+                <SelectContent className="bg-white border-gray-300 text-gray-900">
+                  <SelectItem value="ACTOR">
+                    <div className="flex items-center gap-2">
+                      <User className="size-4 text-blue-600" />
+                      Diễn Viên
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="DIRECTOR">
+                    <div className="flex items-center gap-2">
+                      <Film className="size-4 text-purple-600" />
+                      Đạo Diễn
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="grid gap-2">
-              <Label>Ảnh Đại Diện</Label>
+              <Label className="flex items-center gap-2 text-gray-900">
+                <ImageIcon className="size-4 text-[#C40E61]" />
+                Ảnh Đại Diện
+              </Label>
               <Input
                 type="file"
                 accept="image/*"
@@ -415,9 +449,9 @@ export default function MoviePeopleList() {
                   const file = e.target.files?.[0] || null;
                   setFormData({ ...formData, img: file });
                 }}
-                className="bg-zinc-950 border-zinc-700 text-xs"
+                className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61] text-xs"
               />
-              <p className="text-[11px] text-zinc-500">PNG/JPG, tối đa 5MB.</p>
+              <p className="text-[11px] text-gray-500">PNG/JPG, tối đa 5MB.</p>
             </div>
           </div>
 
@@ -425,16 +459,23 @@ export default function MoviePeopleList() {
             <Button
               variant="secondary"
               onClick={() => setIsOpen(false)}
-              className="bg-zinc-800 hover:bg-zinc-700 text-white border-none"
+              className="border-gray-300 text-gray-700 hover:bg-gray-100"
             >
               Hủy
             </Button>
             <Button
               onClick={handleSave}
-              className="bg-teal-600 hover:bg-teal-700 text-white"
+              className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
               disabled={creating || updating}
             >
-              {creating || updating ? "Đang lưu..." : "Lưu"}
+              {creating || updating ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Đang lưu...
+                </>
+              ) : (
+                "Lưu"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

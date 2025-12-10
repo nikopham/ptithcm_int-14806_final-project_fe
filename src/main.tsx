@@ -12,7 +12,7 @@ const root = ReactDOM.createRoot(rootElement);
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 root.render(
   <React.StrictMode>
-    <ThemeProvider attribute="class" defaultTheme="system">
+    <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
         <Provider store={store}>
           <AppRouter />

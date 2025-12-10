@@ -28,7 +28,7 @@ export const NavPair = ({
         key={i}
         className={clsx(
           "h-1 w-5 rounded-full",
-          i === page ? "bg-red-500" : "bg-zinc-600"
+          i === page ? "bg-[#C40E61]" : "bg-zinc-600"
         )}
       />
     ))}

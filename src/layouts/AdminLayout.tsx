@@ -77,7 +77,8 @@ function SidebarItem({
       {isActive && (
         <motion.span
           layoutId="admin-highlighter"
-          className="absolute inset-0 z-0 rounded bg-zinc-800"
+          className="absolute inset-0 z-0 rounded-lg"
+          style={{ backgroundColor: "#C40E61" }}
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
         />
       )}
@@ -88,8 +89,8 @@ function SidebarItem({
 
   // Class chung cho row
   const baseClasses =
-    "group relative flex w-full items-center gap-2 sm:gap-3 rounded py-1.5 sm:py-2 pr-8 sm:pr-9 text-xs sm:text-sm font-medium transition-colors";
-  const inactiveClasses = "text-zinc-300 hover:bg-zinc-800/50 hover:text-white";
+    "group relative flex w-full items-center gap-2 sm:gap-3 rounded-lg py-1.5 sm:py-2 pr-8 sm:pr-9 text-xs sm:text-sm font-medium transition-all duration-200";
+  const inactiveClasses = "text-gray-600 hover:bg-gray-100 hover:text-gray-900";
   const activeClasses = "text-white";
 
   return (
@@ -135,7 +136,7 @@ function SidebarItem({
               e.stopPropagation();
               setIsOpen(!isOpen);
             }}
-            className="absolute right-1 top-1/2 z-20 -translate-y-1/2 p-1 sm:p-1.5 text-zinc-400 transition-transform hover:text-white"
+            className="absolute right-1 top-1/2 z-20 -translate-y-1/2 p-1 sm:p-1.5 text-gray-500 transition-transform hover:text-gray-900"
           >
             <ChevronRight
               className={clsx(
@@ -182,7 +183,7 @@ export default function AdminLayout() {
   });
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0d0d12]">
+    <div className="flex min-h-screen flex-col bg-white">
       <Header onToggleSidebar={() => setOpen(true)} />
 
       {/* body */}
@@ -198,63 +199,74 @@ export default function AdminLayout() {
         {/* sidebar */}
         <aside
           className={clsx(
-            "fixed top-16 bottom-0 left-0 z-[50] flex w-[260px] sm:w-[280px] flex-col justify-between gap-4 overflow-y-auto bg-zinc-900 border-r border-zinc-800 px-4 sm:px-6 py-6 sm:py-8 transition-transform duration-300 ease-in-out lg:static lg:top-0 lg:z-auto",
+            "fixed inset-y-0 left-0 z-[50] flex w-[260px] sm:w-[280px] transform flex-col bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out lg:static lg:z-auto lg:translate-x-0 shadow-sm min-h-screen",
             open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           )}
         >
-          {/* mobile top */}
-          <div className="mb-4 flex items-center justify-between lg:hidden">
-            <span className="text-sm font-semibold text-white">Menu Quản Trị</span>
-            <button
-              onClick={() => setOpen(false)}
-              className="p-1.5 text-zinc-400 hover:text-white transition"
-              aria-label="Close sidebar"
-            >
-              <X className="size-5" />
-            </button>
-          </div>
-
-          {/* nav list */}
-          <nav className="flex-1 space-y-1 sm:space-y-2">
-            {nav.map((it) => (
-              <SidebarItem
-                key={it.label}
-                item={it}
-                closeSidebar={() => setOpen(false)}
-              />
-            ))}
-          </nav>
-
-          {/* footer */}
-          <div className="space-y-3 sm:space-y-4 border-t border-zinc-800 pt-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <img
-                src={me?.avatarUrl || defaultAvatar}
-                alt={me?.username || "Admin"}
-                className="h-9 w-9 sm:h-11 sm:w-11 rounded-full object-cover border border-zinc-700"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs sm:text-sm font-medium text-white">
-                  {meLoading ? "Đang tải..." : me?.username || "Admin"}
-                </p>
-                <p className="truncate text-[10px] sm:text-xs text-zinc-400">
-                  {meLoading ? "..." : me?.email || ""}
-                </p>
-              </div>
+          <div className="flex flex-col h-full px-4 sm:px-6 py-6 sm:py-8 overflow-y-auto">
+            {/* mobile top */}
+            <div className="mb-4 flex items-center justify-between lg:hidden flex-shrink-0">
+              <span className="text-sm font-bold text-gray-900">Menu Quản Trị</span>
+              <button
+                onClick={() => setOpen(false)}
+                className="p-1.5 text-gray-500 hover:text-gray-900 transition"
+                aria-label="Close sidebar"
+              >
+                <X className="size-5" />
+              </button>
             </div>
 
-            <button
-              onClick={() => navigate("/")}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium text-red-400 transition hover:bg-zinc-800 hover:text-red-500"
-            >
-              <LogOut className="size-3.5 sm:size-4" />
-              <span>Đăng xuất</span>
-            </button>
+            {/* nav list */}
+            <nav className="flex-1 space-y-1 sm:space-y-2 min-h-0">
+              {nav.map((it) => (
+                <SidebarItem
+                  key={it.label}
+                  item={it}
+                  closeSidebar={() => setOpen(false)}
+                />
+              ))}
+            </nav>
+
+            {/* footer */}
+            <div className="space-y-3 sm:space-y-4 border-t border-gray-200 pt-4 mt-auto flex-shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <img
+                  src={me?.avatarUrl || defaultAvatar}
+                  alt={me?.username || "Admin"}
+                  className="h-9 w-9 sm:h-11 sm:w-11 rounded-full object-cover border-2 border-gray-200"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs sm:text-sm font-bold text-gray-900">
+                    {meLoading ? "Đang tải..." : me?.username || "Admin"}
+                  </p>
+                  <p className="truncate text-[10px] sm:text-xs text-gray-500">
+                    {meLoading ? "..." : me?.email || ""}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate("/")}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium transition-colors"
+                style={{ color: "#C40E61" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#C40E61";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.color = "#C40E61";
+                }}
+              >
+                <LogOut className="size-3.5 sm:size-4" />
+                <span>Đăng xuất</span>
+              </button>
+            </div>
           </div>
         </aside>
 
         {/* main */}
-        <main className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-4 sm:py-6 lg:py-8 min-w-0">
+        <main className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-4 sm:py-6 lg:py-8 min-w-0 bg-white">
           <Outlet />
         </main>
       </div>

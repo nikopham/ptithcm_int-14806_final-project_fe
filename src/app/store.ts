@@ -13,6 +13,7 @@ import { commentApi } from "@/features/comment/commentApi";
 import {searchApi} from "@/features/search/searchApi";
 import { commonApi } from "@/features/common/commonApi";
 import { OAuthApi } from "@/features/auth/OAuthApi";
+import { dashboardApi } from "@/features/dashboard/dashboardApi";
 
 export const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ export const store = configureStore({
     [searchApi.reducerPath]: searchApi.reducer,
     [commonApi.reducerPath]: commonApi.reducer,
     [OAuthApi.reducerPath]: OAuthApi.reducer,
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -44,7 +46,8 @@ export const store = configureStore({
       .concat(commentApi.middleware)
       .concat(searchApi.middleware)
       .concat(commonApi.middleware)
-      .concat(OAuthApi.middleware),
+      .concat(OAuthApi.middleware)
+      .concat(dashboardApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

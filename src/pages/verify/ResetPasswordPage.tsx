@@ -131,8 +131,8 @@ export function ResetPasswordPage() {
       case "loading":
         return (
           <div className="flex flex-col items-center gap-4">
-            <Loader2 className="size-12 animate-spin text-blue-500" />
-            <p className="text-lg">Đang xác minh yêu cầu của bạn...</p>
+            <Loader2 className="size-12 animate-spin" style={{ color: "#C40E61" }} />
+            <p className="text-lg text-gray-500">Đang xác minh yêu cầu của bạn...</p>
           </div>
         );
 
@@ -140,10 +140,10 @@ export function ResetPasswordPage() {
       case "invalid":
         return (
           <div className="flex flex-col items-center gap-4 text-center">
-            <CircleAlert className="size-16 text-red-500" />
-            <h1 className="text-3xl font-bold">Yêu Cầu Thất Bại</h1>
-            <p className="text-lg text-red-400 max-w-md">{message}</p>
-            <Button asChild className="mt-4" variant="outline">
+            <CircleAlert className="size-16" style={{ color: "#C40E61" }} />
+            <h1 className="text-3xl font-bold text-gray-900">Yêu Cầu Thất Bại</h1>
+            <p className="text-lg max-w-md" style={{ color: "#C40E61" }}>{message}</p>
+            <Button asChild className="mt-4" variant="outline" style={{ borderColor: "#C40E61", color: "#C40E61" }}>
               <Link to="/">Về Trang Chủ</Link>
             </Button>
           </div>
@@ -153,21 +153,22 @@ export function ResetPasswordPage() {
       case "form":
         return (
           <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-            <h1 className="text-3xl font-bold text-center">Đặt Mật Khẩu Mới</h1>
-            <p className="text-zinc-400 text-center">
+            <h1 className="text-3xl font-bold text-center text-gray-900">Đặt Mật Khẩu Mới</h1>
+            <p className="text-gray-500 text-center">
               Vui lòng nhập mật khẩu mới của bạn.
             </p>
 
             {/* ... Form ... */}
             <div className="space-y-2">
-              <Label htmlFor="password">Mật Khẩu Mới</Label>
+              <Label htmlFor="password" className="text-gray-900">Mật Khẩu Mới</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-500" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Tối thiểu 8 ký tự"
-                  className="pl-10 pr-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                  className="pl-10 pr-10 bg-white border-gray-300"
+                  style={{ "--tw-ring-color": "#C40E61" } as React.CSSProperties}
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
@@ -177,7 +178,7 @@ export function ResetPasswordPage() {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -188,19 +189,20 @@ export function ResetPasswordPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-xs text-red-500">{errors.password}</p>
+                <p className="text-xs" style={{ color: "#C40E61" }}>{errors.password}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="repassword">Xác Nhận Mật Khẩu Mới</Label>
+              <Label htmlFor="repassword" className="text-gray-900">Xác Nhận Mật Khẩu Mới</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-500" />
                 <Input
                   id="repassword"
                   type={showRepassword ? "text" : "password"}
                   placeholder="Nhập lại mật khẩu mới"
-                  className="pl-10 pr-10 bg-zinc-950 border-zinc-700 focus-visible:ring-red-600"
+                  className="pl-10 pr-10 bg-white border-gray-300"
+                  style={{ "--tw-ring-color": "#C40E61" } as React.CSSProperties}
                   value={repassword}
                   onChange={(e) => {
                     setRepassword(e.target.value);
@@ -210,7 +212,7 @@ export function ResetPasswordPage() {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700"
                   onClick={() => setShowRepassword(!showRepassword)}
                 >
                   {showRepassword ? (
@@ -221,17 +223,18 @@ export function ResetPasswordPage() {
                 </button>
               </div>
               {errors.repassword && (
-                <p className="text-xs text-red-500">{errors.repassword}</p>
+                <p className="text-xs" style={{ color: "#C40E61" }}>{errors.repassword}</p>
               )}
             </div>
 
             {message && (
-              <p className="text-sm text-red-500 text-center">{message}</p>
+              <p className="text-sm text-center" style={{ color: "#C40E61" }}>{message}</p>
             )}
 
             <Button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700 text-white"
+              className="w-full text-white"
+              style={{ backgroundColor: "#C40E61" }}
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -248,9 +251,9 @@ export function ResetPasswordPage() {
         return (
           <div className="flex flex-col items-center gap-4 text-center">
             <CircleCheck className="size-16 text-green-500" />
-            <h1 className="text-3xl font-bold">Đã Đặt Lại Mật Khẩu!</h1>
-            <p className="text-lg">{message}</p>
-            <Button asChild className="mt-4">
+            <h1 className="text-3xl font-bold text-gray-900">Đã Đặt Lại Mật Khẩu!</h1>
+            <p className="text-lg text-gray-500">{message}</p>
+            <Button asChild className="mt-4" style={{ backgroundColor: "#C40E61", color: "white" }}>
               {/* Bạn có thể mở Dialog đăng nhập từ đây */}
               <Link to="/">Về Trang Chủ</Link>
             </Button>
@@ -261,8 +264,8 @@ export function ResetPasswordPage() {
 
   // JSX chính của trang
   return (
-    <div className="flex items-center justify-center min-h-screen bg-zinc-900 text-white p-4">
-      <div className="p-8 bg-zinc-800 rounded-lg shadow-xl w-full max-w-md">
+    <div className="flex items-center justify-center min-h-screen bg-white text-gray-900 p-4">
+      <div className="p-8 bg-white rounded-lg shadow-xl w-full max-w-md border border-gray-300">
         {renderContent()}
       </div>
     </div>

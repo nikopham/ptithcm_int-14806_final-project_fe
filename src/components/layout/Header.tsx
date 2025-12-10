@@ -1,235 +1,3 @@
-// import { useState } from "react";
-// import { Link, NavLink, useLocation } from "react-router-dom";
-// import { Search, Play, Menu, User, LogOut, Settings, CircleUserRound } from "lucide-react";
-// import { motion } from "framer-motion";
-// import clsx from "clsx";
-// import { Button } from "@/components/ui/button";
-// import { AuthDialog } from "@/components/auth/AuthDialog";
-// import { Role } from "@/router/role";
-// import { useDispatch } from "react-redux";
-// import { logout } from "@/features/auth/authSlice";
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuLabel,
-//   DropdownMenuSeparator,
-//   DropdownMenuTrigger,
-// } from "@/components/ui/dropdown-menu";
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { useSelector } from "react-redux";
-// import type { RootState } from "@/app/store";
-// import getRoleBadgeClass, { getRoleName } from "@/utils/getRoleBadgeClass";
-// import { Badge } from "../ui/badge";
-// import { GlobalConstant } from "@/constants/GlobalConstant";
-// import { logoutAsync } from "@/features/auth/authThunks";
-
-// // 2. SỬA LẠI PROPS: Xóa các props liên quan đến auth
-// interface HeaderProps {
-//   onToggleSidebar?: () => void;
-// }
-
-// const navItems = [
-//   { to: "/", label: "Home" },
-//   { to: "/movies", label: "Movies & Shows" },
-//   { to: "/filter", label: "Search" },
-//   { to: "/subscriptions", label: "Subscriptions" },
-// ];
-// const getInitials = (name: string | null) => {
-//   if (!name) return "??";
-//   return name
-//     .split(" ")
-//     .map((n) => n[0])
-//     .join("")
-//     .substring(0, 2)
-//     .toUpperCase();
-// };
-
-// export const Header = ({ onToggleSidebar }: HeaderProps) => {
-//   const { pathname } = useLocation();
-//   const dispatch = useDispatch();
-//   const { isAuth, roles, username, avatarUrl } = useSelector(
-//     (state: RootState) => state.auth
-//   );
-
-//   const [isAuthOpen, setIsAuthOpen] = useState(false);
-//   const [authTab, setAuthTab] = useState<"login" | "register">("login");
-
-//   const openLoginDialog = () => {
-//     setAuthTab("login");
-//     setIsAuthOpen(true);
-//   };
-//   const handleLogout = () => {
-//     dispatch(logoutAsync());
-//   };
-
-//   const foundIndex = navItems.findIndex(
-//     (n) =>
-//       pathname === n.to || (n.to !== "/" && pathname.startsWith(n.to + "/"))
-//   );
-//   const activeIndex = foundIndex === -1 ? 0 : foundIndex;
-
-//   return (
-//     <>
-//       {" "}
-//       {/* 👈 Bọc bằng Fragment để chứa Dialog */}
-//       <header className="sticky top-0 z-40 w-full bg-zinc-900/95 backdrop-blur">
-//         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-//           <div className="flex items-center gap-2">
-//             {onToggleSidebar && (
-//               <button
-//                 onClick={onToggleSidebar}
-//                 className="p-1 text-zinc-300 hover:text-white lg:hidden"
-//                 aria-label="Open sidebar"
-//               >
-//                 <Menu className="size-6" />
-//               </button>
-//             )}
-//             <Link to="/" className="flex items-center gap-1">
-//               <Play className="size-6 -rotate-90 text-red-600" />
-//               <span className="font-heading text-lg font-semibold text-white">
-//                 Stream<span className="text-red-500">ify</span>
-//               </span>
-//             </Link>
-//           </div>
-//           {/* brand */}
-
-//           {/* ------------- nav ------------- */}
-//           <nav className="relative hidden lg:block">
-//             <ul className="relative flex items-stretch rounded-xl border border-zinc-700/60 bg-zinc-800/40">
-//               {/* 🌟 animated slider */}
-
-//               {navItems.map(({ to, label }, index) => (
-//                 <li key={to} className="relative z-10">
-//                   {activeIndex === index && (
-//                     <motion.span
-//                       layoutId="active-nav-highlight"
-//                       className="absolute inset-0 z-0 rounded-xl bg-zinc-700"
-//                       transition={{
-//                         type: "spring",
-//                         stiffness: 300,
-//                         damping: 30,
-//                       }}
-//                     />
-//                   )}
-//                   <NavLink
-//                     to={to}
-//                     className={({ isActive }) =>
-//                       clsx(
-//                         "relative block w-full px-3 py-2 text-center text-sm font-medium transition-colors",
-//                         "first:rounded-l-xl last:rounded-r-xl",
-//                         "whitespace-nowrap",
-//                         isActive
-//                           ? "text-white"
-//                           : "text-zinc-300 hover:text-white"
-//                       )
-//                     }
-//                   >
-//                     {label}
-//                   </NavLink>
-//                 </li>
-//               ))}
-//             </ul>
-//           </nav>
-
-//           {/* tools */}
-//           <div className="flex items-center gap-5">
-//             <Link
-//               to="/search"
-//               className="text-zinc-300 transition hover:text-white"
-//               aria-label="Search"
-//             >
-//               <Search className="size-5" />
-//             </Link>
-
-//             {/* 2. ─── Nút Account (Đăng nhập / Profile) ─── */}
-//             {isAuth ? (
-//               // Nếu đã đăng nhập, hiển thị Avatar và Dropdown
-//               <DropdownMenu>
-//                 <DropdownMenuTrigger asChild>
-//                   <button className="flex items-center gap-2 rounded-lg p-1 text-zinc-300 transition-colors hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-zinc-900">
-//                     {/* Thêm username, ẩn trên màn hình nhỏ (sm) */}
-//                     <span className="hidden px-1 text-sm font-medium sm:block">
-//                       {username}
-//                     </span>
-
-//                     <Avatar className="size-8">
-//                       <AvatarImage
-//                         src={avatarUrl || undefined}
-//                         alt={username || "User"}
-//                       />
-//                       <AvatarFallback>{getInitials(username)}</AvatarFallback>
-//                     </Avatar>
-//                   </button>
-//                 </DropdownMenuTrigger>
-//                 <DropdownMenuContent align="end" className="w-56">
-//                   <DropdownMenuLabel>
-//                     <p className="font-medium">Tài khoản của tôi</p>
-//                     <p className="text-xs font-normal text-zinc-400">
-//                       {username}{" "}
-//                       <Badge
-//                         key={roles[0]}
-//                         className={getRoleBadgeClass(roles[0])}
-//                       >
-//                         {getRoleName(roles[0])}
-//                       </Badge>
-//                     </p>
-//                   </DropdownMenuLabel>
-
-//                   <DropdownMenuSeparator />
-//                   <DropdownMenuItem asChild>
-//                     <Link to="/viewer">
-//                       <CircleUserRound className="mr-2 size-4" />
-//                       <span>Trang cá nhân</span>
-//                     </Link>
-//                   </DropdownMenuItem>
-
-//                   {/* Hiển thị link Admin nếu có quyền */}
-//                   {(roles.includes(GlobalConstant.SUPER_ADMIN) || // <-- Sửa ở đây
-//                     roles.includes(GlobalConstant.MOVIE_ADMIN) ||
-//                     roles.includes(GlobalConstant.COMMENT_ADMIN)) && (
-//                     <DropdownMenuItem asChild>
-//                       <Link to="/admin">
-//                         <Settings className="mr-2 size-4" />
-//                         <span>Trang quản trị</span>
-//                       </Link>
-//                     </DropdownMenuItem>
-//                   )}
-
-//                   <DropdownMenuSeparator />
-//                   <DropdownMenuItem
-//                     onClick={handleLogout}
-//                     className="text-red-500 focus:text-red-500"
-//                   >
-//                     <LogOut className="mr-2 size-4" />
-//                     <span>Logout</span>
-//                   </DropdownMenuItem>
-//                 </DropdownMenuContent>
-//               </DropdownMenu>
-//             ) : (
-//               // Nếu chưa đăng nhập, hiển thị nút Login
-//               <Button
-//                 onClick={openLoginDialog}
-//                 variant="outline"
-//                 className="h-8 border-zinc-700 bg-transparent px-3 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
-//               >
-//                 Account
-//               </Button>
-//             )}
-//             {/* ─────────────────────────────────────────────── */}
-//           </div>
-//         </div>
-//       </header>
-//       {/* 3. ─── Render Dialog ─── */}
-//       <AuthDialog
-//         isOpen={isAuthOpen}
-//         onClose={() => setIsAuthOpen(false)}
-//         defaultTab={authTab}
-//       />
-//     </>
-//   );
-// };
-
 import { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Play, Menu, LogOut, Settings, CircleUserRound, X } from "lucide-react";
@@ -315,7 +83,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-zinc-900/95 backdrop-blur border-b border-zinc-800">
+      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 gap-4">
           {/* 1. LEFT: Logo & Menu Toggle */}
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
@@ -323,7 +91,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
             {onToggleSidebar && (
               <button
                 onClick={onToggleSidebar}
-                className="hidden lg:block p-1 text-zinc-300 hover:text-white"
+                className="hidden lg:block p-1 text-gray-700 hover:text-gray-900"
                 aria-label="Open sidebar"
               >
                 <Menu className="size-6" />
@@ -335,7 +103,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
               // If has sidebar (AdminLayout), hamburger opens sidebar on mobile
               <button
                 onClick={onToggleSidebar}
-                className="lg:hidden p-1 text-zinc-300 hover:text-white"
+                className="lg:hidden p-1 text-gray-700 hover:text-gray-900"
                 aria-label="Open sidebar"
               >
                 <Menu className="size-6" />
@@ -344,7 +112,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
               // If no sidebar (PublicLayout), hamburger opens navigation menu
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-1 text-zinc-300 hover:text-white"
+                className="lg:hidden p-1 text-gray-700 hover:text-gray-900"
                 aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? (
@@ -360,9 +128,15 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
               className="flex items-center gap-1"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <Play className="size-6 -rotate-90 text-red-600" />
-              <span className="font-heading text-lg font-semibold text-white hidden sm:inline-block">
-                Stream<span className="text-red-500">ify</span>
+              <Play className="size-6" style={{ color: "#C40E61" }} />
+              <span 
+                className="text-2xl hidden sm:inline-block" 
+                style={{ 
+                  color: "#434343", 
+                  fontFamily: "'Just Another Hand', cursive"
+                }}
+              >
+                Streamify
               </span>
             </Link>
           </div>
@@ -370,13 +144,14 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
           {/* 2. CENTER: Navigation (Desktop) - Only show if no sidebar */}
           {!onToggleSidebar && (
             <nav className="hidden lg:block">
-            <ul className="relative flex items-center rounded-full bg-zinc-800/50 p-1 border border-zinc-700/50">
+            <ul className="relative flex items-center rounded-full bg-gray-100 p-1 border border-gray-200">
               {navItems.map(({ to, label }, index) => (
                 <li key={to} className="relative z-10">
                   {activeIndex === index && (
                     <motion.div
                       layoutId="active-nav-highlight"
-                      className="absolute inset-0 rounded-full bg-zinc-700"
+                      className="absolute inset-0 rounded-full"
+                      style={{ backgroundColor: "#C40E61" }}
                       transition={{
                         type: "spring",
                         stiffness: 300,
@@ -391,7 +166,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                         "relative block px-4 py-1.5 text-sm font-medium transition-colors rounded-full",
                         isActive
                           ? "text-white"
-                          : "text-zinc-400 hover:text-zinc-200"
+                          : "text-gray-600 hover:text-gray-900"
                       )
                     }
                   >
@@ -414,14 +189,17 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
             {isAuth ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-full ring-offset-zinc-900 transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                    <Avatar className="size-8 md:size-9 border border-zinc-700">
+                  <button 
+                    className="flex items-center gap-2 rounded-full ring-offset-white transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2" 
+                    style={{ "--tw-ring-color": "#C40E61" } as React.CSSProperties}
+                  >
+                    <Avatar className="size-8 md:size-9 border border-gray-300">
                       <AvatarImage
                         src={avatarUrl || undefined}
                         alt={username || "User"}
                         className="object-cover"
                       />
-                      <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xs">
+                      <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
                         {getInitials(username)}
                       </AvatarFallback>
                     </Avatar>
@@ -430,7 +208,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
 
                 <DropdownMenuContent
                   align="end"
-                  className="w-60 bg-zinc-900 border-zinc-800 text-zinc-200"
+                  className="w-60 bg-white border-gray-200 text-gray-900 shadow-lg"
                 >
                   <DropdownMenuLabel>
                     <div className="flex flex-col gap-1">
@@ -448,11 +226,11 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                     </div>
                   </DropdownMenuLabel>
 
-                  <DropdownMenuSeparator className="bg-zinc-800" />
+                  <DropdownMenuSeparator className="bg-gray-200" />
 
                   <DropdownMenuItem
                     asChild
-                    className="focus:bg-zinc-800 focus:text-white cursor-pointer"
+                    className="focus:bg-gray-100 focus:text-gray-900 cursor-pointer"
                   >
                     <Link to="/viewer">
                       <CircleUserRound className="mr-2 size-4" />
@@ -466,7 +244,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                     roles.includes(Role.COMMENT_ADMIN)) && (
                     <DropdownMenuItem
                       asChild
-                      className="focus:bg-zinc-800 focus:text-white cursor-pointer"
+                      className="focus:bg-gray-100 focus:text-gray-900 cursor-pointer"
                     >
                       <Link to="/admin">
                         <Settings className="mr-2 size-4" />
@@ -475,11 +253,12 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                     </DropdownMenuItem>
                   )}
 
-                  <DropdownMenuSeparator className="bg-zinc-800" />
+                  <DropdownMenuSeparator className="bg-gray-200" />
 
                   <DropdownMenuItem
                     onClick={handleLogout}
-                    className="text-red-500 focus:text-red-400 focus:bg-red-500/10 cursor-pointer"
+                    className="cursor-pointer focus:bg-red-50"
+                    style={{ color: "#C40E61" }}
                   >
                     <LogOut className="mr-2 size-4" />
                     <span>Đăng Xuất</span>
@@ -490,7 +269,8 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
               <Button
                 onClick={openLoginDialog}
                 size="sm"
-                className="bg-white text-zinc-900 hover:bg-zinc-200 font-semibold"
+                className="font-semibold"
+                style={{ backgroundColor: "#C40E61", color: "white" }}
               >
                 Đăng Nhập
               </Button>
@@ -520,10 +300,10 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed left-0 top-16 bottom-0 w-64 bg-zinc-900 border-r border-zinc-800 z-[60] lg:hidden overflow-y-auto"
+              className="fixed left-0 top-16 bottom-0 w-64 bg-white border-r border-gray-200 z-[60] lg:hidden overflow-y-auto shadow-lg"
             >
               <div className="flex flex-col p-4 gap-1">
-                <div className="px-3 py-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                   Điều Hướng
                 </div>
                 {navItems.map(({ to, label }) => {
@@ -535,27 +315,29 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
                       className={clsx(
                         "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
                         isActive
-                          ? "bg-red-600 text-white"
-                          : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                          ? "text-white"
+                          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                       )}
+                      style={isActive ? { backgroundColor: "#C40E61" } : undefined}
                     >
                       {label}
                     </button>
                   );
                 })}
                 
-                <div className="border-t border-zinc-800 my-4" />
+                <div className="border-t border-gray-200 my-4" />
                 
                
 
                 {/* Mobile Auth Section */}
                 {!isAuth && (
                   <>
-                    <div className="border-t border-zinc-800 my-4" />
+                    <div className="border-t border-gray-200 my-4" />
                     <div className="px-3">
                       <Button
                         onClick={openLoginDialog}
-                        className="w-full bg-white text-zinc-900 hover:bg-zinc-200 font-semibold"
+                        className="w-full font-semibold"
+                        style={{ backgroundColor: "#C40E61", color: "white" }}
                       >
                         Đăng Nhập
                       </Button>

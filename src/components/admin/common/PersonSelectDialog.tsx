@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search, Users, Check } from "lucide-react";
 import type { Person } from "@/types/person";
 
 interface PersonSelectDialogProps {
@@ -63,29 +63,36 @@ export function PersonSelectDialog({
         }}
       >
         <DialogContent
-          className="bg-zinc-900 border-zinc-800 text-white max-w-md"
+          className="bg-white border-gray-300 text-gray-900 max-w-md"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>{label}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-gray-900">
+              <Users className="size-5 text-[#C40E61]" />
+              {label}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Input
-              placeholder="Enter name..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(0);
-              }}
-            />
-            <div className="max-h-72 overflow-y-auto rounded-md border border-zinc-700">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+              <Input
+                placeholder="Nhập tên để tìm..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(0);
+                }}
+                className="pl-9 bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
+              />
+            </div>
+            <div className="max-h-72 overflow-y-auto rounded-md border border-gray-300 bg-white">
               {isFetching && (
                 <div className="p-4 text-center">
-                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-zinc-500" />
+                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#C40E61]" />
                 </div>
               )}
               {!isFetching && results.length === 0 && (
-                <p className="p-3 text-sm text-zinc-400">No results.</p>
+                <p className="p-3 text-sm text-gray-500">Không tìm thấy kết quả.</p>
               )}
               {!isFetching &&
                 results.map((p) => {
@@ -95,20 +102,21 @@ export function PersonSelectDialog({
                       key={p.id}
                       type="button"
                       onClick={() => onSelect(p)}
-                      className="flex w-full items-center gap-3 border-b border-zinc-800 p-3 text-left hover:bg-zinc-800/60 disabled:opacity-40"
+                      className="flex w-full items-center gap-3 border-b border-gray-200 p-3 text-left hover:bg-gray-50 transition disabled:opacity-40 disabled:cursor-not-allowed"
                       disabled={!singleSelect && added}
                     >
                       <img
                         src={getProfileUrl(p)}
-                        className="h-10 w-10 rounded-full object-cover"
+                        className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
                       />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">
+                      <div className="flex flex-col flex-1">
+                        <span className="text-sm font-medium text-gray-900">
                           {p.fullName}
                         </span>
                         {added && !singleSelect && (
-                          <span className="text-[10px] text-teal-400">
-                            Added
+                          <span className="text-[10px] text-[#C40E61] font-medium flex items-center gap-1">
+                            <Check className="size-3" />
+                            Đã chọn
                           </span>
                         )}
                       </div>
@@ -116,17 +124,17 @@ export function PersonSelectDialog({
                   );
                 })}
             </div>
-            <div className="flex items-center justify-between text-xs text-zinc-400">
+            <div className="flex items-center justify-between text-xs text-gray-500">
               <Button
                 variant="outline"
                 disabled={page === 0 || isFetching}
                 onClick={() => setPage(Math.max(0, page - 1))}
-                className="h-7 px-2"
+                className="h-7 px-2 border-gray-300 text-gray-700 hover:bg-gray-100"
               >
-                Prev
+                Trước
               </Button>
               <span>
-                Page {page + 1} of {totalPages || 0}
+                Trang {page + 1} / {totalPages || 0}
               </span>
               <Button
                 variant="outline"
@@ -138,9 +146,9 @@ export function PersonSelectDialog({
                 onClick={() =>
                   setPage(page + 1 < (totalPages || 0) ? page + 1 : page)
                 }
-                className="h-7 px-2"
+                className="h-7 px-2 border-gray-300 text-gray-700 hover:bg-gray-100"
               >
-                Next
+                Sau
               </Button>
             </div>
           </div>

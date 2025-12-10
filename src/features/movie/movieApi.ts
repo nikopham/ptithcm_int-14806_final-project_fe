@@ -162,6 +162,15 @@ export const movieApi = createApi({
         data: body,
       }),
     }),
+
+    getRecommendations: builder.query<MovieShort[], void>({
+      query: () => ({
+        url: '/api/v1/movies/recommend-for-you',
+        method: 'GET',
+      }),
+      transformResponse: (res: MovieShort[]) => res || [],
+      keepUnusedDataFor: 300,
+    }),
   }),
 });
 
@@ -177,5 +186,6 @@ export const {
   useToggleLikeMovieMutation,
   useSearchMoviesLikedQuery,
   useSearchWatchedMoviesQuery,
-  useSaveProgressMutation
+  useSaveProgressMutation,
+  useGetRecommendationsQuery
 } = movieApi;

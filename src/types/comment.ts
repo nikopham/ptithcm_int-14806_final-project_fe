@@ -25,6 +25,7 @@ export interface CreateCommentRequest {
   movieId: string;
   body: string;
   parentId?: string | null; // null or omitted for top-level
+  episodeId?: string | null; // null for movies, episodeId for TV series
 }
 
 export interface EditCommentRequest {

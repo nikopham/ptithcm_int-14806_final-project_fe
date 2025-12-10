@@ -7,6 +7,7 @@ import {
   Search,
   MoreHorizontal,
   Loader2,
+  Film,
 } from "lucide-react";
 import {
   useSearchMoviesQuery,
@@ -67,12 +68,13 @@ interface MovieRow {
   durationMin?: number;
   status?: string;
   viewCount?: number;
+  releaseYear?: number;
 }
 
 const statusColor: Record<string, string> = {
-  PUBLISHED: "bg-emerald-600 hover:bg-emerald-700",
+  PUBLISHED: "bg-emerald-600 hover:bg-emerald-700 text-white",
   DRAFT: "bg-yellow-600 text-white hover:bg-yellow-700",
-  HIDDEN: "bg-zinc-700 hover:bg-zinc-600",
+  HIDDEN: "bg-gray-600 hover:bg-gray-700 text-white",
 };
 
 export default function MovieList() {
@@ -147,12 +149,15 @@ export default function MovieList() {
         {/* ─── Header ─── */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-white">Phim</h1>
-            <p className="text-sm text-zinc-400">Quản lý cơ sở dữ liệu phim của bạn</p>
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+              <Film className="size-6 text-[#C40E61]" />
+              Phim
+            </h1>
+            <p className="text-sm text-gray-500">Quản lý cơ sở dữ liệu phim của bạn</p>
           </div>
           <Button
             onClick={() => navigate("/admin/movies/new")}
-            className="bg-teal-600 hover:bg-teal-700"
+            className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
           >
             <Plus className="mr-2 size-4" /> Thêm Phim
           </Button>
@@ -162,10 +167,10 @@ export default function MovieList() {
         <div className="flex flex-col gap-4 sm:flex-row">
           {/* Search */}
           <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
             <Input
               placeholder="Tìm kiếm tiêu đề…"
-              className="pl-9 bg-zinc-900 border-zinc-700"
+              className="pl-9 bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
               value={query}
               onChange={(e) => handleFilterChange(setQuery, e.target.value)}
             />
@@ -176,10 +181,10 @@ export default function MovieList() {
             value={filterStatus}
             onValueChange={(v) => handleFilterChange(setFilterStatus, v)}
           >
-            <SelectTrigger className="w-full sm:w-40 bg-zinc-900 border-zinc-700">
+            <SelectTrigger className="w-full sm:w-40 bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
               <SelectValue placeholder="Trạng Thái" />
             </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
+            <SelectContent className="bg-white border-gray-300 text-gray-900">
               <SelectItem value="all">Tất Cả Trạng Thái</SelectItem>
               <SelectItem value="PUBLISHED">Đã Xuất Bản</SelectItem>
               <SelectItem value="DRAFT">Bản Nháp</SelectItem>
@@ -194,10 +199,10 @@ export default function MovieList() {
               handleFilterChange(setFilterType, v)
             }
           >
-            <SelectTrigger className="w-full sm:w-40 bg-zinc-900 border-zinc-700">
+            <SelectTrigger className="w-full sm:w-40 bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
               <SelectValue placeholder="Loại" />
             </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
+            <SelectContent className="bg-white border-gray-300 text-gray-900">
               <SelectItem value="all">Tất Cả Loại</SelectItem>
               <SelectItem value="movie">Phim</SelectItem>
               <SelectItem value="series">Phim Bộ</SelectItem>
@@ -206,10 +211,10 @@ export default function MovieList() {
         </div>
 
         {/* ─── Table ─── */}
-        <div className="rounded-lg border border-zinc-700/50 bg-zinc-900 overflow-hidden">
+        <div className="rounded-lg border border-gray-300 bg-white overflow-hidden">
           <Table>
-            <TableHeader className="bg-zinc-950">
-              <TableRow className="hover:bg-zinc-900">
+            <TableHeader className="bg-gray-100">
+              <TableRow className="hover:bg-gray-50">
                 <TableHead className="w-20">Poster</TableHead>
 
                 <TableHead>Tiêu Đề</TableHead>
@@ -233,7 +238,7 @@ export default function MovieList() {
               {isLoading && (
                 <TableRow>
                   <TableCell colSpan={8} className="h-24 text-center">
-                    <Loader2 className="mx-auto size-6 animate-spin text-zinc-500" />
+                    <Loader2 className="mx-auto size-6 animate-spin text-[#C40E61]" />
                   </TableCell>
                 </TableRow>
               )}
@@ -243,11 +248,11 @@ export default function MovieList() {
                 pagedItems.map((m: MovieRow) => (
                   <TableRow
                     key={m.id}
-                    className="hover:bg-zinc-800/50 border-zinc-800"
+                    className="hover:bg-gray-50 border-gray-200"
                   >
                     {/* Poster */}
                     <TableCell>
-                      <div className="h-14 w-10 overflow-hidden rounded bg-zinc-800 shrink-0">
+                      <div className="h-14 w-10 overflow-hidden rounded bg-gray-200 shrink-0">
                         {m.posterUrl ? (
                           <img
                             src={m.posterUrl}
@@ -256,7 +261,7 @@ export default function MovieList() {
                             loading="lazy"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xs text-zinc-600">
+                          <div className="flex h-full w-full items-center justify-center text-xs text-gray-500">
                             N/A
                           </div>
                         )}
@@ -266,11 +271,11 @@ export default function MovieList() {
                     {/* Title & Type */}
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-medium text-white">
+                        <span className="font-medium text-gray-900">
                           {m.title}
                         </span>
                         {m.isSeries && (
-                          <span className="text-xs font-medium text-teal-400">
+                          <span className="text-xs font-medium text-[#C40E61]">
                             Phim Bộ
                           </span>
                         )}
@@ -278,14 +283,14 @@ export default function MovieList() {
                     </TableCell>
 
                     {/* Metadata */}
-                    <TableCell className="hidden md:table-cell text-zinc-400">
+                    <TableCell className="hidden md:table-cell text-gray-500">
                       {m.releaseYear}
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell text-zinc-400">
+                    <TableCell className="hidden lg:table-cell text-gray-500">
                       {m.durationMin || "—"}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      <span className="inline-flex items-center rounded border border-zinc-700 px-2 py-0.5 text-xs font-medium text-zinc-300">
+                      <span className="inline-flex items-center rounded border border-gray-300 px-2 py-0.5 text-xs font-medium text-gray-700">
                         {m.ageRating}
                       </span>
                     </TableCell>
@@ -299,7 +304,7 @@ export default function MovieList() {
                       </Badge>
                     </TableCell>
 
-                    <TableCell className="hidden md:table-cell text-right text-zinc-300">
+                    <TableCell className="hidden md:table-cell text-right text-gray-700">
                       {m.viewCount ?? 0}
                     </TableCell>
 
@@ -309,7 +314,7 @@ export default function MovieList() {
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-zinc-400 hover:text-white"
+                            className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                           >
                             <span className="sr-only">Mở menu</span>
                             <MoreHorizontal className="h-4 w-4" />
@@ -317,13 +322,13 @@ export default function MovieList() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="bg-zinc-900 border-zinc-700 text-white"
+                          className="bg-white border-gray-300 text-gray-900"
                         >
                           <DropdownMenuItem
                             onClick={() =>
                               navigate(`/admin/movies/edit/${m.id}`)
                             }
-                            className="cursor-pointer hover:bg-zinc-800 focus:bg-zinc-800"
+                            className="cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
                           >
                             <Pencil className="mr-2 h-4 w-4" /> Chỉnh Sửa
                           </DropdownMenuItem>
@@ -331,13 +336,13 @@ export default function MovieList() {
                             onClick={() =>
                               navigate(`/admin/movies/source/${m.id}`)
                             }
-                            className="cursor-pointer hover:bg-zinc-800 focus:bg-zinc-800"
+                            className="cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
                           >
                             <Search className="mr-2 h-4 w-4" /> Quản Lý Nguồn
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(m.id)}
-                            className="text-red-500 cursor-pointer hover:bg-red-900/20 focus:bg-red-900/20 hover:text-red-400 focus:text-red-400"
+                            className="text-red-600 cursor-pointer hover:bg-red-50 focus:bg-red-50 hover:text-red-700 focus:text-red-700"
                           >
                             <Trash2 className="mr-2 h-4 w-4" /> Xóa
                           </DropdownMenuItem>
@@ -352,7 +357,7 @@ export default function MovieList() {
                 <TableRow>
                   <TableCell
                     colSpan={8}
-                    className="h-24 text-center text-zinc-500"
+                    className="h-24 text-center text-gray-500"
                   >
                     Không tìm thấy phim nào phù hợp với tiêu chí của bạn.
                   </TableCell>
@@ -369,15 +374,15 @@ export default function MovieList() {
                 onClick={handlePrev}
                 className={
                   isLoading || currentPage === 0
-                    ? "pointer-events-none text-zinc-600 hover:bg-transparent"
-                    : "cursor-pointer"
+                    ? "pointer-events-none text-gray-400 hover:bg-transparent"
+                    : "cursor-pointer text-gray-700 hover:bg-gray-100"
                 }
               />
             </PaginationItem>
 
             {/* Hiển thị trang hiện tại */}
             <PaginationItem>
-              <span className="px-4 py-2 text-sm font-medium text-zinc-300">
+              <span className="px-4 py-2 text-sm font-medium text-gray-500">
                 Trang {totalPages > 0 ? currentPage + 1 : 0} / {totalPages}
                 {isError ? " (lỗi)" : ""}
               </span>
@@ -388,8 +393,8 @@ export default function MovieList() {
                 onClick={handleNext}
                 className={
                   isLoading || currentPage + 1 >= totalPages
-                    ? "pointer-events-none text-zinc-600 hover:bg-transparent"
-                    : "cursor-pointer"
+                    ? "pointer-events-none text-gray-400 hover:bg-transparent"
+                    : "cursor-pointer text-gray-700 hover:bg-gray-100"
                 }
               />
             </PaginationItem>
@@ -412,19 +417,19 @@ export default function MovieList() {
 
       {/* Error dialog when delete is not allowed */}
       <AlertDialog open={errorOpen} onOpenChange={setErrorOpen}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-white">
+        <AlertDialogContent className="bg-white border-gray-300 text-gray-900">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="text-gray-900">
               Đã có dữ liệu người dùng trên phim này
             </AlertDialogTitle>
           </AlertDialogHeader>
-          <div className="text-sm text-zinc-300">
+          <div className="text-sm text-gray-500">
             Đã có dữ liệu người dùng trên phim này, vui lòng set status là
             HIDDEN thay vì xóa
           </div>
           <AlertDialogFooter>
             <AlertDialogAction
-              className="bg-teal-600 hover:bg-teal-700 text-white"
+              className="bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
               onClick={() => setErrorOpen(false)}
             >
               Đóng

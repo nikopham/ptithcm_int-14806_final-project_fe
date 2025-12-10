@@ -19,16 +19,16 @@ export default function ContinueWatchPage() {
   const totalPages = data?.totalPages ?? 0;
 
   return (
-    <section className="mx-auto max-w-7xl px-3 sm:px-4 pb-16 sm:pb-24 text-white mt-6 sm:mt-8">
+    <section className="mx-auto max-w-7xl px-10 py-10 min-h-full">
       {/* heading */}
-      <h1 className="mb-4 sm:mb-6 text-xl sm:text-2xl md:text-3xl font-extrabold">Continue Watching</h1>
+      <h1 className="mb-4 sm:mb-6 text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900">Tiếp Tục Xem</h1>
 
-      {isLoading && <div className="mt-6 text-sm text-zinc-400">Đang tải…</div>}
+      {isLoading && <div className="mt-6 text-sm text-gray-500">Đang tải…</div>}
       {isError && (
-        <div className="mt-6 text-sm text-red-400">Tải danh sách thất bại.</div>
+        <div className="mt-6 text-sm" style={{ color: "#C40E61" }}>Tải danh sách thất bại.</div>
       )}
       {!isLoading && !isError && movies.length === 0 && (
-        <div className="mt-6 text-sm text-zinc-400">
+        <div className="mt-6 text-sm text-gray-500">
           Không có phim đã xem.
         </div>
       )}
@@ -42,7 +42,7 @@ export default function ContinueWatchPage() {
                 to={`/movie/detail/${m.id}`}
                 className="group block transform transition-all duration-200 hover:scale-105 hover:z-10"
               >
-                <div className="relative overflow-hidden rounded-lg bg-zinc-900">
+                <div className="relative overflow-hidden rounded-lg bg-white border border-gray-300">
                   <img
                     src={m.posterUrl}
                     alt={m.title}
@@ -51,12 +51,12 @@ export default function ContinueWatchPage() {
                   />
                   
                   {/* Overlay on hover */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
                   
                   {/* Badges */}
                   <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
                     {m.ageRating && (
-                      <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase bg-red-700 text-white shadow-lg">
+                      <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase text-white shadow-lg" style={{ backgroundColor: "#C40E61" }}>
                         {m.ageRating}
                       </span>
                     )}
@@ -70,10 +70,10 @@ export default function ContinueWatchPage() {
                 
                 {/* Titles */}
                 <div className="mt-2 space-y-1">
-                  <p className="truncate text-xs sm:text-sm font-medium text-white group-hover:text-red-500 transition-colors">
+                  <p className="truncate text-xs sm:text-sm font-medium transition-colors" style={{ color: "#C40E61" }}>
                     {m.title}
                   </p>
-                  <p className="truncate text-[10px] sm:text-xs text-zinc-400">
+                  <p className="truncate text-[10px] sm:text-xs text-gray-500">
                     {m.originalTitle}
                   </p>
                 </div>
@@ -82,31 +82,33 @@ export default function ContinueWatchPage() {
           </div>
 
           {totalPages > 1 && (
-            <div className="mt-6 sm:mt-8 flex items-center justify-center gap-2 sm:gap-3">
+            <div className="mt-6 sm:mt-8 pb-6 flex items-center justify-center gap-2 sm:gap-3">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className={clsx(
-                  "rounded border px-2.5 sm:px-3 py-1 text-xs sm:text-sm transition",
+                  "rounded border px-2.5 sm:px-3 py-1 text-xs sm:text-sm transition text-white",
                   page <= 1
-                    ? "border-zinc-700 text-zinc-500 cursor-not-allowed"
-                    : "border-zinc-600 text-zinc-200 hover:bg-zinc-800"
+                    ? "border-gray-300 bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "hover:opacity-90"
                 )}
+                style={page > 1 ? { backgroundColor: "#C40E61", borderColor: "#C40E61" } : undefined}
               >
                 Trước
               </button>
-              <span className="text-xs sm:text-sm text-zinc-400">
+              <span className="text-xs sm:text-sm text-gray-500">
                 Trang {page} / {totalPages}
               </span>
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 className={clsx(
-                  "rounded border px-2.5 sm:px-3 py-1 text-xs sm:text-sm transition",
+                  "rounded border px-2.5 sm:px-3 py-1 text-xs sm:text-sm transition text-white",
                   page >= totalPages
-                    ? "border-zinc-700 text-zinc-500 cursor-not-allowed"
-                    : "border-zinc-600 text-zinc-200 hover:bg-zinc-800"
+                    ? "border-gray-300 bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "hover:opacity-90"
                 )}
+                style={page < totalPages ? { backgroundColor: "#C40E61", borderColor: "#C40E61" } : undefined}
               >
                 Sau
               </button>

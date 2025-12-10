@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
-import { Eye, Film, CornerDownRight, AlertCircle } from "lucide-react";
+import { Eye, Film, CornerDownRight, AlertCircle, MessageCircle, Search, Calendar, User, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -226,20 +226,20 @@ export default function CommentList() {
   const getSentimentBadge = (score: number) => {
     if (score >= 0.3) {
       return (
-        <Badge className="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border-emerald-600/50">
-          Tích Cực ({score})
+        <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-300">
+          Tích Cực ({score.toFixed(2)})
         </Badge>
       );
     } else if (score <= -0.3) {
       return (
-        <Badge className="bg-red-600/20 text-red-400 hover:bg-red-600/30 border-red-600/50">
-          Tiêu Cực ({score})
+        <Badge className="bg-red-50 text-red-700 hover:bg-red-100 border-red-300">
+          Tiêu Cực ({score.toFixed(2)})
         </Badge>
       );
     } else {
       return (
-        <Badge variant="outline" className="text-zinc-400 border-zinc-600">
-          Trung Tính ({score})
+        <Badge variant="outline" className="text-gray-600 border-gray-300 bg-gray-50">
+          Trung Tính ({score.toFixed(2)})
         </Badge>
       );
     }
@@ -256,13 +256,16 @@ export default function CommentList() {
       {/* ─── Header ─── */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Quản Lý Bình Luận</h1>
-          <p className="text-sm text-zinc-400">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <MessageCircle className="size-6 text-[#C40E61]" />
+            Quản Lý Bình Luận
+          </h1>
+          <p className="text-sm text-gray-500">
             Xem xét và quản lý thảo luận của người xem
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-zinc-500">
-          <AlertCircle className="size-4" />
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <AlertCircle className="size-4 text-[#C40E61]" />
           <span>Hiển thị tất cả bình luận (bao gồm ẩn)</span>
           {data && (
             <span className="ml-2 text-xs">
@@ -275,25 +278,33 @@ export default function CommentList() {
       {/* ─── Search & Filters ─── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <div className="relative max-w-sm w-full sm:w-auto">
-          <Label className="mb-1 block text-xs text-zinc-500">Tìm Kiếm</Label>
-          
-          <Input
-            placeholder="Tìm kiếm nội dung, người dùng hoặc phim..."
-            className="pl-9 bg-zinc-900 border-zinc-700"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+          <Label className="mb-1 flex items-center gap-2 text-xs text-gray-900">
+            <Search className="size-3 text-[#C40E61]" />
+            Tìm Kiếm
+          </Label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+            <Input
+              placeholder="Tìm kiếm nội dung, người dùng hoặc phim..."
+              className="pl-9 bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
         </div>
         <div className="w-full sm:w-48">
-          <Label className="mb-1 block text-xs text-zinc-500">Hiển Thị</Label>
+          <Label className="mb-1 flex items-center gap-2 text-xs text-gray-900">
+            <Filter className="size-3 text-[#C40E61]" />
+            Hiển Thị
+          </Label>
           <Select
             value={isHiddenFilter}
             onValueChange={(v) => setIsHiddenFilter(v as any)}
           >
-            <SelectTrigger className="bg-zinc-900 border-zinc-700">
+            <SelectTrigger className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
               <SelectValue placeholder="Hiển Thị" />
             </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-700">
+            <SelectContent className="bg-white border-gray-300 text-gray-900">
               <SelectItem value="all">Tất Cả</SelectItem>
               <SelectItem value="visible">Hiển Thị</SelectItem>
               <SelectItem value="hidden">Ẩn</SelectItem>
@@ -303,21 +314,21 @@ export default function CommentList() {
       </div>
 
       {/* ─── Table ─── */}
-      <div className="rounded-lg border border-zinc-700/50 bg-zinc-900 overflow-hidden">
+      <div className="rounded-lg border border-gray-300 bg-white overflow-hidden">
         {isLoading && (
-          <div className="p-8 text-center text-zinc-400">
+          <div className="p-8 text-center text-gray-500">
             Đang tải bình luận...
           </div>
         )}
         {isError && (
-          <div className="p-8 text-center text-red-400">
+          <div className="p-8 text-center text-red-600">
             Không thể tải bình luận.
           </div>
         )}
         {!isLoading && !isError && (
           <Table>
-            <TableHeader className="bg-zinc-950">
-              <TableRow className="hover:bg-zinc-900">
+            <TableHeader className="bg-gray-100">
+              <TableRow className="hover:bg-gray-50">
                 <TableHead className="w-[60px] sm:w-[80px]">Trạng Thái</TableHead>
                 <TableHead className="min-w-[150px] sm:min-w-[200px]">Người Dùng</TableHead>
                 <TableHead className="min-w-[200px]">Bình Luận</TableHead>
@@ -332,7 +343,7 @@ export default function CommentList() {
               {comments.map((c) => (
                 <TableRow
                   key={c.id}
-                  className="hover:bg-zinc-800/50 border-zinc-800"
+                  className="hover:bg-gray-50 border-gray-200"
                 >
                   {/* Status Switch (Quick Update) */}
                   <TableCell className="w-[60px] sm:w-[80px]">
@@ -340,25 +351,25 @@ export default function CommentList() {
                       checked={!c.is_hidden}
                       onCheckedChange={() => toggleHidden(c.id)}
                       disabled={isToggling}
-                      className="data-[state=checked]:bg-teal-600"
+                      className="data-[state=checked]:bg-[#C40E61]"
                     />
                   </TableCell>
 
                   {/* User Info */}
                   <TableCell className="min-w-[150px] sm:min-w-[200px]">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <Avatar className="h-6 w-6 sm:h-8 sm:w-8 shrink-0">
+                      <Avatar className="h-6 w-6 sm:h-8 sm:w-8 shrink-0 border border-gray-300">
                         <AvatarImage src={c.user.avatar || defaultAvatar} />
-                        <AvatarFallback className="bg-zinc-800 text-zinc-400 text-[10px] sm:text-xs">
+                        <AvatarFallback className="bg-[#C40E61] text-white text-[10px] sm:text-xs">
                           {c.user.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs sm:text-sm font-medium text-white truncate">
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                           {c.user.name}
                         </span>
                         {c.user.email && (
-                          <span className="text-[10px] sm:text-xs text-zinc-500 truncate hidden sm:block">
+                          <span className="text-[10px] sm:text-xs text-gray-500 truncate hidden sm:block">
                             {c.user.email}
                           </span>
                         )}
@@ -373,16 +384,16 @@ export default function CommentList() {
                         {c.parent_id && (
                           <Badge
                             variant="secondary"
-                            className="h-4 sm:h-5 px-1 text-[9px] sm:text-[10px] bg-zinc-800 text-zinc-400"
+                            className="h-4 sm:h-5 px-1 text-[9px] sm:text-[10px] bg-gray-100 text-gray-600 border border-gray-300"
                           >
                             <CornerDownRight className="mr-0.5 sm:mr-1 size-2.5 sm:size-3" /> Trả Lời
                           </Badge>
                         )}
-                        <span className="text-[10px] sm:text-xs font-semibold text-teal-400 flex items-center gap-1">
+                        <span className="text-[10px] sm:text-xs font-semibold text-[#C40E61] flex items-center gap-1">
                           <Film className="size-2.5 sm:size-3" /> <span className="truncate">{c.movie.title}</span>
                         </span>
                       </div>
-                      <p className="text-xs sm:text-sm line-clamp-2 text-zinc-300">
+                      <p className="text-xs sm:text-sm line-clamp-2 text-gray-600">
                         {c.body}
                       </p>
                     </div>
@@ -394,15 +405,18 @@ export default function CommentList() {
                   </TableCell>
 
                   {/* Date - Hidden on mobile/tablet */}
-                  <TableCell className="hidden lg:table-cell text-right text-zinc-400 text-xs min-w-[100px]">
-                    {format(new Date(c.created_at), "MMM dd, yyyy")}
+                  <TableCell className="hidden lg:table-cell text-right text-gray-500 text-xs min-w-[100px]">
+                    <div className="flex items-center justify-end gap-1">
+                      <Calendar className="size-3" />
+                      {format(new Date(c.created_at), "MMM dd, yyyy")}
+                    </div>
                   </TableCell>
 
                   {/* Actions */}
                   <TableCell className="w-[60px] sm:w-[80px]">
                     <Button
                       variant="ghost"
-                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-zinc-400 hover:text-white"
+                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-gray-600 hover:text-[#C40E61] hover:bg-[#C40E61]/10"
                       onClick={() => handleView(c)}
                     >
                       <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -414,7 +428,7 @@ export default function CommentList() {
                 <TableRow>
                   <TableCell
                     colSpan={6}
-                    className="h-24 text-center text-zinc-500"
+                    className="h-24 text-center text-gray-500"
                   >
                     Không tìm thấy bình luận nào.
                   </TableCell>
@@ -435,13 +449,13 @@ export default function CommentList() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   className={
                     page <= 1
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
+                      ? "pointer-events-none opacity-50 text-gray-400"
+                      : "cursor-pointer text-gray-700 hover:bg-gray-100"
                   }
                 />
               </PaginationItem>
               <PaginationItem>
-                <span className="px-4 text-sm text-zinc-400">
+                <span className="px-4 text-sm text-gray-500">
                   Trang {page} / {data.totalPages}
                 </span>
               </PaginationItem>
@@ -450,8 +464,8 @@ export default function CommentList() {
                   onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
                   className={
                     page >= data.totalPages
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
+                      ? "pointer-events-none opacity-50 text-gray-400"
+                      : "cursor-pointer text-gray-700 hover:bg-gray-100"
                   }
                 />
               </PaginationItem>
@@ -462,72 +476,81 @@ export default function CommentList() {
 
       {/* ─── Detail Dialog ─── */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-[600px]">
+        <DialogContent className="bg-white border-gray-300 text-gray-900 sm:max-w-[600px]">
           {selectedComment && (
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center justify-between">
-                  <span>Chi Tiết Bình Luận</span>
+                  <span className="flex items-center gap-2">
+                    <MessageCircle className="size-5 text-[#C40E61]" />
+                    Chi Tiết Bình Luận
+                  </span>
                   {selectedComment.is_hidden ? (
                     <Badge
                       variant="destructive"
-                      className="bg-red-900/30 text-red-500 border-red-900"
+                      className="bg-red-50 text-red-700 border-red-300"
                     >
                       ĐÃ ẨN
                     </Badge>
                   ) : (
-                    <Badge className="bg-emerald-900/30 text-emerald-500 border-emerald-900">
+                    <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300">
                       HIỂN THỊ
                     </Badge>
                   )}
                 </DialogTitle>
-                <DialogDescription className="text-zinc-500">
+                <DialogDescription className="text-gray-500">
                   ID: {selectedComment.id}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="grid gap-6 py-4">
                 {/* User & Movie Info Block */}
-                <div className="flex gap-4 rounded-lg bg-zinc-950/50 border border-zinc-800 p-4">
+                <div className="flex gap-4 rounded-lg bg-gradient-to-br from-white to-gray-50 border border-gray-300 p-4 shadow-sm">
                   {selectedComment.movie.poster ? (
                     <img
                       src={selectedComment.movie.poster}
                       alt={selectedComment.movie.title}
-                      className="h-24 w-16 rounded object-cover bg-zinc-800"
+                      className="h-24 w-16 rounded object-cover bg-gray-200 border border-gray-300 shadow-sm"
                     />
                   ) : (
-                    <div className="h-24 w-16 rounded bg-zinc-800 flex items-center justify-center">
-                      <Film className="size-6 text-zinc-600" />
+                    <div className="h-24 w-16 rounded bg-gray-200 border border-gray-300 flex items-center justify-center">
+                      <Film className="size-6 text-gray-400" />
                     </div>
                   )}
                   <div className="flex-1 space-y-3">
                     <div>
-                      <p className="text-xs text-zinc-500">Phim</p>
-                      <p className="font-semibold text-white">
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <Film className="size-3 text-[#C40E61]" />
+                        Phim
+                      </p>
+                      <p className="font-semibold text-gray-900">
                         {selectedComment.movie.title}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-zinc-500">Tác Giả</p>
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <User className="size-3 text-[#C40E61]" />
+                        Tác Giả
+                      </p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Avatar className="h-5 w-5">
+                        <Avatar className="h-5 w-5 border border-gray-300">
                           <AvatarImage
                             src={selectedComment.user.avatar || defaultAvatar}
                           />
-                          <AvatarFallback className="bg-zinc-800 text-zinc-400 text-[10px]">
+                          <AvatarFallback className="bg-[#C40E61] text-white text-[10px]">
                             {selectedComment.user.name
                               .substring(0, 2)
                               .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-sm">
+                        <span className="text-sm text-gray-900">
                           {selectedComment.user.name}
                         </span>
                       </div>
                     </div>
                   </div>
                   <div className="text-right space-y-1">
-                    <p className="text-xs text-zinc-500">Sentiment</p>
+                    <p className="text-xs text-gray-500">Sentiment</p>
                     <div>
                       {getSentimentBadge(selectedComment.sentiment_score)}
                     </div>
@@ -536,19 +559,22 @@ export default function CommentList() {
 
                 {/* Content */}
                 <div className="space-y-2">
-                  <Label className="text-zinc-400">Nội Dung</Label>
-                  <ScrollArea className="h-[150px] w-full rounded-md border border-zinc-800 bg-zinc-950 p-4">
-                    <p className="text-sm leading-relaxed text-zinc-200">
+                  <Label className="text-gray-900 flex items-center gap-2">
+                    <MessageCircle className="size-4 text-[#C40E61]" />
+                    Nội Dung
+                  </Label>
+                  <ScrollArea className="h-[150px] w-full rounded-md border border-gray-300 bg-white p-4">
+                    <p className="text-sm leading-relaxed text-gray-600">
                       {selectedComment.body}
                     </p>
                   </ScrollArea>
                 </div>
 
                 {/* Status Toggle in Dialog */}
-                <div className="flex items-center justify-between rounded-lg border border-zinc-800 p-4">
+                <div className="flex items-center justify-between rounded-lg border border-gray-300 bg-white p-4 shadow-sm">
                   <div className="space-y-0.5">
-                    <Label className="text-base">Hiển Thị</Label>
-                    <p className="text-xs text-zinc-500">
+                    <Label className="text-base text-gray-900">Hiển Thị</Label>
+                    <p className="text-xs text-gray-500">
                       {selectedComment.is_hidden
                         ? "Bình luận này hiện đang bị ẩn khỏi công khai."
                         : "Bình luận này hiển thị cho mọi người."}
@@ -556,7 +582,7 @@ export default function CommentList() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`text-sm font-medium ${selectedComment.is_hidden ? "text-red-500" : "text-emerald-500"}`}
+                      className={`text-sm font-medium ${selectedComment.is_hidden ? "text-red-600" : "text-emerald-600"}`}
                     >
                       {selectedComment.is_hidden ? "Ẩn" : "Hiển Thị"}
                     </span>
@@ -564,7 +590,7 @@ export default function CommentList() {
                       checked={!selectedComment.is_hidden}
                       onCheckedChange={() => toggleHidden(selectedComment.id)}
                       disabled={isToggling}
-                      className="data-[state=checked]:bg-teal-600"
+                      className="data-[state=checked]:bg-[#C40E61]"
                     />
                   </div>
                 </div>
@@ -573,7 +599,7 @@ export default function CommentList() {
               <DialogFooter>
                 <Button
                   onClick={() => setIsDialogOpen(false)}
-                  className="w-full bg-zinc-800 hover:bg-zinc-700"
+                  className="w-full bg-[#C40E61] hover:bg-[#C40E61]/90 text-white"
                 >
                   Đóng
                 </Button>
