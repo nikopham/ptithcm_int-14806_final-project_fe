@@ -85,7 +85,7 @@ export default function Dashboard() {
         <div className="p-2 rounded-lg" style={{ backgroundColor: "#C40E61" }}>
           <BarChart3 className="size-6 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">Bảng Điều Khiển</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
       </div>
 
       {/* ───── KPI cards */}

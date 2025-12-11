@@ -30,7 +30,7 @@ type Item = {
 };
 
 const nav: Item[] = [
-  { label: "Bảng Điều Khiển", icon: BarChart2, to: "/admin" },
+  { label: "Dashboard", icon: BarChart2, to: "/admin" },
 
   {
     label: "Quản Lý Phim",
