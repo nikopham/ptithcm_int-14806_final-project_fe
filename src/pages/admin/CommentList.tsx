@@ -185,7 +185,7 @@ export default function CommentList() {
       parent_id: c.parentId,
       body: c.body,
       sentiment_score: c.sentimentScore ?? 0, // Default to 0 if not provided
-      is_hidden: c.isHidden,
+      is_hidden: c.hidden,
       created_at: c.createdAt,
       user: {
         id: c.userId,
@@ -332,7 +332,7 @@ export default function CommentList() {
                 <TableHead className="w-[60px] sm:w-[80px]">Trạng Thái</TableHead>
                 <TableHead className="min-w-[150px] sm:min-w-[200px]">Người Dùng</TableHead>
                 <TableHead className="min-w-[200px]">Bình Luận</TableHead>
-                <TableHead className="hidden md:table-cell min-w-[120px]">Cảm Xúc</TableHead>
+             
                 <TableHead className="hidden lg:table-cell text-right min-w-[100px]">
                   Ngày Tạo
                 </TableHead>
@@ -399,16 +399,13 @@ export default function CommentList() {
                     </div>
                   </TableCell>
 
-                  {/* Sentiment - Hidden on mobile */}
-                  <TableCell className="hidden md:table-cell min-w-[120px]">
-                    {getSentimentBadge(c.sentiment_score)}
-                  </TableCell>
+            
 
-                  {/* Date - Hidden on mobile/tablet */}
+                  {/* Date - Hidden on mobile/tablet */}  
                   <TableCell className="hidden lg:table-cell text-right text-gray-500 text-xs min-w-[100px]">
                     <div className="flex items-center justify-end gap-1">
                       <Calendar className="size-3" />
-                      {format(new Date(c.created_at), "MMM dd, yyyy")}
+                      {format(new Date(c.created_at), "dd/MM/yyyy")}
                     </div>
                   </TableCell>
 

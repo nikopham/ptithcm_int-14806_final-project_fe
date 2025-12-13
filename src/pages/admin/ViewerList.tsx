@@ -305,7 +305,7 @@ export default function ViewerList() {
                     <div className="flex items-center gap-1">
                       <Calendar className="size-3" />
                       {v.createdAt
-                        ? format(new Date(v.createdAt), "MMM dd, yyyy")
+                        ? format(new Date(v.createdAt), "dd/MM/yyyy")
                         : "—"}
                     </div>
                   </TableCell>

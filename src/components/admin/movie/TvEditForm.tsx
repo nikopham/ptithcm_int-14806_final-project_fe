@@ -8,5 +8,5 @@ import { TvAddForm } from "@/components/admin/movie/TvAddForm";
 export type TvEditFormProps = React.ComponentProps<typeof TvAddForm>;
 
 export function TvEditForm(props: TvEditFormProps) {
-  return <TvAddForm {...props} />;
+  return <TvAddForm {...props} isEditMode={true} />;
 }

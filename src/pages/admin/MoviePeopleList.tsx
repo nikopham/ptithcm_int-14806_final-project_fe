@@ -98,7 +98,7 @@ export default function MoviePeopleList() {
   const [formData, setFormData] = useState({
     name: "",
     img: null as File | string | null,
-    job: "ACTOR" as JobType,
+    jobs: ["ACTOR"] as JobType[],
   });
 
   /* Filter logic */
@@ -112,44 +112,61 @@ export default function MoviePeopleList() {
   const handleAdd = () => {
     setIsEditing(false);
     setPersonId(null);
-    setFormData({ name: "", img: null, job: "ACTOR" });
+    setFormData({ name: "", img: null, jobs: ["ACTOR"] });
     setIsOpen(true);
   };
 
   const handleEditApiPerson = (p: ApiPerson) => {
     setIsEditing(true);
     setPersonId(p.id);
+    // Handle job as array - convert to JobType array
+    const jobArray = Array.isArray(p.job) ? p.job : [p.job];
+    const jobs = jobArray
+      .map((j) => j as JobType)
+      .filter((j) => j === "ACTOR" || j === "DIRECTOR");
     setFormData({
       name: p.fullName,
       img: p.profilePath || null,
-      job: (p.job as unknown as JobType) || "ACTOR",
+      jobs: jobs.length > 0 ? jobs : ["ACTOR"],
     });
     setIsOpen(true);
   };
 
   const handleSave = async () => {
     const name = formData.name.trim();
-    if (!name) return;
+    if (!name) {
+      toast.error("Vui lòng nhập tên");
+      return;
+    }
+    if (formData.jobs.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một vai trò");
+      return;
+    }
     const fd = new FormData();
     fd.append("fullName", name);
-    fd.append("job", formData.job);
+    // Send jobs as array - append each job value
+    formData.jobs.forEach((job) => {
+      fd.append("job", job);
+    });
     if (formData.img && formData.img instanceof File) {
       fd.append("avatar", formData.img, formData.img.name);
     }
     try {
       if (isEditing && personId) {
         await updatePerson({ id: personId, body: fd }).unwrap();
+        toast.success("Đã cập nhật thành công");
       } else {
         await createPerson(fd).unwrap();
         setCurrentPage(0);
+        toast.success("Đã lưu thành công");
       }
       setIsOpen(false);
       setPersonId(null);
-      setFormData({ name: "", img: null, job: "ACTOR" });
+      setFormData({ name: "", img: null, jobs: ["ACTOR"] });
       await refetch();
-    } catch {
-      // Optional: surface error to user with a toast
-      // console.error(err);
+    } catch (err) {
+      toast.error("Không thể lưu");
+      console.error(err);
     }
   };
 
@@ -161,12 +178,12 @@ export default function MoviePeopleList() {
     if (!deleteId) return;
     try {
       await deletePerson(deleteId).unwrap();
-      toast.success("Đã xóa người!");
+      toast.success("Đã xóa !");
       setConfirmOpen(false);
       setDeleteId(null);
       await refetch();
     } catch {
-      toast.error("Không thể xóa người");
+      toast.error("Không thể xóa ");
     }
   };
 
@@ -270,17 +287,33 @@ export default function MoviePeopleList() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    {(p as ApiPerson).job === PersonJob.DIRECTOR ? (
-                      <Badge className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200">
-                        <Film className="mr-1 size-3" />
-                        DIRECTOR
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200">
-                        <User className="mr-1 size-3" />
-                        ACTOR
-                      </Badge>
-                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {(() => {
+                        const jobArray = Array.isArray((p as ApiPerson).job)
+                          ? (p as ApiPerson).job
+                          : [(p as ApiPerson).job];
+                        return jobArray.map((jobValue, idx) => {
+                          const job = jobValue as PersonJob;
+                          return job === PersonJob.DIRECTOR ? (
+                            <Badge
+                              key={idx}
+                              className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200"
+                            >
+                              <Film className="mr-1 size-3" />
+                              Đạo Diễn
+                            </Badge>
+                          ) : job === PersonJob.ACTOR ? (
+                            <Badge
+                              key={idx}
+                              className="bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200"
+                            >
+                              <User className="mr-1 size-3" />
+                              Diễn Viên
+                            </Badge>
+                          ) : null;
+                        });
+                      })()}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right text-gray-700">
                     {p.movieCount || 0}
@@ -409,32 +442,71 @@ export default function MoviePeopleList() {
             <div className="grid gap-2">
               <Label className="flex items-center gap-2 text-gray-900">
                 <Film className="size-4 text-[#C40E61]" />
-                Vai Trò Chính
+                Vai Trò
               </Label>
-              <Select
-                value={formData.job}
-                onValueChange={(v) =>
-                  setFormData({ ...formData, job: v as JobType })
-                }
-              >
-                <SelectTrigger className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white border-gray-300 text-gray-900">
-                  <SelectItem value="ACTOR">
-                    <div className="flex items-center gap-2">
-                      <User className="size-4 text-blue-600" />
-                      Diễn Viên
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="DIRECTOR">
-                    <div className="flex items-center gap-2">
-                      <Film className="size-4 text-purple-600" />
-                      Đạo Diễn
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-3 rounded-md border border-gray-300 bg-white p-4">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="job-actor"
+                    checked={formData.jobs.includes("ACTOR")}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData({
+                          ...formData,
+                          jobs: [...formData.jobs, "ACTOR"],
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          jobs: formData.jobs.filter((j) => j !== "ACTOR"),
+                        });
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-gray-300 text-[#C40E61] focus:ring-2 focus:ring-[#C40E61] focus:ring-offset-0"
+                  />
+                  <label
+                    htmlFor="job-actor"
+                    className="flex flex-1 cursor-pointer items-center gap-2 text-sm font-medium text-gray-900"
+                  >
+                    <User className="size-4 text-blue-600" />
+                    Diễn Viên
+                  </label>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="job-director"
+                    checked={formData.jobs.includes("DIRECTOR")}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData({
+                          ...formData,
+                          jobs: [...formData.jobs, "DIRECTOR"],
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          jobs: formData.jobs.filter((j) => j !== "DIRECTOR"),
+                        });
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-gray-300 text-[#C40E61] focus:ring-2 focus:ring-[#C40E61] focus:ring-offset-0"
+                  />
+                  <label
+                    htmlFor="job-director"
+                    className="flex flex-1 cursor-pointer items-center gap-2 text-sm font-medium text-gray-900"
+                  >
+                    <Film className="size-4 text-purple-600" />
+                    Đạo Diễn
+                  </label>
+                </div>
+              </div>
+              {formData.jobs.length === 0 && (
+                <p className="text-xs text-red-500">
+                  Vui lòng chọn ít nhất một vai trò
+                </p>
+              )}
             </div>
 
             <div className="grid gap-2">

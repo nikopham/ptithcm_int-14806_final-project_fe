@@ -131,7 +131,6 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
       }).unwrap();
       setNewComment("");
       setCmtPage(1);
-      // Immediately refresh comments so the new one appears
       refetchComments();
     } catch {
       toast.error("Không thể tạo bình luận");
@@ -157,7 +156,6 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
       setReplyBodies((m) => ({ ...m, [parentId]: "" }));
       setActiveReplyId(null);
       setCmtPage(1);
-      // Refresh comments list to show the new reply immediately
       refetchComments();
     } catch {
       toast.error("Không thể tạo phản hồi");
@@ -172,19 +170,16 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
       setActiveEditId(null);
       setEditBodies((m) => ({ ...m, [id]: "" }));
       setCmtPage(1);
-      // Refresh comments list to show the edited content immediately
       refetchComments();
     } catch {
       toast.error("Không thể chỉnh sửa bình luận");
     }
   };
 
-  // Auth + Create Review Dialog
   const isAuth = useSelector((s: RootState) => s.auth.isAuth);
   const skipVerify = useSelector((s: RootState) => s.auth.skipVerify);
   const currentUserId = useSelector((s: RootState) => s.auth.id);
   const currentUserRoles: Role[] = useSelector((s: RootState) => s.auth.roles);
-  // If auth id is null, try to fetch from getMe API (when logged in)
   const { data: me } = useGetMeQuery(undefined, {
     skip: !isAuth || skipVerify || !!currentUserId,
   });
@@ -198,7 +193,6 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [createReview, { isLoading: creating }] = useCreateReviewMutation();
   
-  // Edit Review state
   const [editOpen, setEditOpen] = useState(false);
   const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [editRating, setEditRating] = useState<number>(5);
@@ -333,18 +327,18 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
                 key={c.id}
                 to={`/movie/people/${c.id}`}
                 className="flex flex-col items-center w-20 group transition-transform duration-200 hover:scale-105"
-                title={c.fullName}
+                title={c.name}
               >
                 <div className="relative">
                   <img
-                    src={c.profilePath}
-                    alt={c.fullName}
+                    src={c.avatar}
+                    alt={c.name}
                     className="h-20 w-20 rounded-full object-cover border-2 border-gray-200 group-hover:border-[#C40E61] transition-colors duration-200 shadow-md"
                   />
                   <div className="absolute inset-0 rounded-full bg-[#C40E61]/0 group-hover:bg-[#C40E61]/10 transition-colors duration-200" />
                 </div>
                 <span className="mt-2 w-full truncate text-xs text-center text-gray-600 font-medium group-hover:text-[#C40E61] transition-colors duration-200">
-                  {c.fullName}
+                  {c.name}
                 </span>
               </Link>
             ))}
@@ -509,7 +503,6 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
           )}
         </div>
 
-        {/* Comments (threaded with reply) */}
         <div className="rounded-xl bg-white border border-gray-200 p-8 shadow-sm hover:shadow-md transition-shadow duration-200">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -873,11 +866,11 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
             Năm Phát Hành
           </h4>
           <Link
-            to={`/filter?releaseYear=${detail.releaseYear}`}
+            to={`/filter?releaseYear=${detail.release}`}
             className="inline-block mt-2 px-4 py-2 rounded-lg bg-white border border-gray-200 font-bold text-lg hover:border-[#C40E61] hover:text-[#C40E61] transition-all duration-200 shadow-sm hover:shadow-md"
             style={{ color: "#C40E61" }}
           >
-            {detail.releaseYear}
+            {detail.release}
           </Link>
         </div>
 
@@ -892,12 +885,12 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
           <div className="space-y-2.5">
             <div className="flex justify-between items-center rounded-lg bg-white border border-gray-200 px-4 py-3 shadow-sm hover:shadow-md transition-shadow duration-200">
               <span className="text-xs font-medium text-gray-600">Chất Lượng</span>
-              <span className="font-bold text-gray-900">{detail.quality}</span>
+              <span className="font-bold text-gray-900">{detail.quality || "HD"}</span>
             </div>
             <div className="flex justify-between items-center rounded-lg bg-white border border-gray-200 px-4 py-3 shadow-sm hover:shadow-md transition-shadow duration-200">
               <span className="text-xs font-medium text-gray-600">Thời Lượng</span>
               <span className="font-bold text-gray-900">
-                {detail.durationMin} phút
+                {detail.duration} phút
               </span>
             </div>
             <div className="flex justify-between items-center rounded-lg bg-white border border-gray-200 px-4 py-3 shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -908,7 +901,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
             </div>
             <div className="flex justify-between items-center rounded-lg bg-white border border-gray-200 px-4 py-3 shadow-sm hover:shadow-md transition-shadow duration-200">
               <span className="text-xs font-medium text-gray-600">Lượt xem</span>
-              <span className="font-bold text-gray-900">{detail.viewCount}</span>
+              <span className="font-bold text-gray-900">{detail.viewCount || 0}</span>
             </div>
           </div>
         </div>
@@ -946,19 +939,19 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
             Đạo Diễn
           </h4>
           {detail.directors && detail.directors.length > 0 ? (
-            detail.directors.slice(0, 1).map((d) => (
+            detail.directors.map((d) => (
               <Link
                 key={d.id}
                 to={`/movie/people/${d.id}`}
-                className="flex items-center gap-3 rounded-lg bg-white border border-gray-200 p-4 cursor-pointer hover:border-[#C40E61] hover:shadow-md transition-all duration-200 shadow-sm group"
+                className="flex items-center gap-3 mb-2 rounded-lg bg-white border border-gray-200 p-4 cursor-pointer hover:border-[#C40E61] hover:shadow-md transition-all duration-200 shadow-sm group"
               >
                 <img
-                  src={d.profilePath || defaultAvatar}
-                  alt={d.fullName}
+                  src={d.avatar || defaultAvatar}
+                  alt={d.name}
                   className="h-12 w-12 rounded-lg object-cover border-2 border-gray-200 group-hover:border-[#C40E61] transition-colors duration-200"
                 />
                 <div>
-                  <p className="text-sm font-bold text-gray-900 group-hover:text-[#C40E61] transition-colors duration-200">{d.fullName}</p>
+                  <p className="text-sm font-bold text-gray-900 group-hover:text-[#C40E61] transition-colors duration-200">{d.name}</p>
                   <span className="text-xs text-gray-500">Đạo Diễn</span>
                 </div>
               </Link>

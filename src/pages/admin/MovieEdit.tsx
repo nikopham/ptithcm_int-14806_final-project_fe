@@ -37,7 +37,7 @@ interface LocalMovieFormState {
   status: string;
   countries: Country[];
   genres: Genre[];
-  director: Person | null;
+  director: Person[];
   actors: Person[];
 }
 // Use TvFormState from TvAddForm for typing
@@ -90,14 +90,16 @@ export default function MovieEdit() {
 
   useEffect(() => {
     if (!data) return;
-    const mapDirector = (): Person | null =>
+    const mapDirectors = (): Person[] =>
       data.director
-        ? {
-            id: data.director.id,
-            fullName: data.director.name,
-            job: PersonJob.DIRECTOR,
-          }
-        : null;
+        ? [
+            {
+              id: data.director.id,
+              fullName: data.director.name,
+              job: PersonJob.DIRECTOR,
+            },
+          ]
+        : [];
     const mapActors = (): Person[] =>
       (data.actors || []).map((a) => ({
         id: a.id,
@@ -182,7 +184,7 @@ export default function MovieEdit() {
         status: data.status,
         countries: data.countries as Country[],
         genres: data.genres as Genre[],
-        director: mapDirector(),
+        director: mapDirectors(),
         actors: mapActors(),
         seasons: seasonsFromApi
           .filter((s) => (s.seasonNumber ?? s.season_number) != null)
@@ -211,7 +213,7 @@ export default function MovieEdit() {
         status: data.status,
         countries: data.countries as Country[],
         genres: data.genres as Genre[],
-        director: mapDirector(),
+        director: mapDirectors(),
         actors: mapActors(),
       });
     }
@@ -248,8 +250,9 @@ export default function MovieEdit() {
       (movieForm.genres || []).forEach((g) =>
         fd.append("genreIds", String(g.id))
       );
-      if (movieForm.director)
-        fd.append("directorId", String(movieForm.director.id));
+      (movieForm.director || []).forEach((d) =>
+        fd.append("directorIds", String(d.id))
+      );
       (movieForm.actors || []).forEach((a) =>
         fd.append("actorIds", String(a.id))
       );
@@ -290,8 +293,9 @@ export default function MovieEdit() {
       (formData.genres || []).forEach((g) =>
         fd.append("genreIds", String(g.id))
       );
-      if (formData.director)
-        fd.append("directorId", String(formData.director.id));
+      (formData.director || []).forEach((d) =>
+        fd.append("directorIds", String(d.id))
+      );
       (formData.actors || []).forEach((a) =>
         fd.append("actorIds", String(a.id))
       );
@@ -429,8 +433,6 @@ export default function MovieEdit() {
           update={updateMovie}
           displayGenres={(allGenres as Genre[]) || []}
           displayCountries={(allCountries as Country[]) || []}
-          movieGenre={(data?.genres as Genre[]) || []}
-          movieCountry={(data?.countries as Country[]) || []}
           formDataStatus="succeeded"
           loading={saving}
           onSubmit={handleMovieSubmit}
@@ -442,8 +444,6 @@ export default function MovieEdit() {
           update={updateTv}
           displayGenres={(allGenres as Genre[]) || []}
           displayCountries={(allCountries as Country[]) || []}
-          movieGenre={(data?.genres as Genre[]) || []}
-          movieCountry={(data?.countries as Country[]) || []}
           formDataStatus="succeeded"
           loading={saving}
           onSubmit={handleTvSubmit}

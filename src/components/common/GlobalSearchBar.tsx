@@ -36,6 +36,14 @@ const HighlightText = ({
   );
 };
 
+const mapJobToVietnamese = (job: string): string => {
+  const jobMap: Record<string, string> = {
+    ACTOR: "Diễn viên",
+    DIRECTOR: "Đạo diễn",
+  };
+  return jobMap[job] || job;
+};
+
 export function GlobalSearchBar() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -178,8 +186,15 @@ export function GlobalSearchBar() {
                           highlight={person._formatted?.fullName}
                         />
                       </span>
-                      <span className="text-xs text-gray-500 capitalize">
-                        {person.job.toLowerCase()}
+                      <span className="text-xs text-gray-500">
+                        {(Array.isArray(person.job)
+                          ? person.job
+                          : typeof person.job === "string"
+                          ? person.job.split(",").map((j) => j.trim()).filter(Boolean)
+                          : [person.job]
+                        )
+                          .map(mapJobToVietnamese)
+                          .join(", ")}
                       </span>
                     </div>
                   </div>

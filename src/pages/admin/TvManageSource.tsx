@@ -32,8 +32,8 @@ import {
 } from "@/features/movie/uploadApi";
 
 import type { MovieDetail } from "@/types/movie";
-import { useGetMovieDetailQuery, movieApi } from "@/features/movie/movieApi";
-import { useUpdateEpisodeMutation } from "@/features/series/seriesApi";
+import { useGetMovieInfoQuery, movieApi } from "@/features/movie/movieApi";
+import { useUpdateEpisodeMutation, useGetEpisodesBySeasonMutation } from "@/features/series/seriesApi";
 
 type Props = {
   movieId: string;
@@ -45,8 +45,9 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
   const dispatch = useDispatch();
 
   const [getUploadUrl] = useGetCloudflareUploadUrlMutation();
-  const { data: detail } = useGetMovieDetailQuery(_movieId);
+  const { data: detail } = useGetMovieInfoQuery(_movieId);
   const [updateEpisode] = useUpdateEpisodeMutation();
+  const [getEpisodesBySeason] = useGetEpisodesBySeasonMutation();
 
   // Episode upload state
   const [busyEp, setBusyEp] = useState<string | null>(null);
@@ -65,8 +66,25 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
   const [isProcessingEpisode, setIsProcessingEpisode] = useState<boolean>(false);
   const [showLeaveWarningDialog, setShowLeaveWarningDialog] = useState(false);
   const [showProcessingDialog, setShowProcessingDialog] = useState(false);
+  
+  // State để lưu episodes theo season
+  const [episodesBySeason, setEpisodesBySeason] = useState<Record<string, Array<{
+    id?: string;
+    episodeNumber: number;
+    videoUrl?: string;
+  }>>>({});
+  const [loadingEpisodes, setLoadingEpisodes] = useState<Record<string, boolean>>({});
 
-  const seasons = detail?.seasons || [];
+  type SeasonType = {
+    id?: string;
+    seasonNumber: number;
+    episodes?: Array<{
+      id?: string;
+      episodeNumber: number;
+      videoUrl?: string;
+    }>;
+  };
+  const seasons: SeasonType[] = (detail as unknown as { seasons?: SeasonType[] })?.seasons || [];
 
   const firstSeasonKey = useMemo(
     () => (seasons[0] ? `${seasons[0].id || seasons[0].seasonNumber}` : null),
@@ -77,6 +95,57 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
     const key = selectedSeasonKey ?? firstSeasonKey;
     return seasons.find((s) => `${s.id || s.seasonNumber}` === key);
   }, [seasons, selectedSeasonKey, firstSeasonKey]);
+
+  // Load episodes khi season được chọn
+  useEffect(() => {
+    const currentSeasonKey = selectedSeasonKey ?? firstSeasonKey;
+    if (!currentSeasonKey) return;
+    
+    const season = seasons.find((s) => `${s.id || s.seasonNumber}` === currentSeasonKey);
+    if (!season || !season.id) return;
+    
+    // Nếu đã có episodes trong cache thì không cần fetch lại
+    if (episodesBySeason[season.id]) return;
+    
+    // Nếu season đã có episodes từ getMovieInfo (không null và có length > 0) thì không cần fetch lại
+    if (season.episodes && season.episodes.length > 0) {
+      // Lưu episodes từ detail vào cache để sử dụng thống nhất
+      setEpisodesBySeason((prev) => ({
+        ...prev,
+        [season.id!]: season.episodes!,
+      }));
+      return;
+    }
+    
+    // Nếu đang loading thì không fetch lại
+    if (loadingEpisodes[season.id]) return;
+    
+    // Fetch episodes
+    setLoadingEpisodes((prev) => ({ ...prev, [season.id!]: true }));
+    getEpisodesBySeason({ seasonId: season.id })
+      .unwrap()
+      .then((episodes) => {
+        setEpisodesBySeason((prev) => ({
+          ...prev,
+          [season.id!]: episodes.map((ep: any) => ({
+            id: ep.id,
+            episodeNumber: ep.episodeNumber,
+            videoUrl: ep.videoUrl,
+          })),
+        }));
+      })
+      .catch((err) => {
+        console.error("Failed to load episodes:", err);
+        toast.error("Không thể tải danh sách tập phim");
+      })
+      .finally(() => {
+        setLoadingEpisodes((prev) => {
+          const next = { ...prev };
+          delete next[season.id!];
+          return next;
+        });
+      });
+  }, [selectedSeasonKey, firstSeasonKey, seasons, episodesBySeason, loadingEpisodes, getEpisodesBySeason]);
 
   // Poll Cloudflare processing status khi đã có UID và đang xử lý
   const { data: epStatusData } = useGetVideoStatusQuery(epUID, {
@@ -122,10 +191,15 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
       const [seasonNumberStr, episodeNumberStr] = (epKey || "").split("-");
       const seasonNumber = Number(seasonNumberStr);
       const episodeNumber = Number(episodeNumberStr);
-      const season = (detail?.seasons || []).find(
+      const seasonsForUpload: SeasonType[] = (detail as unknown as { seasons?: SeasonType[] })?.seasons || [];
+      const season = seasonsForUpload.find(
         (s) => s.seasonNumber === seasonNumber
       );
-      const episode = (season?.episodes || []).find(
+      // Tìm episode từ state hoặc từ detail
+      const seasonEpisodes = season?.id && episodesBySeason[season.id]
+        ? episodesBySeason[season.id]
+        : (season?.episodes || []);
+      const episode = seasonEpisodes.find(
         (e) => e.episodeNumber === episodeNumber
       );
       if (!episode?.id) {
@@ -277,7 +351,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
         </Button>
         <h1 className="flex items-center gap-2 text-2xl font-extrabold text-gray-900">
           <Video className="size-6 text-[#C40E61]" />
-          Quản Lý Nguồn (Phim Bộ)
+          Quản Lý Nguồn Video (Phim Bộ)
         </h1>
       </div>
 
@@ -329,7 +403,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
             <span className="text-gray-500">Trạng Thái</span>
             <div className="mt-1">
               <Badge className="border-none bg-emerald-600 hover:bg-emerald-700 text-white">
-                {info.status}
+                {info.status === "DRAFT" ? "Bản nháp" : info.status === "PUBLISHED" ? "Đã xuất bản" : info.status}
               </Badge>
             </div>
           </div>
@@ -374,9 +448,20 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
 
           {seasons.map((s) => {
             const key = `${s.id || s.seasonNumber}`;
+            // Sử dụng episodes từ state nếu có, nếu không thì dùng từ detail
+            const episodes = s.id && episodesBySeason[s.id] 
+              ? episodesBySeason[s.id] 
+              : (s.episodes || []);
+            const isLoading = s.id ? loadingEpisodes[s.id] : false;
+            
             return (
               <TabsContent key={key} value={key} className="space-y-4">
                 {/* Episode buttons */}
+                {isLoading && (
+                  <div className="flex items-center justify-center py-8 text-sm text-gray-500">
+                    Đang tải danh sách tập phim...
+                  </div>
+                )}
                 <ScrollArea 
                   className={`max-h-[40vh] pr-2 transition-opacity ${
                     isProcessingEp ? "opacity-40 pointer-events-none" : ""
@@ -384,7 +469,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                   onClick={isProcessingEp ? handleOverlayClick : undefined}
                 >
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-                    {(s.episodes || []).map((ep) => {
+                    {episodes.map((ep) => {
                       const epKey = `${s.seasonNumber}-${ep.episodeNumber}`;
                       const hasSource = Boolean(ep.videoUrl);
                       const isActive = selectedEpisodeKey === epKey;
@@ -420,7 +505,7 @@ export default function TvManageSource({ movieId: _movieId, info }: Props) {
                     const selectedEpNumber = Number(
                       selectedEpisodeKey.split("-")[1]
                     );
-                    const selectedEp = (s.episodes || []).find(
+                    const selectedEp = episodes.find(
                       (ep) => ep.episodeNumber === selectedEpNumber
                     );
                     const hasSource = Boolean(selectedEp?.videoUrl);

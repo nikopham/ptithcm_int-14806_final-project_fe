@@ -14,7 +14,7 @@ export default function SourceManager() {
       <div className="p-6 text-red-600">Không tải được thông tin phim.</div>
     );
 
-  return data.isSeries ? (
+  return data.series ? (
     <TvManageSource movieId={id} info={data} />
   ) : (
     <MovieManageSource movieId={id} info={data} />

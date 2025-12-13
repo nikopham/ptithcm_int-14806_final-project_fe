@@ -278,7 +278,7 @@ export default function MovieManageSource({
         </Button>
         <h1 className="flex items-center gap-2 text-2xl font-extrabold text-gray-900">
           <Video className="size-6 text-[#C40E61]" />
-          Quản Lý Nguồn
+          Quản Lý Nguồn Video
         </h1>
       </div>
 
@@ -442,7 +442,7 @@ export default function MovieManageSource({
                 <div className="flex justify-between text-xs text-amber-600">
                   <span className="flex items-center gap-1">
                     <RefreshCw className="w-3 h-3 animate-spin" /> Cloudflare
-                    Processing...
+                    Đang xử lý...
                   </span>
                   <span>{encodingPct.toFixed(1)}%</span>
                 </div>
@@ -597,9 +597,9 @@ export default function MovieManageSource({
             <div className="flex items-start gap-3">
               <AlertCircle className="size-6 text-red-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <AlertDialogTitle className="text-gray-900">Thay thế Source hiện tại?</AlertDialogTitle>
+                <AlertDialogTitle className="text-gray-900">Thay thế nguồn phim hiện tại?</AlertDialogTitle>
                 <AlertDialogDescription className="text-gray-500 mt-2">
-                  Source phim sẽ được upload và thay thế bằng source mới. Điều này
+                  Nguồn phim sẽ được upload và thay thế bằng nguồn phim mới. Điều này
                   không thể thay đổi, Vui lòng backup trước khi đồng ý.
                 </AlertDialogDescription>
               </div>

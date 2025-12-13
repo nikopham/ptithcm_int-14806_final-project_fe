@@ -12,7 +12,7 @@ interface GenreSelectorProps {
 }
 
 export function GenreSelector({
-  label = "Genres",
+  label = "Thể loại",
   available,
   selected,
   onChange,

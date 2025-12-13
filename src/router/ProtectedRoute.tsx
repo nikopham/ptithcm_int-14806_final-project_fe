@@ -66,7 +66,8 @@ const normalizeRole = (role: string): Role => {
 export const ProtectedRoute = ({ allow }: Props) => {
   const { isAuth, roles, status } = useAppSelector((s) => s.auth);
   const location = useLocation();
-
+  console.log(roles);
+  
   // [LOGIC MỚI]
   // 1. Trạng thái CHỜ:
   // - "idle": RootLayout chưa kịp dispatch verifyAsync.

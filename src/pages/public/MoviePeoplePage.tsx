@@ -29,6 +29,14 @@ export default function MoviePeoplePage() {
     setPage(1);
   }, [id]);
 
+  const mapJobToVietnamese = (job: string): string => {
+    const jobMap: Record<string, string> = {
+      ACTOR: "Diễn viên",
+      DIRECTOR: "Đạo diễn",
+    };
+    return jobMap[job] || job;
+  };
+
   return (
     <section className="mx-auto max-w-7xl px-4 pb-24 text-gray-900 mt-8 bg-white">
       {/* Header & left profile column */}
@@ -66,7 +74,15 @@ export default function MoviePeoplePage() {
                 <Briefcase className="size-4 text-[#C40E61]" />
                 <dt className="w-28 text-gray-500">Nghề nghiệp:</dt>
                 <dd className="flex-1 capitalize text-gray-900 font-medium">
-                  {(person as any)?.job === "ACTOR" ? "Diễn Viên" : (person as any)?.job === "DIRECTOR" ? "Đạo Diễn" : "Đang cập nhật"}
+                  {/* {(person as any)?.job === "ACTOR" ? "Diễn Viên" : (person as any)?.job === "DIRECTOR" ? "Đạo Diễn" : "Đang cập nhật"} */}
+                  {(Array.isArray(person?.job)
+                          ? person?.job
+                          : typeof person?.job == "string"
+                          ? person?.job.split(",").map((j) => j.trim()).filter(Boolean)
+                          : [person?.job]
+                        )
+                          .map(mapJobToVietnamese)
+                          .join(", ")}
                 </dd>
               </div>
             </dl>

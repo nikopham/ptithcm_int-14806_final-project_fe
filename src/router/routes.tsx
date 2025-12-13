@@ -54,6 +54,7 @@ export const router = createBrowserRouter([
           { path: "login", element: <Login /> },
         ],
       },
+      
       {
         element: (
           <ProtectedRoute
@@ -61,7 +62,7 @@ export const router = createBrowserRouter([
               GlobalConstant.VIEWER,
               GlobalConstant.SUPER_ADMIN,
               GlobalConstant.COMMENT_ADMIN,
-              GlobalConstant.COMMENT_ADMIN,
+              GlobalConstant.MOVIE_ADMIN,
             ]}
           />
         ), // same guard you have
@@ -85,7 +86,7 @@ export const router = createBrowserRouter([
             allow={[
               GlobalConstant.SUPER_ADMIN,
               GlobalConstant.COMMENT_ADMIN,
-              GlobalConstant.COMMENT_ADMIN,
+              GlobalConstant.MOVIE_ADMIN,
             ]}
           />
         ), // same guard you have
@@ -115,6 +116,8 @@ export const router = createBrowserRouter([
           },
         ],
       },
+      
+
 
       {
         element: <ProtectedRoute allow={[GlobalConstant.VIEWER]} />,

@@ -9,7 +9,7 @@ export enum PersonJob {
 export interface Person {
   id: string; // UUID
   fullName: string;
-  job: PersonJob;
+  job: string[];
   profilePath?: string;
   movieCount?: number;
 }
@@ -29,7 +29,7 @@ export interface PersonDetail {
   birthDate: string;
   placeOfBirth: string;
   profilePath: string;
-  job: string;
+  job: string[];
 
   // Danh sách phim có phân trang
   movies: PageResponse<Movie>;

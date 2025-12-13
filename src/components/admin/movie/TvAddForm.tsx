@@ -56,7 +56,7 @@ export interface TvFormState {
   status: string;
   countries: Country[];
   genres: Genre[];
-  director: Person | null;
+  director: Person[]; // multi-select
   actors: Person[];
   seasons: { id: number; name: string; season_number: number }[];
   seasonDrafts: {
@@ -82,6 +82,7 @@ interface TvAddFormProps {
   formDataStatus?: string;
   loading?: boolean;
   onSubmit?: (form: TvFormState) => void;
+  isEditMode?: boolean; // optional flag to indicate edit mode
 }
 
 // Removed TMDB auto-fill; seasons are entered manually via sheet
@@ -105,6 +106,7 @@ export function TvAddForm({
   formDataStatus = "idle",
   loading = false,
   onSubmit,
+  isEditMode = false,
 }: TvAddFormProps) {
   // People modal state + search/pagination (match MovieAddForm)
   const [directorModalOpen, setDirectorModalOpen] = useState(false);
@@ -399,6 +401,14 @@ export function TvAddForm({
                     </div>
                   </SelectItem>
                 ))}
+                {isEditMode && (
+                  <SelectItem value="PUBLISHED">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      Đã xuất bản
+                    </div>
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -460,51 +470,65 @@ export function TvAddForm({
 
         {/* Director */}
         <div className="relative">
-          <Label className="flex items-center gap-2 text-gray-900">
-            <Users className="size-4 text-[#C40E61]" />
-            Đạo Diễn
+          <Label className="flex items-center justify-between text-gray-900">
+            <span className="flex items-center gap-2">
+              <Users className="size-4 text-[#C40E61]" />
+              Đạo Diễn
+            </span>
+            <span className="text-xs text-gray-500">
+              {(form.director || []).length} đã chọn
+            </span>
           </Label>
-          {form.director ? (
-            <div className="mt-2 flex items-center justify-between rounded-md border border-gray-300 bg-white p-2 pr-3 shadow-sm">
-              <div className="flex items-center gap-3">
-                <img
-                  src={
-                    form.director.profilePath ||
-                    "https://via.placeholder.com/48x48.png?text=?"
-                  }
-                  alt={form.director.fullName}
-                  className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
-                />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {form.director.fullName}
-                  </p>
-                  <p className="text-xs text-gray-500">Đạo Diễn</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
-                onClick={() => update("director", null)}
-                disabled={isLoading}
+          <div className="mb-3 mt-2 space-y-2">
+            {(form.director || []).map((d: Person) => (
+              <div
+                key={d.id}
+                className="flex items-center justify-between rounded-md border border-gray-300 bg-white p-2 pr-3 shadow-sm"
               >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <Input
-              placeholder="Nhập để tìm đạo diễn..."
-              value={directorSearch}
-              onChange={(e) => {
-                setDirectorSearch(e.target.value);
-                if (!directorModalOpen) setDirectorModalOpen(true);
-                setDirectorPage(0);
-              }}
-              disabled={isLoading}
-              className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
-            />
-          )}
+                <div className="flex items-center gap-3">
+                  <img
+                    src={
+                      d.profilePath ||
+                      "https://via.placeholder.com/48x48.png?text=?"
+                    }
+                    alt={d.fullName}
+                    className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {d.fullName}
+                    </p>
+                    <p className="text-xs text-gray-500">Đạo Diễn</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                  onClick={() =>
+                    update(
+                      "director",
+                      (form.director || []).filter((x: Person) => x.id !== d.id)
+                    )
+                  }
+                  disabled={isLoading}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+          <Input
+            placeholder="Nhập để tìm đạo diễn..."
+            value={directorSearch}
+            onChange={(e) => {
+              setDirectorSearch(e.target.value);
+              if (!directorModalOpen) setDirectorModalOpen(true);
+              setDirectorPage(0);
+            }}
+            disabled={isLoading}
+            className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
+          />
           <PersonSelectDialog
             label="Tìm Đạo Diễn"
             open={directorModalOpen}
@@ -522,11 +546,11 @@ export function TvAddForm({
             isFetching={directorFetching}
             totalPages={directorData?.totalPages || 0}
             results={directorData?.content || []}
-            singleSelect
-            selected={(form.director ?? ({} as Person)) as Person}
+            singleSelect={false}
+            selected={(form.director || []) as Person[]}
             onSelect={(p) => {
-              update("director", p);
-              setDirectorModalOpen(false);
+              const already = (form.director || []).some((d) => d.id === p.id);
+              if (!already) update("director", [...(form.director || []), p]);
             }}
           />
         </div>
@@ -1111,7 +1135,7 @@ function SeasonsSheet({
           {(drafts || []).map((s, si) => (
             <div key={si} className="rounded-lg border border-gray-300 bg-white p-3 shadow-sm">
               <div className="flex items-center gap-2">
-                <Label className="w-28">Số mùa</Label>
+                <Label className="w-28">Mùa</Label>
                 <div className="flex flex-col">
                   <Input
                     className={`w-24 bg-white border-gray-300 text-gray-900 ${seasonDuplicateSet.has(s.seasonNumber) || seasonInvalidSet.has(si) ? "border-red-500 focus-visible:ring-red-500" : ""}`}
@@ -1153,12 +1177,14 @@ function SeasonsSheet({
               </div>
               <div className="mt-3 space-y-2">
                 {(s.episodes || []).map((ep, ei) => {
-                  const currentYear = new Date().getFullYear();
-                  const years = Array.from(
-                    { length: currentYear - 1900 },
-                    (_, i) => String(currentYear - i)
-                  );
-                  const existingYear = ep.airDate?.slice(0, 4) || "";
+                  // Parse year from airDate: extract year part before first "-"
+                  const existingYear = ep.airDate 
+                    ? (ep.airDate.includes("-") 
+                        ? ep.airDate.split("-")[0] 
+                        : ep.airDate.length <= 4 
+                          ? ep.airDate 
+                          : ep.airDate.slice(0, 4))
+                    : "";
                   const episodeDuplicateSet = (() => {
                     const nums = s.episodes
                       .map((e) => e.episodeNumber)
@@ -1190,7 +1216,7 @@ function SeasonsSheet({
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <Label className="text-xs text-zinc-400">
+                          <Label className="text-xs text-gray-600 font-medium">
                             Số tập
                           </Label>
                           <div className="flex flex-col">
@@ -1220,7 +1246,7 @@ function SeasonsSheet({
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-zinc-400">Tiêu đề</Label>
+                          <Label className="text-xs text-gray-600 font-medium">Tiêu đề</Label>
                           <Input
                             placeholder="Tiêu đề tập"
                             value={ep.title}
@@ -1232,7 +1258,7 @@ function SeasonsSheet({
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-zinc-400">
+                          <Label className="text-xs text-gray-600 font-medium">
                             Thời lượng (phút)
                           </Label>
                           <Input
@@ -1249,38 +1275,78 @@ function SeasonsSheet({
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-zinc-400">
+                          <Label className="text-xs text-gray-600 font-medium">
                             Năm phát sóng
                           </Label>
-                          <Select
-                            value={existingYear}
-                            onValueChange={(year) =>
-                              updateEpisode(si, ei, {
-                                airDate: `${year}-01-01`,
-                              })
-                            }
-                            disabled={disabled}
-                          >
-                            <SelectTrigger className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100">
-                              <SelectValue placeholder="Năm" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white border-gray-300 text-gray-900 max-h-72 overflow-y-auto">
-                              {years.map((y) => (
-                                <SelectItem key={y} value={y}>
-                                  {y}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {isEpisodeInvalid && !existingYear && (
-                            <span className="mt-1 text-[10px] text-red-400">
-                              Bắt buộc
-                            </span>
-                          )}
+                          <div className="flex flex-col">
+                            <Input
+                              type="number"
+                              inputMode="numeric"
+                              placeholder="Nhập năm (VD: 2024)"
+                              value={existingYear}
+                              onChange={(e) => {
+                                let val = e.target.value;
+                                
+                                if (val === "") {
+                                  updateEpisode(si, ei, {
+                                    airDate: "",
+                                  });
+                                  return;
+                                }
+                                
+                                // Chỉ cho phép tối đa 4 chữ số
+                                if (val.length > 4) {
+                                  val = val.slice(0, 4);
+                                }
+                                
+                                // Chỉ cập nhật nếu là số hợp lệ
+                                const num = Number(val);
+                                if (!Number.isNaN(num) && val.length > 0) {
+                                  updateEpisode(si, ei, {
+                                    airDate: `${val}-01-01`,
+                                  });
+                                }
+                              }}
+                              onBlur={() => {
+                                if (!existingYear) return;
+                                
+                                const yr = Number(existingYear);
+                                const min = 1900;
+                                const max = new Date().getFullYear();
+                                
+                                if (isNaN(yr)) {
+                                  updateEpisode(si, ei, {
+                                    airDate: "",
+                                  });
+                                  return;
+                                }
+                                
+                                if (yr < min) {
+                                  updateEpisode(si, ei, {
+                                    airDate: `${min}-01-01`,
+                                  });
+                                } else if (yr > max) {
+                                  updateEpisode(si, ei, {
+                                    airDate: `${max}-01-01`,
+                                  });
+                                } else if (existingYear.length < 4) {
+                                  // Nếu năm chưa đủ 4 chữ số, giữ nguyên hoặc xóa
+                                  // Không làm gì, để user tiếp tục nhập
+                                }
+                              }}
+                              className={`bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61] ${isEpisodeInvalid && !existingYear ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                              disabled={disabled}
+                            />
+                            {isEpisodeInvalid && !existingYear && (
+                              <span className="mt-1 text-[10px] text-red-400">
+                                Bắt buộc
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs text-zinc-400">
+                        <Label className="text-xs text-gray-600 font-medium">
                           Tóm tắt
                         </Label>
                         <Textarea

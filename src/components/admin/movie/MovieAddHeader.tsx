@@ -26,7 +26,7 @@ export function MovieAddHeader({
       <div className="flex items-center gap-2">
         <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
           <Plus className="size-6 text-[#C40E61]" />
-          Thêm nội dung mới
+          Thêm phim/bộ phim mới
         </h1>
         <Button
           variant="ghost"

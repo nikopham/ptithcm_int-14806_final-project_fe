@@ -18,7 +18,7 @@ export interface MovieEditFormState {
   status: string;
   countries: Country[];
   genres: Genre[];
-  director: Person | null;
+  director: Person[];
   actors: Person[];
 }
 
@@ -61,6 +61,7 @@ export function MovieEditForm({
     loading,
     submitLabel: "Lưu Thay Đổi",
     showReset: false,
+    isEditMode: true,
   };
   return <MovieAddForm {...addProps} />;
 }

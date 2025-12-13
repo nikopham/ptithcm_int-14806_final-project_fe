@@ -44,11 +44,11 @@ interface MovieLocalForm {
   status: string; // MovieStatus enum value
   countries: Country[];
   genres: Genre[];
-  director: Person | null;
+  director: Person[];
   actors: Person[];
 }
 interface TvLocalForm {
-  tmdbId: number | null;
+  originalTitle?: string;
   title: string;
   description: string;
   release: string;
@@ -61,7 +61,7 @@ interface TvLocalForm {
   status: string;
   countries: Country[];
   genres: Genre[];
-  director: Person | null;
+  director: Person[];
   actors: Person[];
   seasons: { id: number; name: string; season_number: number }[];
   seasonDrafts: {
@@ -88,11 +88,11 @@ const emptyMovie: MovieLocalForm = {
   status: "DRAFT",
   countries: [],
   genres: [],
-  director: null,
+  director: [],
   actors: [],
 };
 const emptyTv: TvLocalForm = {
-  tmdbId: null,
+  originalTitle: "",
   title: "",
   description: "",
   release: "",
@@ -105,7 +105,7 @@ const emptyTv: TvLocalForm = {
   status: "DRAFT",
   countries: [],
   genres: [],
-  director: null,
+  director: [],
   actors: [],
   seasons: [],
   seasonDrafts: [],
@@ -179,7 +179,7 @@ export default function MovieAdd() {
     if (m.countries.length === 0)
       errors.countries = "Chọn ít nhất một quốc gia";
     if (m.genres.length === 0) errors.genres = "Chọn ít nhất một thể loại";
-    if (!m.director) errors.director = "Đạo diễn là bắt buộc";
+    if (m.director.length === 0) errors.director = "Đạo diễn là bắt buộc";
     if (m.actors.length === 0) errors.actors = "Cần ít nhất một diễn viên";
     if (!m.age) errors.age = "Xếp hạng độ tuổi là bắt buộc";
     if (!m.poster) errors.poster = "Poster là bắt buộc";
@@ -196,7 +196,7 @@ export default function MovieAdd() {
     if (!t.countries || t.countries.length === 0)
       errors.countries = "Chọn ít nhất một quốc gia";
     if (t.genres.length === 0) errors.genres = "Chọn ít nhất một thể loại";
-    if (!t.director) errors.director = "Đạo diễn là bắt buộc";
+    if (t.director.length === 0) errors.director = "Đạo diễn là bắt buộc";
     if (t.actors.length === 0) errors.actors = "Cần ít nhất một diễn viên";
     if (!t.age) errors.age = "Xếp hạng độ tuổi là bắt buộc";
     if (!t.poster) errors.poster = "Poster là bắt buộc";
@@ -236,8 +236,7 @@ export default function MovieAdd() {
       fd.append("isSeries", "false");
       movieForm.countries.forEach((c) => fd.append("countryIds", String(c.id)));
       movieForm.genres.forEach((g) => fd.append("genreIds", String(g.id)));
-      if (movieForm.director)
-        fd.append("directorId", String(movieForm.director.id));
+      movieForm.director.forEach((d) => fd.append("directorIds", String(d.id)));
       movieForm.actors.forEach((a) => fd.append("actorIds", String(a.id)));
       if (movieForm.poster instanceof File)
         fd.append("posterImage", movieForm.poster);
@@ -285,8 +284,7 @@ export default function MovieAdd() {
       fd.append("isSeries", "true");
       formData.countries.forEach((c) => fd.append("countryIds", String(c.id)));
       formData.genres.forEach((g) => fd.append("genreIds", String(g.id)));
-      if (formData.director)
-        fd.append("directorId", String(formData.director.id));
+      formData.director.forEach((d) => fd.append("directorIds", String(d.id)));
       formData.actors.forEach((a) => fd.append("actorIds", String(a.id)));
       if (formData.poster instanceof File)
         fd.append("posterImage", formData.poster);

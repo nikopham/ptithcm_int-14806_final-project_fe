@@ -11,7 +11,7 @@ interface ErrorModalState {
 
 const initialState: ErrorModalState = {
   isOpen: false,
-  title: "Notification",
+  title: "Thông báo",
   message: "",
   code: null,
 };
@@ -29,7 +29,7 @@ export const errorModalSlice = createSlice({
     // Action để hiển thị modal với nội dung lỗi
     showErrorModal: (state, action: PayloadAction<ShowErrorPayload>) => {
       state.isOpen = true;
-      state.title = action.payload.title || "Notification";
+      state.title = action.payload.title || "Thông báo";
       state.message = action.payload.message;
       state.code = action.payload.code || null;
     },

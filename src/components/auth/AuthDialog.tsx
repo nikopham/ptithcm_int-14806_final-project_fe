@@ -141,7 +141,7 @@ export function AuthDialog({
         console.error("Google login failed", err);
       }
     },
-    onError: () => toast.error("Login Failed"),
+    onError: () => toast.error("Đăng nhập thất bại"),
   });
 
   const handleOpenChange = (open: boolean) => {

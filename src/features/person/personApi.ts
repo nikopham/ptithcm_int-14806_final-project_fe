@@ -66,6 +66,7 @@ export const personApi = createApi({
         transformResponse: (res: ServiceResult<PersonDetail>) => res.data,
       }
     ),
+
   }),
 });
 
@@ -74,5 +75,5 @@ export const {
   useCreatePersonMutation,
   useUpdatePersonMutation,
   useDeletePersonMutation,
-  useGetPersonDetailQuery,
+  useGetPersonDetailQuery
 } = personApi;

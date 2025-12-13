@@ -22,7 +22,7 @@ interface CountrySelectorProps {
 }
 
 export function CountrySelector({
-  label = "Countries",
+  label = "Quốc gia",
   available,
   selected,
   onChange,

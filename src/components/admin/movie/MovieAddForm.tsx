@@ -47,7 +47,7 @@ interface MovieFormState {
   status: string;
   countries: Country[]; // multi-select
   genres: Genre[]; // multi-select
-  director: Person | null;
+  director: Person[]; // multi-select
   actors: Person[];
 }
 
@@ -63,6 +63,7 @@ interface MovieAddFormProps {
   loading?: boolean; // optional external loading state
   submitLabel?: string; // optional override for submit button text
   showReset?: boolean; // optional flag to show/hide reset button
+  isEditMode?: boolean; // optional flag to indicate edit mode
 }
 
 export function MovieAddForm({
@@ -77,6 +78,7 @@ export function MovieAddForm({
   loading = false,
   submitLabel,
   showReset = true,
+  isEditMode = false,
 }: MovieAddFormProps) {
   // Country modal state
   const [countryModalOpen, setCountryModalOpen] = useState(false);
@@ -158,7 +160,7 @@ export function MovieAddForm({
     update("status", "");
     update("countries", []);
     update("genres", []);
-    update("director", null);
+    update("director", []);
     update("actors", []);
   };
 
@@ -433,6 +435,14 @@ export function MovieAddForm({
                     </div>
                   </SelectItem>
                 ))}
+                {isEditMode && (
+                  <SelectItem value="PUBLISHED">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      Đã xuất bản
+                    </div>
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -460,48 +470,62 @@ export function MovieAddForm({
         />
 
         <div className="relative">
-          <Label className="flex items-center gap-2 text-gray-900">
-            <Users className="size-4 text-[#C40E61]" />
-            Đạo Diễn
+          <Label className="flex items-center justify-between text-gray-900">
+            <span className="flex items-center gap-2">
+              <Users className="size-4 text-[#C40E61]" />
+              Đạo Diễn
+            </span>
+            <span className="text-xs text-gray-500">
+              {form.director.length} đã chọn
+            </span>
           </Label>
-          {form.director ? (
-            <div className="mt-2 flex items-center justify-between rounded-md border border-gray-300 bg-white p-2 pr-3 shadow-sm">
-              <div className="flex items-center gap-3">
-                <img
-                  src={getProfileUrl(form.director)}
-                  alt={form.director.fullName}
-                  className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
-                />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {form.director.fullName}
-                  </p>
-                  <p className="text-xs text-gray-500">Đạo Diễn</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
-                onClick={() => update("director", null)}
-                disabled={isLoading}
+          <div className="mb-3 mt-2 space-y-2">
+            {form.director.map((d: Person) => (
+              <div
+                key={d.id}
+                className="flex items-center justify-between rounded-md border border-gray-300 bg-white p-2 pr-3 shadow-sm"
               >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <Input
-              placeholder="Nhập để tìm đạo diễn..."
-              value={directorSearch}
-              onChange={(e) => {
-                setDirectorSearch(e.target.value);
-                if (!directorModalOpen) setDirectorModalOpen(true);
-                setDirectorPage(0);
-              }}
-              disabled={isLoading}
-              className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
-            />
-          )}
+                <div className="flex items-center gap-3">
+                  <img
+                    src={getProfileUrl(d)}
+                    alt={d.fullName}
+                    className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {d.fullName}
+                    </p>
+                    <p className="text-xs text-gray-500">Đạo Diễn</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                  onClick={() =>
+                    update(
+                      "director",
+                      form.director.filter((x) => x.id !== d.id)
+                    )
+                  }
+                  disabled={isLoading}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+          <Input
+            placeholder="Nhập để tìm đạo diễn..."
+            value={directorSearch}
+            onChange={(e) => {
+              setDirectorSearch(e.target.value);
+              if (!directorModalOpen) setDirectorModalOpen(true);
+              setDirectorPage(0);
+            }}
+            disabled={isLoading}
+            className="bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
+          />
           <PersonSelectDialog
             label="Tìm Đạo Diễn"
             open={directorModalOpen}
@@ -519,11 +543,12 @@ export function MovieAddForm({
             isFetching={directorFetching}
             totalPages={directorData?.totalPages || 0}
             results={directorData?.content || []}
-            singleSelect
-            selected={form.director ?? ({} as Person)}
+            singleSelect={false}
+            selected={form.director as Person[]}
             onSelect={(p) => {
-              update("director", p);
-              setDirectorModalOpen(false);
+              if (!form.director.some((d) => d.id === p.id)) {
+                update("director", [...form.director, p]);
+              }
             }}
           />
         </div>
@@ -651,252 +676,7 @@ export function MovieAddForm({
           </Button>
         </div>
       </div>
-      {/* Director Modal */}
-      {/* <Dialog
-        open={directorModalOpen}
-        onOpenChange={(open) => {
-          setDirectorModalOpen(open);
-          if (!open) {
-            setDirectorSearch("");
-            setDirectorPage(0);
-          }
-        }}
-      >
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
-          <DialogHeader>
-            <DialogTitle>Search Director</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              autoFocus
-              placeholder="Enter name..."
-              value={directorSearch}
-              onChange={(e) => {
-                setDirectorSearch(e.target.value);
-                setDirectorPage(0);
-              }}
-            />
-            <div className="max-h-72 overflow-y-auto rounded-md border border-zinc-700">
-              {directorFetching && (
-                <div className="p-4 text-center">
-                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-zinc-500" />
-                </div>
-              )}
-              {!directorFetching &&
-                (directorData?.content?.length ?? 0) === 0 && (
-                  <p className="p-3 text-sm text-zinc-400">No results.</p>
-                )}
-              {!directorFetching &&
-                directorData?.content?.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => {
-                      update("director", p);
-                      setDirectorModalOpen(false);
-                    }}
-                    className="flex w-full items-center gap-3 border-b border-zinc-800 p-3 text-left hover:bg-zinc-800/60"
-                  >
-                    <img
-                      src={getProfileUrl(p)}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                    <span className="text-sm font-medium">{p.fullName}</span>
-                  </button>
-                ))}
-            </div>
-            <div className="flex items-center justify-between text-xs text-zinc-400">
-              <Button
-                variant="outline"
-                disabled={directorPage === 0 || directorFetching}
-                onClick={() => setDirectorPage((p) => Math.max(0, p - 1))}
-                className="h-7 px-2"
-              >
-                Prev
-              </Button>
-              <span>
-                Page {directorPage + 1} of {directorData?.totalPages || 0}
-              </span>
-              <Button
-                variant="outline"
-                disabled={
-                  directorFetching ||
-                  (directorData?.totalPages || 0) === 0 ||
-                  directorPage + 1 >= (directorData?.totalPages || 0)
-                }
-                onClick={() =>
-                  setDirectorPage((p) =>
-                    p + 1 < (directorData?.totalPages || 0) ? p + 1 : p
-                  )
-                }
-                className="h-7 px-2"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-          <DialogFooter></DialogFooter>
-        </DialogContent>
-      </Dialog> */}
-      {/* Actor Modal */}
-      {/* <Dialog
-        open={actorModalOpen}
-        onOpenChange={(open) => {
-          setActorModalOpen(open);
-          if (!open) {
-            setActorSearch("");
-            setActorPage(0);
-          }
-        }}
-      >
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
-          <DialogHeader>
-            <DialogTitle>Search Actors</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              autoFocus
-              placeholder="Enter name..."
-              value={actorSearch}
-              onChange={(e) => {
-                setActorSearch(e.target.value);
-                setActorPage(0);
-              }}
-            />
-            <div className="max-h-72 overflow-y-auto rounded-md border border-zinc-700">
-              {actorFetching && (
-                <div className="p-4 text-center">
-                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-zinc-500" />
-                </div>
-              )}
-              {!actorFetching && (actorData?.content?.length ?? 0) === 0 && (
-                <p className="p-3 text-sm text-zinc-400">No results.</p>
-              )}
-              {!actorFetching &&
-                actorData?.content?.map((p) => {
-                  const already = form.actors.some((a) => a.id === p.id);
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => {
-                        if (!already) update("actors", [...form.actors, p]);
-                      }}
-                      className="flex w-full items-center gap-3 border-b border-zinc-800 p-3 text-left hover:bg-zinc-800/60 disabled:opacity-40"
-                      disabled={already}
-                    >
-                      <img
-                        src={getProfileUrl(p)}
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">
-                          {p.fullName}
-                        </span>
-                        {already && (
-                          <span className="text-[10px] text-teal-400">
-                            Added
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-            </div>
-            <div className="flex items-center justify-between text-xs text-zinc-400">
-              <Button
-                variant="outline"
-                disabled={actorPage === 0 || actorFetching}
-                onClick={() => setActorPage((p) => Math.max(0, p - 1))}
-                className="h-7 px-2"
-              >
-                Prev
-              </Button>
-              <span>
-                Page {actorPage + 1} of {actorData?.totalPages || 0}
-              </span>
-              <Button
-                variant="outline"
-                disabled={
-                  actorFetching ||
-                  (actorData?.totalPages || 0) === 0 ||
-                  actorPage + 1 >= (actorData?.totalPages || 0)
-                }
-                onClick={() =>
-                  setActorPage((p) =>
-                    p + 1 < (actorData?.totalPages || 0) ? p + 1 : p
-                  )
-                }
-                className="h-7 px-2"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-          <DialogFooter></DialogFooter>
-        </DialogContent>
-      </Dialog> */}
-
-      {/* Country Modal */}
-      {/* <Dialog
-        open={countryModalOpen}
-        onOpenChange={(open) => {
-          setCountryModalOpen(open);
-          if (!open) {
-            setCountrySearch("");
-          }
-        }}
-      >
-        <DialogContent
-          className="bg-zinc-900 border-zinc-800 text-white max-w-md"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Search Countries</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              placeholder="Enter country name..."
-              value={countrySearch}
-              onChange={(e) => setCountrySearch(e.target.value)}
-            />
-            <div className="max-h-72 overflow-y-auto rounded-md border border-zinc-700">
-              {(
-                safeCountries.filter((c) =>
-                  countrySearch
-                    ? c.name.toLowerCase().includes(countrySearch.toLowerCase())
-                    : true
-                ) || []
-              ).map((c) => {
-                const selected = form.countries.some((x) => x.id === c.id);
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => {
-                      if (selected) {
-                        update(
-                          "countries",
-                          form.countries.filter((x) => x.id !== c.id)
-                        );
-                      } else {
-                        update("countries", [...form.countries, c]);
-                      }
-                    }}
-                    className="flex w-full items-center justify-between gap-3 border-b border-zinc-800 p-3 text-left hover:bg-zinc-800/60"
-                  >
-                    <span className="text-sm font-medium">{c.name}</span>
-                    {selected && (
-                      <span className="text-[10px] text-teal-400">Added</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <DialogFooter></DialogFooter>
-        </DialogContent>
-      </Dialog> */}
+     
     </form>
   );
 }

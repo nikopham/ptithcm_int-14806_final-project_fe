@@ -19,7 +19,7 @@ export const seriesApi = createApi({
         method: "POST",
         data: body,
       }),
-      transformResponse: (res: ServiceResult<Season>) => res.data,
+      transformResponse: (res: ServiceResult<Season>) => res.data || {} as Season,
       invalidatesTags: ["Seasons"],
     }),
 
@@ -32,7 +32,7 @@ export const seriesApi = createApi({
         method: "POST",
         data: body,
       }),
-      transformResponse: (res: ServiceResult<Episode>) => res.data,
+      transformResponse: (res: ServiceResult<Episode>) => res.data || {} as Episode,
       invalidatesTags: ["Episodes"],
     }),
     updateSeason: builder.mutation<
@@ -59,6 +59,19 @@ export const seriesApi = createApi({
       }),
       invalidatesTags: ["Episodes"],
     }),
+
+    getEpisodesBySeason: builder.mutation<
+      Episode[],
+      { seasonId: string }
+    >({
+      query: ({ seasonId }) => ({
+        url: `/api/v1/seasons/${seasonId}/episodes`,
+        method: "GET",
+      }),
+      transformResponse: (res: ServiceResult<Episode[]>) => res.data || [],
+    }),
+
+    
   }),
 });
 
@@ -67,4 +80,5 @@ export const {
   useAddEpisodeMutation,
   useUpdateSeasonMutation,
   useUpdateEpisodeMutation,
+  useGetEpisodesBySeasonMutation,
 } = seriesApi;

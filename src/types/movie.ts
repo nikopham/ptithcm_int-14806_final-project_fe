@@ -47,7 +47,7 @@ export interface MovieFormValues {
   // Relations (List IDs)
   countryIds: number[];
   genreIds: number[];
-  directorId: string; // UUID
+  directorIds: string; // UUID
   actorIds: string[]; // UUIDs
 
   posterImage: File | null;
@@ -97,7 +97,7 @@ export interface MovieUpdateRequest {
 
   countryIds?: number[];
   genreIds?: number[];
-  directorId?: string;
+  directorIds?: string[];
   actorIds?: string[];
 
   // File (nếu không chọn file mới thì null)

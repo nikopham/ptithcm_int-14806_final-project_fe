@@ -64,7 +64,7 @@ export const SeasonsAccordion = ({ seasons, onEpisodePlay, currentEpisodeId }: S
 
   const handleEpisodePlay = (episode: Episode) => {
     if (!episode.videoUrl) {
-      toast.error("No video available for this episode");
+      toast.error("Không có video cho tập này");
       return;
     }
     if (onEpisodePlay) {

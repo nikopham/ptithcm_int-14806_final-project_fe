@@ -279,7 +279,7 @@ export default function AdminList() {
     }
     setCreateErrors(errs);
     if (Object.keys(errs).length > 0) {
-      toast.error("Vui lòng sửa lỗi xác thực biểu mẫu");
+      toast.error("Vui lòng sửa lỗi xác thực form");
       return;
     }
     const fd = new FormData();
@@ -475,7 +475,7 @@ export default function AdminList() {
                   <TableCell className="hidden md:table-cell text-gray-500 text-xs sm:text-sm min-w-[120px]">
                     <div className="flex items-center gap-1">
                       <Calendar className="size-3" />
-                      {format(new Date(a.created_at), "MMM dd, yyyy")}
+                      {format(new Date(a.created_at), "dd/MM/yyyy")}
                     </div>
                   </TableCell>
 

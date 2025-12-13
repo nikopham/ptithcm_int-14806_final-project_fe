@@ -77,6 +77,12 @@ const statusColor: Record<string, string> = {
   HIDDEN: "bg-gray-600 hover:bg-gray-700 text-white",
 };
 
+const statusLabel: Record<string, string> = {
+  PUBLISHED: "Đã xuất bản",
+  DRAFT: "Bản nháp",
+  HIDDEN: "Ẩn",
+};
+
 export default function MovieList() {
   const navigate = useNavigate();
   const [deleteMovie, { isLoading: deletingMutation }] =
@@ -153,7 +159,9 @@ export default function MovieList() {
               <Film className="size-6 text-[#C40E61]" />
               Phim
             </h1>
-            <p className="text-sm text-gray-500">Quản lý cơ sở dữ liệu phim của bạn</p>
+            <p className="text-sm text-gray-500">
+              Quản lý cơ sở dữ liệu phim của bạn
+            </p>
           </div>
           <Button
             onClick={() => navigate("/admin/movies/new")}
@@ -188,7 +196,7 @@ export default function MovieList() {
               <SelectItem value="all">Tất Cả Trạng Thái</SelectItem>
               <SelectItem value="PUBLISHED">Đã Xuất Bản</SelectItem>
               <SelectItem value="DRAFT">Bản Nháp</SelectItem>
-              <SelectItem value="HIDDEN">Ẩn</SelectItem>
+  
             </SelectContent>
           </Select>
 
@@ -204,7 +212,7 @@ export default function MovieList() {
             </SelectTrigger>
             <SelectContent className="bg-white border-gray-300 text-gray-900">
               <SelectItem value="all">Tất Cả Loại</SelectItem>
-              <SelectItem value="movie">Phim</SelectItem>
+              <SelectItem value="movie">Phim lẻ</SelectItem>
               <SelectItem value="series">Phim Bộ</SelectItem>
             </SelectContent>
           </Select>
@@ -219,9 +227,13 @@ export default function MovieList() {
 
                 <TableHead>Tiêu Đề</TableHead>
 
-                <TableHead className="hidden md:table-cell">Phát Hành</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Phát Hành
+                </TableHead>
 
-                <TableHead className="hidden lg:table-cell">Thời Lượng</TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Thời Lượng
+                </TableHead>
 
                 <TableHead className="hidden lg:table-cell">Độ Tuổi</TableHead>
 
@@ -274,7 +286,7 @@ export default function MovieList() {
                         <span className="font-medium text-gray-900">
                           {m.title}
                         </span>
-                        {m.isSeries && (
+                        {m.series && (
                           <span className="text-xs font-medium text-[#C40E61]">
                             Phim Bộ
                           </span>
@@ -300,7 +312,7 @@ export default function MovieList() {
                       <Badge
                         className={`${statusColor[m.status || "DRAFT"]} border-none`}
                       >
-                        {m.status || "DRAFT"}
+                        {statusLabel[m.status || "DRAFT"] || m.status || "DRAFT"}
                       </Badge>
                     </TableCell>
 
@@ -338,7 +350,7 @@ export default function MovieList() {
                             }
                             className="cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
                           >
-                            <Search className="mr-2 h-4 w-4" /> Quản Lý Nguồn
+                            <Search className="mr-2 h-4 w-4" /> Quản Lý Nguồn Video
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(m.id)}
@@ -408,7 +420,7 @@ export default function MovieList() {
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
         title="Xóa phim?"
-        description="Bạn chỉ có thể xóa nếu chưa có người xem nào xem phim này hoặc comment phim này hoặc đánh giá phim này"
+        description="Bạn chỉ có thể xóa nếu chưa có người xem nào xem phim này, bình luận này hoặc đánh giá phim này"
         confirmText="Xóa"
         cancelText="Hủy"
         variant="destructive"
@@ -420,12 +432,12 @@ export default function MovieList() {
         <AlertDialogContent className="bg-white border-gray-300 text-gray-900">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-gray-900">
-              Đã có dữ liệu người dùng trên phim này
+              Đã có dữ liệu người bình luận, đánh giá hoặc đã xem phim này
             </AlertDialogTitle>
           </AlertDialogHeader>
           <div className="text-sm text-gray-500">
-            Đã có dữ liệu người dùng trên phim này, vui lòng set status là
-            HIDDEN thay vì xóa
+            Đã có dữ liệu người bình luận, đánh giá hoặc đã xem phim này, vui
+            lòng set status là "Ẩn" thay vì xóa
           </div>
           <AlertDialogFooter>
             <AlertDialogAction

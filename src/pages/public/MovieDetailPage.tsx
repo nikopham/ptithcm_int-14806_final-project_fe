@@ -4,7 +4,7 @@ import { MovieDetailHero } from "@/components/movies/MovieDetailHero";
 import { MovieDetailInfo } from "@/components/movies/MovieDetailInfo";
 import { type Season } from "@/components/movies/SeasonsAccordion";
 import {
-  useGetMovieDetailQuery,
+  useGetMovieInfoQuery,
   useGetMovieReviewsQuery,
   useGetRecommendationsQuery,
 } from "@/features/movie/movieApi";
@@ -22,7 +22,7 @@ export default function MovieDetailPage() {
     data: detail,
     isLoading,
     isError,
-  } = useGetMovieDetailQuery(movieId, {
+  } = useGetMovieInfoQuery(movieId, {
     skip: !movieId,
   });
 
@@ -133,12 +133,12 @@ export default function MovieDetailPage() {
             id={detail.id}
             title={detail.title}
             overview={detail.description}
-            isLiked={(detail as MovieDetailResponse).isLiked}
+            isLiked={(detail as unknown as MovieDetailResponse).isLiked ?? false}
             streamUrl={episodeStreamUrl || (detail as unknown as { videoUrl?: string }).videoUrl}
             episodeId={episodeId}
             episodeInfo={episodeInfo}
             onPlayMain={handlePlayMain}
-            backdrops={[detail.backdropUrl, detail.posterUrl].filter(Boolean)}
+            backdrops={[(detail as unknown as { backdropUrl?: string }).backdropUrl || detail.backdrop, (detail as unknown as { posterUrl?: string }).posterUrl || detail.poster].filter(Boolean)}
             currentSecond={currentSecond}
           />
 
@@ -220,13 +220,13 @@ export default function MovieDetailPage() {
 
           <MovieDetailInfo
             type={
-              ((detail as MovieDetailResponse).isSeries ??
+              (detail.isSeries ??
               (detail as unknown as { series?: boolean }).series)
                 ? "tv"
                 : "movie"
             }
             seasons={seasons}
-            detail={detail as MovieDetailResponse}
+            detail={detail as unknown as MovieDetailResponse}
             movieId={movieId}
             onEpisodePlay={handleEpisodePlay}
             currentEpisodeId={episodeId}

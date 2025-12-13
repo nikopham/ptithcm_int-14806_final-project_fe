@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
+import { Plus, RotateCcw } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -24,7 +24,10 @@ export function MovieEditHeader({
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-bold text-white">Chỉnh sửa nội dung</h1>
+      <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+          <Plus className="size-6 text-[#C40E61]" />
+          Chỉnh sửa phim/bộ phim
+        </h1>
         {/* <Button
           variant="ghost"
           size="icon"
