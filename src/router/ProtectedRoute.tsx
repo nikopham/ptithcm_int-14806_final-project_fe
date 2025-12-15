@@ -68,32 +68,19 @@ export const ProtectedRoute = ({ allow }: Props) => {
   const location = useLocation();
   console.log(roles);
   
-  // [LOGIC MỚI]
-  // 1. Trạng thái CHỜ:
-  // - "idle": RootLayout chưa kịp dispatch verifyAsync.
-  // - "loading": verifyAsync đang chạy (đang hỏi Server).
-  // => Hiện LoadingPage để chặn user thao tác.
   if (status === "idle" || status === "loading") {
     return <LoadingPage />;
   }
-
-  // 2. Đã có kết quả verify:
-  // Nếu Server bảo "Chưa đăng nhập" (isAuth = false) -> Đá về trang chủ
   if (!isAuth) {
-    // Redirect về trang chủ thay vì /login (vì không có route /login)
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
-  // 3. Đã đăng nhập -> Check Quyền (Role)
-  // Nếu allow rỗng -> cho phép tất cả
   if (allow.length === 0) {
     return <Outlet />;
   }
 
-  // Normalize các role trong allow từ GlobalConstant format sang Role enum format
   const normalizedAllow = allow.map(normalizeRole);
   
-  // Kiểm tra xem user có role nào nằm trong list allow không
   const hasPermission = normalizedAllow.some((allowedRole) =>
     roles.includes(allowedRole)
   );

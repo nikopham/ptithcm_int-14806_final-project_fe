@@ -15,9 +15,7 @@ import { useGetMeQuery } from "@/features/user/userApi";
 import defaultAvatar from "@/assets/default-avatar.jpg";
 import { useAppSelector } from "@/app/hooks";
 
-/* ------------------------------------------------------------------ */
-/*  Sidebar items                                                     */
-/* ------------------------------------------------------------------ */
+
 const items = [
   { to: "/viewer/favorites", icon: Heart, label: "Phim Yêu Thích" },
   // { to: "/viewer/lists", icon: Plus, label: "Danh sách" },
@@ -27,9 +25,6 @@ const items = [
   { to: "/viewer", icon: User, label: "Tài Khoản" },
 ];
 
-/* ------------------------------------------------------------------ */
-/*  Layout                                                            */
-/* ------------------------------------------------------------------ */
 export default function ViewerLayout() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -65,7 +60,7 @@ export default function ViewerLayout() {
             <h2 className="ml-2 text-lg font-bold text-gray-900">
               Quản Lý Tài Khoản{" "}
             </h2>
-            {/* 👈 SỬA 7: Thêm nút đóng (X) cho mobile */}
+          
             <button
               onClick={() => setIsSidebarOpen(false)}
               className="lg:hidden p-1 text-gray-500 hover:text-gray-900"
@@ -95,7 +90,7 @@ export default function ViewerLayout() {
                     {/* SỬA 4: Thêm thanh highlight động */}
                     {isActive && (
                       <motion.span
-                        layoutId="sidebar-active-highlight" // ID cho animation
+                        layoutId="sidebar-active-highlight" 
                         className="absolute inset-0 z-0 rounded-lg"
                         style={{ backgroundColor: "#C40E61" }}
                         transition={{

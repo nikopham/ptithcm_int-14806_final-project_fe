@@ -34,6 +34,22 @@ export const movieApi = createApi({
       providesTags: ["Movies"],
     }),
 
+    searchMoviesPublic: builder.query<PageResponse<Movie>, MovieSearchParams>({
+      query: (params) => ({
+        url: "/api/v1/movies/search-public",
+        method: "GET",
+        params: {
+          ...params,
+          page: params.page && params.page > 0 ? params.page - 1 : 0,
+        },
+      }),
+
+      transformResponse: (response: ServiceResult<PageResponse<Movie>>) => {
+        return response.data;
+      },
+      providesTags: ["Movies"],
+    }),
+
     searchMoviesLiked: builder.query<PageResponse<Movie>, MovieSearchParams>({
       query: (params) => ({
         url: "/api/v1/movies/search-liked",
@@ -157,16 +173,16 @@ export const movieApi = createApi({
 
     saveProgress: builder.mutation<void, WatchProgressRequest>({
       query: (body) => ({
-        url: '/api/v1/movies/progress',
-        method: 'POST',
+        url: "/api/v1/movies/progress",
+        method: "POST",
         data: body,
       }),
     }),
 
     getRecommendations: builder.query<MovieShort[], void>({
       query: () => ({
-        url: '/api/v1/movies/recommend-for-you',
-        method: 'GET',
+        url: "/api/v1/movies/recommend-for-you",
+        method: "GET",
       }),
       transformResponse: (res: MovieShort[]) => res || [],
       keepUnusedDataFor: 300,
@@ -187,5 +203,6 @@ export const {
   useSearchMoviesLikedQuery,
   useSearchWatchedMoviesQuery,
   useSaveProgressMutation,
-  useGetRecommendationsQuery
+  useGetRecommendationsQuery,
+  useSearchMoviesPublicQuery
 } = movieApi;

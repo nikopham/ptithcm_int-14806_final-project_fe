@@ -3,7 +3,10 @@ import { Link, useLocation } from "react-router-dom";
 import { Filter } from "lucide-react";
 import clsx from "clsx";
 import MovieFilter from "@/components/moviesSearch/MovieFilter";
-import { useSearchMoviesQuery } from "@/features/movie/movieApi";
+import {
+  useSearchMoviesPublicQuery,
+  useSearchMoviesQuery,
+} from "@/features/movie/movieApi";
 import type { AgeRating } from "@/types/movie";
 import type { Movie } from "@/types/movie";
 
@@ -47,7 +50,7 @@ export default function MovieSearchPage() {
         releaseYear: releaseYear,
       }));
       setPage(1);
-    } 
+    }
   }, [location.search]);
 
   const params = useMemo(
@@ -59,7 +62,7 @@ export default function MovieSearchPage() {
     [filters, page, size]
   );
 
-  const { data, isLoading, isError } = useSearchMoviesQuery(params);
+  const { data, isLoading, isError } = useSearchMoviesPublicQuery(params);
   const resultMovies: Movie[] = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
 
@@ -104,7 +107,9 @@ export default function MovieSearchPage() {
       {/* results */}
       {isLoading && <div className="mt-6 text-sm text-gray-500">Đang tải…</div>}
       {isError && (
-        <div className="mt-6 text-sm" style={{ color: "#C40E61" }}>Tải danh sách thất bại.</div>
+        <div className="mt-6 text-sm" style={{ color: "#C40E61" }}>
+          Tải danh sách thất bại.
+        </div>
       )}
       {!isLoading && !isError && resultMovies.length === 0 && (
         <div className="mt-6 text-sm text-gray-500">Không có kết quả.</div>
@@ -131,7 +136,10 @@ export default function MovieSearchPage() {
                   {/* badges */}
                   <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
                     {m.ageRating && (
-                      <span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase text-white shadow-lg" style={{ backgroundColor: "#C40E61" }}>
+                      <span
+                        className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase text-white shadow-lg"
+                        style={{ backgroundColor: "#C40E61" }}
+                      >
                         {m.ageRating}
                       </span>
                     )}
@@ -141,14 +149,17 @@ export default function MovieSearchPage() {
                       </span>
                     )}
                   </div>
-                  
+
                   {/* Overlay on hover */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
                 </div>
 
                 {/* titles */}
                 <div className="mt-2 space-y-1">
-                  <p className="truncate text-sm font-medium transition-colors" style={{ color: "#C40E61" }}>
+                  <p
+                    className="truncate text-sm font-medium transition-colors"
+                    style={{ color: "#C40E61" }}
+                  >
                     {m.title}
                   </p>
                   <p className="truncate text-xs text-gray-500">
@@ -171,7 +182,11 @@ export default function MovieSearchPage() {
                     ? "border-gray-300 text-gray-400 cursor-not-allowed"
                     : "border-gray-300 hover:bg-gray-50"
                 )}
-                style={page > 1 ? { color: "#C40E61", borderColor: "#C40E61" } : undefined}
+                style={
+                  page > 1
+                    ? { color: "#C40E61", borderColor: "#C40E61" }
+                    : undefined
+                }
               >
                 Trước
               </button>
@@ -187,7 +202,11 @@ export default function MovieSearchPage() {
                     ? "border-gray-300 text-gray-400 cursor-not-allowed"
                     : "border-gray-300 hover:bg-gray-50"
                 )}
-                style={page < totalPages ? { color: "#C40E61", borderColor: "#C40E61" } : undefined}
+                style={
+                  page < totalPages
+                    ? { color: "#C40E61", borderColor: "#C40E61" }
+                    : undefined
+                }
               >
                 Sau
               </button>

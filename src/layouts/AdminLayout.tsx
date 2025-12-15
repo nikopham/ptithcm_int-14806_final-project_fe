@@ -39,7 +39,11 @@ const nav: Item[] = [
     children: [{ label: "Thêm Phim", icon: Plus, to: "/admin/movies/new" }],
   },
   { label: "Quản Lý Thể Loại", icon: Layers3, to: "/admin/genres" },
-  { label: "Quản Lý Diễn Viên & Đạo Diễn", icon: Users2, to: "/admin/movie-people" },
+  {
+    label: "Quản Lý Diễn Viên & Đạo Diễn",
+    icon: Users2,
+    to: "/admin/movie-people",
+  },
 
   { label: "Quản Lý Đánh Giá", icon: ShieldCheck, to: "/admin/ratings" },
   { label: "Quản Lý Bình Luận", icon: MessageCircle, to: "/admin/comments" },
@@ -50,7 +54,7 @@ const nav: Item[] = [
     // to: "/admin/users",
     children: [
       { label: "Quản Lý Người Xem", icon: Users2, to: "/admin/users/viewer" },
-      { label: "Quản Lý Quản Trị Viên", icon: UserCog, to: "/admin/users/admin" },
+      // { label: "Quản Lý Quản Trị Viên", icon: UserCog, to: "/admin/users/admin" },
     ],
   },
   // { label: "Quản Lý Giao Dịch", icon: Wallet, to: "/admin/transactions" },
@@ -83,7 +87,9 @@ function SidebarItem({
         />
       )}
       <item.icon className="relative z-10 size-3.5 sm:size-4 flex-shrink-0" />
-      <span className="relative z-10 flex-1 text-left truncate">{item.label}</span>
+      <span className="relative z-10 flex-1 text-left truncate">
+        {item.label}
+      </span>
     </>
   );
 
@@ -206,7 +212,9 @@ export default function AdminLayout() {
           <div className="flex flex-col h-full px-4 sm:px-6 py-6 sm:py-8 overflow-y-auto">
             {/* mobile top */}
             <div className="mb-4 flex items-center justify-between lg:hidden flex-shrink-0">
-              <span className="text-sm font-bold text-gray-900">Menu Quản Trị</span>
+              <span className="text-sm font-bold text-gray-900">
+                Menu Quản Trị
+              </span>
               <button
                 onClick={() => setOpen(false)}
                 className="p-1.5 text-gray-500 hover:text-gray-900 transition"
