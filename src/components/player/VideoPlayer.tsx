@@ -65,7 +65,6 @@ export const VideoPlayer = ({ src, movieId, episodeId, poster, className, curren
 
     isInitializingRef.current = true;
 
-    // Đợi một chút để đảm bảo DOM đã được clear hoàn toàn
     const timeoutId = setTimeout(() => {
       if (!container || container !== artRef.current) {
         isInitializingRef.current = false;

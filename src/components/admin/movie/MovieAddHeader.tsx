@@ -50,7 +50,7 @@ export function MovieAddHeader({
             <SelectItem value="movie">
               <div className="flex items-center gap-2">
                 <Film className="size-4 text-[#C40E61]" />
-                Phim
+                Phim lẻ
               </div>
             </SelectItem>
             <SelectItem value="tv">

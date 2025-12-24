@@ -8,11 +8,16 @@ import {
   MoreHorizontal,
   Loader2,
   Film,
+  Star,
+  Eye,
+  Award,
 } from "lucide-react";
 import {
   useSearchMoviesQuery,
   useDeleteMovieMutation,
 } from "@/features/movie/movieApi";
+import { useSearchReviewsQuery } from "@/features/review/reviewApi";
+import type { Review } from "@/types/review";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -53,6 +58,15 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 // Using API search; no local mocks
 
@@ -103,6 +117,12 @@ export default function MovieList() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Reviews dialog state
+  const [reviewsDialogOpen, setReviewsDialogOpen] = useState(false);
+  const [selectedMovieTitle, setSelectedMovieTitle] = useState<string | null>(null);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const REVIEWS_PAGE_SIZE = 10;
+
   // Query API with current filters (page is 1-based for UI)
   const { data, isLoading, isError } = useSearchMoviesQuery({
     query: query || undefined,
@@ -114,6 +134,19 @@ export default function MovieList() {
 
   const totalPages = data?.totalPages ?? 0;
   const pagedItems = (data?.content ?? []) as unknown as MovieRow[];
+
+  // Reviews query for dialog
+  const { data: reviewsData, isLoading: isLoadingReviews } = useSearchReviewsQuery(
+    {
+      query: selectedMovieTitle || undefined,
+      page: reviewsPage,
+      size: REVIEWS_PAGE_SIZE,
+      sort: "createdAt,desc",
+    },
+    { skip: !selectedMovieTitle || !reviewsDialogOpen }
+  );
+  const reviews: Review[] = reviewsData?.content ?? [];
+  const reviewsTotalPages = reviewsData?.totalPages ?? 0;
 
   const handleFilterChange = <T,>(setter: (v: T) => void, value: T) => {
     setter(value);
@@ -132,6 +165,38 @@ export default function MovieList() {
     setSelectedId(id);
     setConfirmOpen(true);
   };
+
+  const handleViewReviews = (movieTitle: string) => {
+    setSelectedMovieTitle(movieTitle);
+    setReviewsPage(1);
+    setReviewsDialogOpen(true);
+  };
+
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`size-3 ${
+              star <= rating
+                ? "fill-yellow-500 text-yellow-500"
+                : "fill-gray-300 text-gray-300"
+            }`}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  const getInitials = (name?: string) =>
+    (name || "?")
+      .trim()
+      .split(" ")
+      .map((p) => p.charAt(0))
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
 
   const handleConfirmDelete = async () => {
     if (!selectedId) return;
@@ -243,13 +308,15 @@ export default function MovieList() {
                   Lượt Xem
                 </TableHead>
 
+                <TableHead className="w-[100px]">Đánh Giá</TableHead>
+
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading && (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center">
+                  <TableCell colSpan={9} className="h-24 text-center">
                     <Loader2 className="mx-auto size-6 animate-spin text-[#C40E61]" />
                   </TableCell>
                 </TableRow>
@@ -286,7 +353,7 @@ export default function MovieList() {
                         <span className="font-medium text-gray-900">
                           {m.title}
                         </span>
-                        {m.series && (
+                        {m.isSeries && (
                           <span className="text-xs font-medium text-[#C40E61]">
                             Phim Bộ
                           </span>
@@ -318,6 +385,19 @@ export default function MovieList() {
 
                     <TableCell className="hidden md:table-cell text-right text-gray-700">
                       {m.viewCount ?? 0}
+                    </TableCell>
+
+                    {/* Reviews Button */}
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewReviews(m.title)}
+                        className="h-8 text-gray-600 hover:text-[#C40E61] hover:bg-[#C40E61]/10"
+                      >
+                        <Award className="mr-1 h-4 w-4" />
+                        Xem
+                      </Button>
                     </TableCell>
 
                     {/* Action Menu */}
@@ -368,7 +448,7 @@ export default function MovieList() {
               {!isLoading && pagedItems.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={9}
                     className="h-24 text-center text-gray-500"
                   >
                     Không tìm thấy phim nào phù hợp với tiêu chí của bạn.
@@ -449,6 +529,119 @@ export default function MovieList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reviews Dialog */}
+      <Dialog open={reviewsDialogOpen} onOpenChange={setReviewsDialogOpen}>
+        <DialogContent className="bg-white border-gray-300 text-gray-900 sm:max-w-[700px] max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-gray-900">
+              <Award className="size-5 text-[#C40E61]" />
+              Đánh Giá: {selectedMovieTitle}
+            </DialogTitle>
+            <DialogDescription className="text-gray-500">
+              Tổng số đánh giá: {reviewsData?.totalElements ?? 0}
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="max-h-[60vh] pr-4">
+            {isLoadingReviews ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="size-6 animate-spin text-[#C40E61]" />
+              </div>
+            ) : reviews.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">
+                Không có đánh giá nào cho phim này.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <div
+                    key={review.id}
+                    className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-8 w-8 border border-gray-300 shrink-0">
+                        <AvatarImage src={review.userAvatar} />
+                        <AvatarFallback className="bg-[#C40E61] text-white text-xs">
+                          {getInitials(review.username)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-gray-900">
+                            {review.username}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {renderStars(review.rating)}
+                            <span className="text-xs text-gray-500">
+                              {review.rating}/5
+                            </span>
+                          </div>
+                        </div>
+                        {review.title && (
+                          <p className="text-sm font-semibold text-gray-900 mb-1">
+                            "{review.title}"
+                          </p>
+                        )}
+                        {review.body && (
+                          <p className="text-sm text-gray-600 line-clamp-3">
+                            {review.body}
+                          </p>
+                        )}
+                        <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                          <span>
+                            {new Date(review.createdAt).toLocaleDateString("vi-VN")}
+                          </span>
+                          {review.isHidden && (
+                            <span className="text-red-600">(Đã ẩn)</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+
+          {/* Pagination for reviews */}
+          {!isLoadingReviews && reviewsTotalPages > 1 && (
+            <div className="flex justify-center pt-4 border-t border-gray-300">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setReviewsPage((p) => Math.max(1, p - 1))}
+                      className={
+                        reviewsPage <= 1
+                          ? "pointer-events-none opacity-50 text-gray-400"
+                          : "cursor-pointer text-gray-700 hover:bg-gray-100"
+                      }
+                    />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <span className="px-4 text-sm text-gray-500">
+                      Trang {reviewsPage} / {reviewsTotalPages}
+                    </span>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        setReviewsPage((p) => Math.min(reviewsTotalPages, p + 1))
+                      }
+                      className={
+                        reviewsPage >= reviewsTotalPages
+                          ? "pointer-events-none opacity-50 text-gray-400"
+                          : "cursor-pointer text-gray-700 hover:bg-gray-100"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

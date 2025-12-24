@@ -395,7 +395,7 @@ export function MovieAddForm({
           <div>
             <Label className="flex items-center gap-2 text-gray-900">
               <Tag className="size-4 text-[#C40E61]" />
-              Xếp Hạng Độ Tuổi
+              Phù hợp độ tuổi
             </Label>
             <Select
               value={form.age}

@@ -158,7 +158,7 @@ export default function MovieDetailPage() {
                     to={`/movie/detail/${m.id}`}
                     className="group flex-shrink-0 w-32 sm:w-40 md:w-44 transform transition-all duration-200 hover:scale-105"
                   >
-                    {/* poster */}
+                
                     <div className="relative overflow-hidden rounded-lg bg-white border border-gray-300 shadow-sm hover:shadow-md transition-shadow">
                       <img
                         src={m.posterUrl}
@@ -167,7 +167,7 @@ export default function MovieDetailPage() {
                         className="w-full aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-110"
                       />
 
-                      {/* badges */}
+                
                       <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
                         {m.imdbScore > 0 && (
                           <span className="rounded px-1.5 py-0.5 text-[10px] font-bold text-white shadow-lg bg-yellow-500">
@@ -176,11 +176,9 @@ export default function MovieDetailPage() {
                         )}
                       </div>
                       
-                      {/* Overlay on hover */}
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200" />
                     </div>
 
-                    {/* titles */}
                     <div className="mt-2 space-y-1">
                       <p className="truncate text-xs sm:text-sm font-medium transition-colors group-hover:text-[#C40E61]" style={{ color: "#C40E61" }}>
                         {m.title}

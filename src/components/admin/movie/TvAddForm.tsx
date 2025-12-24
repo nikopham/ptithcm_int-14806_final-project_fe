@@ -33,7 +33,7 @@ import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone"; // Giả định bạn có component này
-import { X, Trash2, Loader2, Image, Calendar, Clock, Film, Users, FileText, Globe, Tag, Tv } from "lucide-react";
+import { X, Trash2, Loader2, Image, Calendar, Clock, Film, Users, FileText, Globe, Tag, Tv, AlertTriangle } from "lucide-react";
 import type { Person } from "@/types/person";
 import { PersonJob } from "@/types/person";
 import { useSearchPeopleQuery } from "@/features/person/personApi";
@@ -117,6 +117,9 @@ export function TvAddForm({
   const [actorPage, setActorPage] = useState(0);
   const [posterPreview, setPosterPreview] = useState<string | null>(null);
   const [backdropPreview, setBackdropPreview] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteAction, setDeleteAction] = useState<(() => void) | null>(null);
+  const [deleteTitle, setDeleteTitle] = useState("");
   const PAGE_SIZE = 8;
   const { data: directorData, isFetching: directorFetching } =
     useSearchPeopleQuery(
@@ -363,7 +366,7 @@ export function TvAddForm({
           <div>
             <Label className="flex items-center gap-2 text-gray-900">
               <Tag className="size-4 text-[#C40E61]" />
-              Xếp Hạng Độ Tuổi
+              Phù hợp độ tuổi
             </Label>
             <Select
               value={form.age}
@@ -456,7 +459,10 @@ export function TvAddForm({
           </p>
           <div className="mt-2 space-y-2">
             {(form.seasonDrafts || []).map((s, idx) => (
-              <div key={idx} className="rounded border border-gray-300 bg-white p-2 shadow-sm">
+              <div
+                key={idx}
+                className="rounded border border-gray-300 bg-white p-2 shadow-sm"
+              >
                 <div className="text-sm text-gray-900 font-medium">
                   Mùa {s.seasonNumber} {s.title ? `- ${s.title}` : ""}
                 </div>
@@ -505,12 +511,16 @@ export function TvAddForm({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={() =>
-                    update(
-                      "director",
-                      (form.director || []).filter((x: Person) => x.id !== d.id)
-                    )
-                  }
+                  onClick={() => {
+                    setDeleteTitle(`Xóa đạo diễn "${d.fullName}"`);
+                    setDeleteAction(() => () => {
+                      update(
+                        "director",
+                        (form.director || []).filter((x: Person) => x.id !== d.id)
+                      );
+                    });
+                    setDeleteConfirmOpen(true);
+                  }}
                   disabled={isLoading}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -592,12 +602,16 @@ export function TvAddForm({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={() =>
-                    update(
-                      "actors",
-                      (form.actors || []).filter((x: Person) => x.id !== a.id)
-                    )
-                  }
+                  onClick={() => {
+                    setDeleteTitle(`Xóa diễn viên "${a.fullName}"`);
+                    setDeleteAction(() => () => {
+                      update(
+                        "actors",
+                        (form.actors || []).filter((x: Person) => x.id !== a.id)
+                      );
+                    });
+                    setDeleteConfirmOpen(true);
+                  }}
                   disabled={isLoading}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -904,6 +918,52 @@ export function TvAddForm({
         </DialogContent>
       </Dialog> */}
 
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="bg-white border-gray-300 text-gray-900 sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="size-5" />
+              Xác Nhận Xóa
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-700 mb-2">
+              {deleteTitle}
+            </p>
+            <p className="text-xs text-red-600 font-medium">
+              Hành động này không thể hoàn tác.
+            </p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteConfirmOpen(false);
+                setDeleteAction(null);
+                setDeleteTitle("");
+              }}
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={() => {
+                if (deleteAction) {
+                  deleteAction();
+                  setDeleteConfirmOpen(false);
+                  setDeleteAction(null);
+                  setDeleteTitle("");
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Country Modal */}
       {/* <Dialog
         open={countryModalOpen}
@@ -986,6 +1046,9 @@ function SeasonsSheet({
   const [drafts, setDrafts] = useState<TvFormState["seasonDrafts"]>(
     form.seasonDrafts && form.seasonDrafts.length ? form.seasonDrafts : []
   );
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteAction, setDeleteAction] = useState<(() => void) | null>(null);
+  const [deleteTitle, setDeleteTitle] = useState("");
 
   const addSeason = () => {
     const nextNum = (drafts?.[drafts.length - 1]?.seasonNumber || 0) + 1;
@@ -1169,7 +1232,11 @@ function SeasonsSheet({
                   type="button"
                   variant="ghost"
                   className="ml-auto text-red-600 hover:bg-red-50"
-                  onClick={() => removeSeason(si)}
+                  onClick={() => {
+                    setDeleteTitle(`Xóa mùa ${s.seasonNumber}${s.title ? ` - ${s.title}` : ""}`);
+                    setDeleteAction(() => () => removeSeason(si));
+                    setDeleteConfirmOpen(true);
+                  }}
                   disabled={disabled}
                 >
                   Xóa
@@ -1208,7 +1275,11 @@ function SeasonsSheet({
                           variant="ghost"
                           size="sm"
                           className="text-red-600 hover:bg-red-50"
-                          onClick={() => removeEpisode(si, ei)}
+                          onClick={() => {
+                            setDeleteTitle(`Xóa tập ${ep.episodeNumber}${ep.title ? ` - ${ep.title}` : ""} của mùa ${s.seasonNumber}`);
+                            setDeleteAction(() => () => removeEpisode(si, ei));
+                            setDeleteConfirmOpen(true);
+                          }}
                           disabled={disabled}
                         >
                           Xóa
@@ -1400,6 +1471,52 @@ function SeasonsSheet({
           </Button>
         </SheetFooter>
       </SheetContent>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="bg-white border-gray-300 text-gray-900 sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="size-5" />
+              Xác Nhận Xóa
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-700 mb-2">
+              {deleteTitle}
+            </p>
+            <p className="text-xs text-red-600 font-medium">
+              Hành động này không thể hoàn tác.
+            </p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteConfirmOpen(false);
+                setDeleteAction(null);
+                setDeleteTitle("");
+              }}
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={() => {
+                if (deleteAction) {
+                  deleteAction();
+                  setDeleteConfirmOpen(false);
+                  setDeleteAction(null);
+                  setDeleteTitle("");
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sheet>
   );
 }

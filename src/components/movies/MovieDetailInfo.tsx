@@ -447,7 +447,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
           {!revLoading && reviews.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {reviews.map((r) => (
-                <div
+                (!r.isHidden && (<div
                   key={r.id}
                   className="rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-6 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
                 >
@@ -497,7 +497,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
                       {r.body}
                     </p>
                   )}
-                </div>
+                </div>))
               ))}
             </div>
           )}
@@ -686,7 +686,7 @@ export const MovieDetailInfo = ({ type, seasons, detail, movieId, onEpisodePlay,
             <AlertDialogHeader>
               <AlertDialogTitle className="text-gray-900">Xác Nhận Tạo Đánh Giá</AlertDialogTitle>
               <AlertDialogDescription className="text-gray-500">
-                Bạn có chắc muốn xuất bản đánh giá này? Hành động này không thể hoàn tác.
+                Bạn có chắc muốn tạo đánh giá này? Hành động này không thể hoàn tác.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <div className="rounded-md border border-gray-300 p-4 text-sm space-y-2 max-h-60 overflow-y-auto">

@@ -9,16 +9,19 @@ export interface Review {
   userId: string;
   username: string;
   userAvatar?: string;
+  isHidden?: boolean;
 
   // Content
   rating: number; // 1.0 - 5.0
   title?: string;
   body?: string;
   createdAt: string;
+  hidden?: boolean; // Whether the review is hidden
 }
 
 export interface ReviewSearchParams {
   query?: string;
+  movieTitle?: string; // Filter by movie title
   rating?: number; // 1, 2, 3, 4, 5
   page?: number;
   size?: number;
@@ -30,4 +33,10 @@ export interface ReviewRequest {
   rating: number;
   title?: string;
   body?: string;
+}
+
+// Toggle hidden response
+export interface ToggleHiddenResponse {
+  id: string;
+  isHidden: boolean;
 }

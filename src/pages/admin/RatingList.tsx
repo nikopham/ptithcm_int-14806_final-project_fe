@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Eye, Search, Star, MessageSquareQuote, Film, Star as StarIcon, Award, Calendar, User } from "lucide-react";
+import { Eye, Search, Star, MessageSquareQuote, Film, Star as StarIcon, Award, Calendar, User, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,8 +17,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -28,24 +31,29 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { useSearchReviewsQuery } from "@/features/review/reviewApi";
+import { useSearchReviewsQuery, useDeleteReviewMutation, useToggleReviewHiddenMutation } from "@/features/review/reviewApi";
 import type { Review } from "@/types/review";
+import { toast } from "sonner";
 
 export default function RatingList() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const size = 10;
 
-  const { data, isLoading, isFetching, error } = useSearchReviewsQuery({
+  const { data, isLoading, isFetching, error, refetch } = useSearchReviewsQuery({
     query: query || undefined,
     page,
     size,
   });
   const reviews: Review[] = data?.content ?? [];
+  const [deleteReviewMutation, { isLoading: isDeleting }] = useDeleteReviewMutation();
+  const [toggleHiddenMutation, { isLoading: isToggling }] = useToggleReviewHiddenMutation();
 
   /* Dialog State */
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [reviewToDelete, setReviewToDelete] = useState<Review | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const totalPages = data?.totalPages ?? 0;
   const totalElements = data?.totalElements ?? 0;
@@ -74,6 +82,45 @@ export default function RatingList() {
   const handleView = (review: Review) => {
     setSelectedReview(review);
     setIsDialogOpen(true);
+  };
+
+  /* Helper: Handle Delete */
+  const handleDeleteClick = (review: Review) => {
+    setReviewToDelete(review);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!reviewToDelete) return;
+
+    try {
+      await deleteReviewMutation(reviewToDelete.id).unwrap();
+      toast.success("Đã xóa đánh giá thành công");
+      setIsDeleteDialogOpen(false);
+      setReviewToDelete(null);
+      // Refetch to update the list
+      await refetch();
+    } catch (error) {
+      toast.error("Không thể xóa đánh giá");
+      console.error("Delete review error:", error);
+    }
+  };
+
+  /* Logic Update Status (Toggle Hidden) */
+  const toggleHidden = async (reviewId: string) => {
+    try {
+      const result = await toggleHiddenMutation(reviewId).unwrap();
+      // Update local state
+      if (selectedReview?.id === reviewId) {
+        setSelectedReview({ ...selectedReview, hidden: result.isHidden });
+      }
+      // Refetch to get updated data
+      await refetch();
+      toast.success(result.isHidden ? "Đã ẩn đánh giá" : "Đã hiển thị đánh giá");
+    } catch (error) {
+      toast.error("Không thể thay đổi trạng thái hiển thị đánh giá");
+      console.error("Toggle hidden error:", error);
+    }
   };
 
   /* Helper: Username initials */
@@ -115,7 +162,7 @@ export default function RatingList() {
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
         <Input
-          placeholder="Tìm kiếm phim, người dùng hoặc tiêu đề..."
+          placeholder="Tìm kiếm phim, người dùng hoặc nội dung đánh giá ..."
           className="pl-9 bg-white border-gray-300 text-gray-900 focus-visible:ring-[#C40E61]"
           value={query}
           onChange={(e) => {
@@ -130,14 +177,15 @@ export default function RatingList() {
         <Table>
           <TableHeader className="bg-gray-100">
             <TableRow className="hover:bg-gray-50">
+              <TableHead className="w-[60px] sm:w-[80px]">Trạng Thái</TableHead>
               <TableHead className="min-w-[200px] sm:min-w-[250px]">Phim</TableHead>
               <TableHead className="hidden sm:table-cell min-w-[150px]">Người Dùng</TableHead>
               <TableHead className="w-[100px] sm:w-[120px]">Đánh Giá</TableHead>
-              <TableHead className="hidden md:table-cell">Tiêu Đề Đánh Giá</TableHead>
+              <TableHead className="hidden md:table-cell">Nội dung Đánh Giá</TableHead>
               <TableHead className="hidden lg:table-cell text-right min-w-[100px]">
                 Ngày
               </TableHead>
-              <TableHead className="w-[60px] sm:w-[80px]"></TableHead>
+              <TableHead className="w-[120px] sm:w-[140px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -146,6 +194,16 @@ export default function RatingList() {
                 key={r.id}
                 className="hover:bg-gray-50 border-gray-200"
               >
+                {/* Status Switch (Quick Update) */}
+                <TableCell className="w-[60px] sm:w-[80px]">
+                  <Switch
+                    checked={!r.isHidden}
+                    onCheckedChange={() => toggleHidden(r.id)}
+                    disabled={isToggling}
+                    className="data-[state=checked]:bg-[#C40E61]"
+                  />
+                </TableCell>
+
                 {/* Movie Info - Combined with User on mobile */}
                 <TableCell className="min-w-[200px] sm:min-w-[250px]">
                   <div className="flex items-center gap-2 sm:gap-3">
@@ -215,31 +273,40 @@ export default function RatingList() {
                 </TableCell>
 
                 {/* Actions */}
-                <TableCell className="w-[60px] sm:w-[80px]">
-                  <Button
-                    variant="ghost"
-                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-gray-600 hover:text-[#C40E61] hover:bg-[#C40E61]/10"
-                    onClick={() => handleView(r)}
-                  >
-                    <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  </Button>
+                <TableCell className="w-[120px] sm:w-[140px]">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Button
+                      variant="ghost"
+                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-gray-600 hover:text-[#C40E61] hover:bg-[#C40E61]/10"
+                      onClick={() => handleView(r)}
+                    >
+                      <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-gray-600 hover:text-red-600 hover:bg-red-50"
+                      onClick={() => handleDeleteClick(r)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
             {(isLoading || isFetching) && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="h-20 sm:h-24 text-center text-gray-500 text-sm"
                 >
                   Đang tải đánh giá...
                 </TableCell>
               </TableRow>
             )}
-            {!isLoading && reviews.length === 0 && (
+            {!isLoading && !isFetching && reviews.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="h-20 sm:h-24 text-center text-gray-500 text-sm"
                 >
                   Không tìm thấy đánh giá nào.
@@ -249,7 +316,7 @@ export default function RatingList() {
             {!!error && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="h-20 sm:h-24 text-center text-red-600 text-sm"
                 >
                   Không thể tải đánh giá.
@@ -301,9 +368,23 @@ export default function RatingList() {
           {selectedReview && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-gray-900">
-                  <MessageSquareQuote className="size-5 text-[#C40E61]" />
-                  Chi Tiết Đánh Giá
+                <DialogTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <MessageSquareQuote className="size-5 text-[#C40E61]" />
+                    Chi Tiết Đánh Giá
+                  </span>
+                  {selectedReview.hidden ? (
+                    <Badge
+                      variant="destructive"
+                      className="bg-red-50 text-red-700 border-red-300"
+                    >
+                      ĐÃ ẨN
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300">
+                      HIỂN THỊ
+                    </Badge>
+                  )}
                 </DialogTitle>
                 <DialogDescription className="text-gray-500">
                   ID Đánh Giá:{" "}
@@ -379,9 +460,97 @@ export default function RatingList() {
                     {selectedReview.body}
                   </ScrollArea>
                 </div>
+
+                {/* Status Toggle in Dialog */}
+                <div className="flex items-center justify-between rounded-lg border border-gray-300 bg-white p-4 shadow-sm">
+                  <div className="space-y-0.5">
+                    <Label className="text-base text-gray-900">Hiển Thị</Label>
+                    <p className="text-xs text-gray-500">
+                      {selectedReview.hidden
+                        ? "Đánh giá này hiện đang bị ẩn khỏi công khai."
+                        : "Đánh giá này hiển thị cho mọi người."}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-sm font-medium ${selectedReview.hidden ? "text-red-600" : "text-emerald-600"}`}
+                    >
+                      {selectedReview.hidden ? "Ẩn" : "Hiển Thị"}
+                    </span>
+                    <Switch
+                      checked={!selectedReview.hidden}
+                      onCheckedChange={() => toggleHidden(selectedReview.id)}
+                      disabled={isToggling}
+                      className="data-[state=checked]:bg-[#C40E61]"
+                    />
+                  </div>
+                </div>
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Delete Confirmation Dialog ─── */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="bg-white border-gray-300 text-gray-900 sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="size-5" />
+              Xác Nhận Xóa Đánh Giá
+            </DialogTitle>
+            <DialogDescription className="text-gray-500">
+              Bạn có chắc chắn muốn xóa đánh giá này? Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+
+          {reviewToDelete && (
+            <div className="py-4 space-y-3">
+              <div className="rounded-lg border border-gray-300 bg-gray-50 p-3">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={reviewToDelete.moviePosterUrl || ""}
+                    alt={reviewToDelete.movieTitle}
+                    className="h-12 w-8 rounded bg-gray-200 border border-gray-300 object-cover shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {reviewToDelete.movieTitle}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {reviewToDelete.username} • {reviewToDelete.rating}/5 ⭐
+                    </p>
+                  </div>
+                </div>
+                {reviewToDelete.title && (
+                  <p className="mt-2 text-sm text-gray-700 line-clamp-2">
+                    "{reviewToDelete.title}"
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setReviewToDelete(null);
+              }}
+              disabled={isDeleting}
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? "Đang xóa..." : "Xóa"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

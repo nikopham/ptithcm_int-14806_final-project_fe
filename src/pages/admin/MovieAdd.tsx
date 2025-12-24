@@ -181,7 +181,7 @@ export default function MovieAdd() {
     if (m.genres.length === 0) errors.genres = "Chọn ít nhất một thể loại";
     if (m.director.length === 0) errors.director = "Đạo diễn là bắt buộc";
     if (m.actors.length === 0) errors.actors = "Cần ít nhất một diễn viên";
-    if (!m.age) errors.age = "Xếp hạng độ tuổi là bắt buộc";
+    if (!m.age) errors.age = "Phù hợp độ tuổi là bắt buộc";
     if (!m.poster) errors.poster = "Poster là bắt buộc";
     if (!m.backdrop) errors.backdrop = "Backdrop là bắt buộc";
     if (!m.duration) errors.duration = "Thời lượng là bắt buộc";
@@ -198,7 +198,7 @@ export default function MovieAdd() {
     if (t.genres.length === 0) errors.genres = "Chọn ít nhất một thể loại";
     if (t.director.length === 0) errors.director = "Đạo diễn là bắt buộc";
     if (t.actors.length === 0) errors.actors = "Cần ít nhất một diễn viên";
-    if (!t.age) errors.age = "Xếp hạng độ tuổi là bắt buộc";
+    if (!t.age) errors.age = "Phù hợp độ tuổi là bắt buộc";
     if (!t.poster) errors.poster = "Poster là bắt buộc";
     if (!t.backdrop) errors.backdrop = "Backdrop là bắt buộc";
     return errors;
@@ -325,9 +325,9 @@ export default function MovieAdd() {
   return (
     <section className="mx-auto max-w-4xl space-y-8 pb-20 bg-white">
       <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => navigate(-1)}
           className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
         >

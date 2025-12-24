@@ -1,6 +1,6 @@
 import { axiosBaseQuery } from "@/lib/axiosBaseQuery";
 import type { PageResponse, ServiceResult } from "@/types/common";
-import type { Review, ReviewRequest, ReviewSearchParams } from "@/types/review";
+import type { Review, ReviewRequest, ReviewSearchParams, ToggleHiddenResponse } from "@/types/review";
 import { createApi } from "@reduxjs/toolkit/query/react";
 
 export const reviewApi = createApi({
@@ -19,7 +19,7 @@ export const reviewApi = createApi({
           page: params.page && params.page > 0 ? params.page - 1 : 0,
         },
       }),
-      transformResponse: (res: ServiceResult<PageResponse<Review>>) => res.data,
+      transformResponse: (res: ServiceResult<PageResponse<Review>>) => res.data ?? { content: [], totalElements: 0, totalPages: 0, number: 0, size: 0, first: true, last: true, empty: true },
       providesTags: ["Reviews"],
     }),
     createReview: builder.mutation<Review, ReviewRequest>({
@@ -29,10 +29,7 @@ export const reviewApi = createApi({
         data: body,
       }),
 
-      invalidatesTags: (result, error, { movieId }) => [
-        "Reviews",
-        { type: "Movies", id: movieId },
-      ],
+      invalidatesTags: () => ["Reviews"],
     }),
 
     updateReview: builder.mutation<Review, { id: string; body: ReviewRequest }>(
@@ -42,10 +39,29 @@ export const reviewApi = createApi({
           method: "PUT",
           data: body,
         }),
-        invalidatesTags: (result, error, arg) => ["Reviews", "Movies"],
+        invalidatesTags: () => ["Reviews"],
       }
     ),
+
+    deleteReview: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/api/v1/reviews/delete/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: () => ["Reviews"],
+    }),
+
+    toggleReviewHidden: builder.mutation<ToggleHiddenResponse, string>({
+      query: (id) => ({
+        url: `/api/v1/reviews/${id}/toggle-hidden`,
+        method: "PATCH",
+      }),
+      transformResponse: (response: ServiceResult<ToggleHiddenResponse>) => {
+        return response.data ?? { id: "", isHidden: false };
+      },
+      invalidatesTags: ["Reviews"],
+    }),
   }),
 });
 
-export const { useSearchReviewsQuery, useCreateReviewMutation, useUpdateReviewMutation } = reviewApi;
+export const { useSearchReviewsQuery, useCreateReviewMutation, useUpdateReviewMutation, useDeleteReviewMutation, useToggleReviewHiddenMutation } = reviewApi;
