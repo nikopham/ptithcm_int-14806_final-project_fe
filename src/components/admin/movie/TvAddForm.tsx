@@ -354,7 +354,7 @@ export function TvAddForm({
           <div className="col-span-2">
             <Label className="flex items-center gap-2 text-gray-900">
               <Tv className="size-4 text-[#C40E61]" />
-              Tiêu Đề Hiển Thị
+              Tiêu Đề
             </Label>
             <Input
               value={form.title}

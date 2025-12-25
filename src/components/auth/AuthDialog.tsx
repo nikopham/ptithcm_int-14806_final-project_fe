@@ -242,7 +242,7 @@ export function AuthDialog({
 
       setMessage({
         type: "success",
-        text: "Registration successful! Please check your email for verification.",
+        text: "Đăng ký thành công! Vui lòng kiểm tra email của bạn để xác thực.",
       });
       clearForm();
     } catch (error: unknown) {
@@ -285,7 +285,7 @@ export function AuthDialog({
         // Dùng tiếng Anh
         text:
           result.message ||
-          "If that email is in our system, we've sent instructions.",
+          "Nếu email đó có trong hệ thống của chúng tôi, chúng tôi đã gửi hướng dẫn.",
       });
       clearForm();
     } catch (error: unknown) {

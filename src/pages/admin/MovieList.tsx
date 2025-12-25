@@ -353,7 +353,7 @@ export default function MovieList() {
                         <span className="font-medium text-gray-900">
                           {m.title}
                         </span>
-                        {m.isSeries && (
+                        {m.series && (
                           <span className="text-xs font-medium text-[#C40E61]">
                             Phim Bộ
                           </span>

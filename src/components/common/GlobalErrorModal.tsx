@@ -39,14 +39,14 @@ export function GlobalErrorModal() {
 
           <AlertDialogDescription className="space-y-3 pt-2 text-gray-500">
             <p className="text-base">{message}</p>
-            {code && (
+            {/* {code && (
               <div className="flex items-center gap-2 rounded-md bg-red-50 border border-red-200 px-3 py-2">
                 <Code className="size-4 text-red-600" />
                 <p className="text-sm text-red-700">
                   Mã lỗi: <strong className="font-mono">{code}</strong>
                 </p>
               </div>
-            )}
+            )} */}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
