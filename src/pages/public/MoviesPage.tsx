@@ -9,7 +9,7 @@ export default function MoviesPage() {
       <MovieHeroCarousel />
       <MovieShowcase />
       <SerieShowcase />
-      <CtaTrialBanner />
+      {/* <CtaTrialBanner /> */}
       {/* …danh sách phim, filter, v.v… */}
     </>
   );
