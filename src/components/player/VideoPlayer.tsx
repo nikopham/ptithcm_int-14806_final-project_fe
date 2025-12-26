@@ -191,7 +191,7 @@ export const VideoPlayer = ({ src, movieId, episodeId, poster, className, curren
       const duration = art.video.duration;
 
       // Cứ mỗi 10 giây gửi API một lần (Throttling)
-      if (currentTime - lastUpdateRef.current >= 10) {
+      if (currentTime - lastUpdateRef.current >= 7) {
         handleSave(currentTime, duration);
         lastUpdateRef.current = currentTime;
       }
@@ -215,6 +215,13 @@ export const VideoPlayer = ({ src, movieId, episodeId, poster, className, curren
         if (!art.video.paused) {
           art.video.pause();
         }
+        handleSave(art.video.currentTime, art.video.duration);
+      }
+    });
+
+    // 4. Gửi ngay lập tức khi video kết thúc
+    art.on('video:ended', () => {
+      if (art.video) {
         handleSave(art.video.currentTime, art.video.duration);
       }
     });
@@ -258,16 +265,25 @@ export const VideoPlayer = ({ src, movieId, episodeId, poster, className, curren
           }
         };
 
+        const handleVideoEnded = () => {
+          // Lưu progress khi video kết thúc
+          if (art.video) {
+            handleSave(art.video.currentTime, art.video.duration);
+          }
+        };
+
         art.video.addEventListener('pause', handleVideoPause);
+        art.video.addEventListener('ended', handleVideoEnded);
         
         // Cleanup listener khi destroy
         art.on('destroy', () => {
           art.video?.removeEventListener('pause', handleVideoPause);
+          art.video?.removeEventListener('ended', handleVideoEnded);
         });
       }
     });
     
-        // 4. Gửi ngay lập tức khi Hủy/Đóng (Destroy)
+        // 5. Gửi ngay lập tức khi Hủy/Đóng (Destroy)
         art.on('destroy', () => {
           if (art.video) {
             handleSave(art.video.currentTime, art.video.duration);
